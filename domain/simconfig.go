@@ -6,6 +6,6 @@ type SimConfig struct {
 	MaxPriority      int              `yaml:"max_priority" json:"max_priority"`
 	BufferSize       int              `yaml:"buffer_size" json:"buffer_size"`
 	FlitSize         int              `yaml:"flit_size" json:"flit_size"`
-	ProcessingDelay  int              `yaml:"processing_delay" json:"processing_delay"`
 	LinkBandwidth    int              `yaml:"link_bandwidth" json:"link_bandwidth"`
+	ProcessingDelay  int              `yaml:"processing_delay" json:"processing_delay"`
 }

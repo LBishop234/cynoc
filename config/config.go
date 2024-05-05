@@ -23,7 +23,7 @@ func ReadConfig(fPath string) (domain.SimConfig, error) {
 	case ".json":
 		config, err = readJson(fPath)
 	default:
-		log.Log.Error().Err(domain.ErrInvalidFilepath).Str("ext", filepath.Ext(fPath)).Msg("invalid config file extension")
+		log.Log.Error().Err(domain.ErrInvalidFilepath).Str("ext", filepath.Ext(fPath)).Msg("invalid config file extension must be yaml or json")
 		return domain.SimConfig{}, domain.ErrInvalidFilepath
 	}
 

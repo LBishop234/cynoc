@@ -1,75 +1,105 @@
 package config
 
 import (
-	"fmt"
+	"encoding/json"
 	"os"
+	"path"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"main/domain"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var testConfig domain.SimConfig = domain.SimConfig{
-	CycleLimit:       10000,
-	RoutingAlgorithm: "XY",
-	BufferSize:       2,
-	FlitSize:         4,
-	ProcessingDelay:  6,
-}
-
-func TestYaml(t *testing.T) {
+func TestReadConfig(t *testing.T) {
 	t.Parallel()
 
-	t.Run("Valid", func(t *testing.T) {
-		testYaml := fmt.Sprintf(`
-cycle_limit: %d
-buffer_size: %d
-flit_size: %d
-routing_algorithm: %s
-processing_delay: %d`,
-			testConfig.CycleLimit,
-			testConfig.BufferSize,
-			testConfig.FlitSize,
-			testConfig.RoutingAlgorithm,
-			testConfig.ProcessingDelay,
-		)
+	const testResourcesPath = "test_resources"
 
-		tmpFile := t.TempDir() + "/config.yaml"
-		err := os.WriteFile(tmpFile, []byte(testYaml), 0o644)
-		require.NoError(t, err)
+	type testCase struct {
+		filename string
+		err      error
+		conf     domain.SimConfig
+	}
 
-		conf, err := readYaml(tmpFile)
-		require.NoError(t, err)
-		require.Equal(t, testConfig, conf)
+	testCases := []testCase{
+		{
+			filename: "valid_basic.yaml",
+			err:      nil,
+			conf: domain.SimConfig{
+				CycleLimit:       1000,
+				RoutingAlgorithm: "XY",
+				MaxPriority:      6,
+				BufferSize:       12,
+				FlitSize:         2,
+				LinkBandwidth:    6,
+				ProcessingDelay:  6,
+			},
+		},
+	}
+
+	tmpDir := t.TempDir()
+
+	for _, tc := range testCases {
+		t.Run(strings.TrimSuffix(tc.filename, filepath.Ext(tc.filename)), func(t *testing.T) {
+			yPath := path.Join(testResourcesPath, tc.filename)
+
+			t.Run("YAML", func(t *testing.T) {
+				conf, err := ReadConfig(yPath)
+				require.ErrorIs(t, tc.err, err)
+
+				if err == nil {
+					assert.Equal(t, tc.conf, conf)
+				}
+			})
+
+			t.Run("JSON", func(t *testing.T) {
+				jPath := yamlFileToJsonFile(t, tmpDir, yPath)
+
+				conf, err := ReadConfig(jPath)
+				require.ErrorIs(t, tc.err, err)
+
+				if err == nil {
+					assert.Equal(t, tc.conf, conf)
+				}
+
+			})
+		})
+	}
+
+	//
+	// Custom test cases for edge cases.
+	//
+	t.Run("NoFile", func(t *testing.T) {
+		t.Run("YAML", func(t *testing.T) {
+			_, err := ReadConfig("no_file.yaml")
+			require.Error(t, err)
+		})
+
+		t.Run("JSON", func(t *testing.T) {
+			_, err := ReadConfig("no_file.json")
+			require.Error(t, err)
+		})
 	})
 }
 
-func TestJson(t *testing.T) {
-	t.Parallel()
+// Creates an equivalent JSON file from a YAML file.
+// Returns the path to the temporary JSON file.
+func yamlFileToJsonFile(tb testing.TB, tmpDir string, yPath string) string {
+	conf, err := readYaml(yPath)
+	require.NoError(tb, err)
 
-	t.Run("Valid", func(t *testing.T) {
-		testJson := fmt.Sprintf(`
-{
-	"cycle_limit": %d,
-	"buffer_size": %d,
-	"flit_size": %d,
-	"routing_algorithm": "%s",
-	"processing_delay": %d
-}`,
-			testConfig.CycleLimit,
-			testConfig.BufferSize,
-			testConfig.FlitSize,
-			testConfig.RoutingAlgorithm,
-			testConfig.ProcessingDelay,
-		)
+	jBytes, err := json.Marshal(conf)
+	require.NoError(tb, err)
 
-		tmpFile := t.TempDir() + "/config.json"
-		err := os.WriteFile(tmpFile, []byte(testJson), 0o644)
-		require.NoError(t, err)
+	jFilename := strings.TrimSuffix(filepath.Base(yPath), filepath.Ext(yPath)) + ".json"
+	jPath := path.Join(tmpDir, jFilename)
 
-		conf, err := readJson(tmpFile)
-		require.NoError(t, err)
-		require.Equal(t, testConfig, conf)
-	})
+	err = os.WriteFile(jPath, jBytes, 0644)
+	require.NoError(tb, err)
+
+	return jPath
 }
