@@ -38,37 +38,47 @@ func ReadConfig(fPath string) (domain.SimConfig, error) {
 
 func validate(conf domain.SimConfig) error {
 	if conf.CycleLimit < 1 {
-		log.Log.Error().Int("cycle_limit", conf.CycleLimit).Msg("invalid cycle limit")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("cycle_limit", conf.CycleLimit).Msg("cycle limit must be greater than 0")
 		return domain.ErrInvalidConfig
 	}
 
 	if conf.MaxPriority < 1 {
-		log.Log.Error().Int("max_priority", conf.MaxPriority).Msg("invalid max priority")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("max_priority", conf.MaxPriority).Msg("max priority must be greater than 0")
 		return domain.ErrInvalidConfig
 	}
 
 	if conf.BufferSize < 1 {
-		log.Log.Error().Int("buffer_size", conf.BufferSize).Msg("invalid buffer size")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("buffer_size", conf.BufferSize).Msg("buffer size must be greater than 0")
 		return domain.ErrInvalidConfig
 	}
 
 	if conf.BufferSize%conf.MaxPriority != 0 {
-		log.Log.Error().Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("max priority must be a factor of buffer size")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("buffer size must be a multiple of max priority")
 		return domain.ErrInvalidConfig
 	}
 
 	if conf.FlitSize < 1 {
-		log.Log.Error().Int("flit_size", conf.FlitSize).Msg("invalid flit size")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("flit_size", conf.FlitSize).Msg("flit size must be greater than 0")
 		return domain.ErrInvalidConfig
 	}
 
 	if conf.BufferSize%conf.FlitSize != 0 {
-		log.Log.Error().Int("buffer_size", conf.BufferSize).Int("flit_size", conf.FlitSize).Msg("flit size must be a factor of buffer size")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("buffer_size", conf.BufferSize).Int("flit_size", conf.FlitSize).Msg("buffer size must be a multiple of flit size")
 		return domain.ErrInvalidConfig
 	}
 
 	if conf.ProcessingDelay < 1 {
-		log.Log.Error().Int("processing_delay", conf.ProcessingDelay).Msg("invalid processing delay")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("processing_delay", conf.ProcessingDelay).Msg("processing delay must be greater than 0")
+		return domain.ErrInvalidConfig
+	}
+
+	if conf.LinkBandwidth < 1 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("link_bandwidth", conf.LinkBandwidth).Msg("link bandwidth must be greater than 0")
+		return domain.ErrInvalidConfig
+	}
+
+	if conf.LinkBandwidth%conf.FlitSize != 0 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("link_bandwidth", conf.LinkBandwidth).Int("flit_size", conf.FlitSize).Msg("link bandwidth must be a multiple of flit size")
 		return domain.ErrInvalidConfig
 	}
 

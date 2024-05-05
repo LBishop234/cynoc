@@ -7,4 +7,5 @@ type SimConfig struct {
 	BufferSize       int              `yaml:"buffer_size" json:"buffer_size"`
 	FlitSize         int              `yaml:"flit_size" json:"flit_size"`
 	ProcessingDelay  int              `yaml:"processing_delay" json:"processing_delay"`
+	LinkBandwidth    int              `yaml:"link_bandwidth" json:"link_bandwidth"`
 }

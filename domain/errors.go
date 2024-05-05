@@ -18,7 +18,7 @@ var (
 
 	ErrPortNoCredit = errors.New("port has no credit available for flit")
 
-	ErrUnknownFlitType = errors.New("Unknown flit type")
+	ErrUnknownFlitType = errors.New("unknown flit type")
 
 	ErrNoPort           = errors.New("router found no port for packet")
 	ErrMisorderedPacket = errors.New("router received misordered packet flits")
