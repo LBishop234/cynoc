@@ -47,7 +47,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_cycle_limit_zero",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidCycleLimit,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"cycle_limit": 0,
@@ -55,7 +55,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_routing_algorithm",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidRoutingAlgorithm,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"routing_algorithm": "UNKNOWN",
@@ -63,7 +63,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_max_priority_zero",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidMaxPriority,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"max_priority": 0,
@@ -71,7 +71,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_flit_size_zero",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidFlitSize,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"flit_size": 0,
@@ -79,7 +79,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_buffer_size_zero",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidBufferSize,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"buffer_size": 0,
@@ -87,7 +87,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_buffer_size_not_multiple_max_priority",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidBufferSize,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"max_priority": 3,
@@ -97,7 +97,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_buffer_size_not_multiple_flit_size",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidBufferSize,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"max_priority": 5,
@@ -107,7 +107,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		{
 			name:     "invalid_processing_delay_zero",
-			err:      domain.ErrInvalidConfig,
+			err:      ErrInvalidProcessingDelay,
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"processing_delay": 0,
@@ -115,7 +115,7 @@ func TestReadConfig(t *testing.T) {
 		},
 		// {
 		// 	name:     "invalid_link_bandwidth_zero",
-		// 	err:      domain.ErrInvalidConfig,
+		// 	err:      ErrInvalidLinkBandwidth,
 		// 	baseFile: "valid_basic.yaml",
 		// 	overrides: map[string]any{
 		// 		"link_bandwidth": 0,
@@ -123,7 +123,7 @@ func TestReadConfig(t *testing.T) {
 		// },
 		// {
 		// 	name:     "invalid_link_bandwidth_not_multiple_flit_size",
-		// 	err:      domain.ErrInvalidConfig,
+		// 	err:      ErrInvalidLinkBandwidth,
 		// 	baseFile: "valid_basic.yaml",
 		// 	overrides: map[string]any{
 		// 		"flit_size":     4,
@@ -161,7 +161,10 @@ func TestReadConfig(t *testing.T) {
 
 			t.Run("YAML", func(t *testing.T) {
 				conf, err := ReadConfig(yPath)
-				require.ErrorIs(t, tc.err, err)
+				require.ErrorIs(t, err, tc.err)
+				if tc.err != nil {
+					require.ErrorIs(t, err, ErrInvalidConfig)
+				}
 
 				if err == nil {
 					assert.Equal(t, tc.conf, conf)
@@ -172,7 +175,10 @@ func TestReadConfig(t *testing.T) {
 				jPath := yamlFileToJsonFile(t, tmpDir, yPath)
 
 				conf, err := ReadConfig(jPath)
-				require.ErrorIs(t, tc.err, err)
+				require.ErrorIs(t, err, tc.err)
+				if tc.err != nil {
+					require.ErrorIs(t, err, ErrInvalidConfig)
+				}
 
 				if err == nil {
 					assert.Equal(t, tc.conf, conf)
