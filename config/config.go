@@ -47,6 +47,11 @@ func validate(conf domain.SimConfig) error {
 		return domain.ErrInvalidConfig
 	}
 
+	if conf.FlitSize < 1 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Int("flit_size", conf.FlitSize).Msg("flit size must be greater than 0")
+		return domain.ErrInvalidConfig
+	}
+
 	if conf.BufferSize < 1 {
 		log.Log.Error().Err(domain.ErrInvalidConfig).Int("buffer_size", conf.BufferSize).Msg("buffer size must be greater than 0")
 		return domain.ErrInvalidConfig
@@ -54,11 +59,6 @@ func validate(conf domain.SimConfig) error {
 
 	if conf.BufferSize%conf.MaxPriority != 0 {
 		log.Log.Error().Err(domain.ErrInvalidConfig).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("buffer size must be a multiple of max priority")
-		return domain.ErrInvalidConfig
-	}
-
-	if conf.FlitSize < 1 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Int("flit_size", conf.FlitSize).Msg("flit size must be greater than 0")
 		return domain.ErrInvalidConfig
 	}
 
@@ -115,7 +115,7 @@ func readJson(fPath string) (domain.SimConfig, error) {
 	var config domain.SimConfig
 	err = json.Unmarshal(bytes, &config)
 	if err != nil {
-		log.Log.Error().Err(err).Str("path", fPath).Msg("error unmarshalling .yaml config file")
+		log.Log.Error().Err(err).Str("path", fPath).Msg("error unmarshalling .json config file")
 		return domain.SimConfig{}, err
 	}
 	log.Log.Debug().Msg("unmarshalled .json config file")

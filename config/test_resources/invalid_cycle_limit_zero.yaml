@@ -1,4 +1,4 @@
-cycle_limit: 1000
+cycle_limit: 0
 routing_algorithm: XY
 max_priority: 6
 flit_size: 2

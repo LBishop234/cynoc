@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,15 +21,15 @@ func TestReadConfig(t *testing.T) {
 	const testResourcesPath = "test_resources"
 
 	type testCase struct {
-		filename string
-		err      error
-		conf     domain.SimConfig
+		name string
+		err  error
+		conf domain.SimConfig
 	}
 
 	testCases := []testCase{
 		{
-			filename: "valid_basic.yaml",
-			err:      nil,
+			name: "valid_basic",
+			err:  nil,
 			conf: domain.SimConfig{
 				CycleLimit:       1000,
 				RoutingAlgorithm: "XY",
@@ -39,13 +40,45 @@ func TestReadConfig(t *testing.T) {
 				ProcessingDelay:  6,
 			},
 		},
+		{
+			name: "invalid_cycle_limit_zero",
+			err:  domain.ErrInvalidConfig,
+		},
+		// {
+		// 	name: "invalid_routing_algorithm",
+		// 	err:  domain.ErrInvalidConfig,
+		// },
+		{
+			name: "invalid_max_priority_zero",
+			err:  domain.ErrInvalidConfig,
+		},
+		{
+			name: "invalid_flit_size_zero",
+			err:  domain.ErrInvalidConfig,
+		},
+		{
+			name: "invalid_buffer_size_zero",
+			err:  domain.ErrInvalidConfig,
+		},
+		{
+			name: "invalid_buffer_size_not_multiple_max_priority",
+			err:  domain.ErrInvalidConfig,
+		},
+		{
+			name: "invalid_buffer_size_not_multiple_flit_size",
+			err:  domain.ErrInvalidConfig,
+		},
+		{
+			name: "invalid_processing_delay_zero",
+			err:  domain.ErrInvalidConfig,
+		},
 	}
 
 	tmpDir := t.TempDir()
 
 	for _, tc := range testCases {
-		t.Run(strings.TrimSuffix(tc.filename, filepath.Ext(tc.filename)), func(t *testing.T) {
-			yPath := path.Join(testResourcesPath, tc.filename)
+		t.Run(tc.name, func(t *testing.T) {
+			yPath := path.Join(testResourcesPath, fmt.Sprint(tc.name, ".yaml"))
 
 			t.Run("YAML", func(t *testing.T) {
 				conf, err := ReadConfig(yPath)
