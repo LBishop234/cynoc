@@ -16,10 +16,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const testResourcesDir = "test_resources"
+
 func TestReadConfig(t *testing.T) {
 	t.Parallel()
-
-	const testResourcesPath = "test_resources"
 
 	type testCase struct {
 		name      string
@@ -137,7 +137,7 @@ func TestReadConfig(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Copy the base file to a temporary directory.
-			basePath := path.Join(testResourcesPath, tc.baseFile)
+			basePath := path.Join(testResourcesDir, tc.baseFile)
 			yPath := path.Join(tmpDir, fmt.Sprint(tc.name, ".yaml"))
 
 			baseBytes, err := os.ReadFile(basePath)
@@ -195,6 +195,21 @@ func TestReadConfig(t *testing.T) {
 			_, err := ReadConfig("no_file.json")
 			require.Error(t, err)
 		})
+	})
+
+	t.Run("InvalidFileExtension", func(t *testing.T) {
+		_, err := ReadConfig(path.Join(testResourcesDir, "invalid_file_extension.txt"))
+		require.Error(t, err)
+	})
+
+	t.Run("InvalidYAML", func(t *testing.T) {
+		_, err := ReadConfig(path.Join(testResourcesDir, "invalid_yaml.yaml"))
+		require.Error(t, err)
+	})
+
+	t.Run("InvalidJSON", func(t *testing.T) {
+		_, err := ReadConfig(path.Join(testResourcesDir, "invalid_json.json"))
+		require.Error(t, err)
 	})
 }
 
