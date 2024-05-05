@@ -42,6 +42,18 @@ func validate(conf domain.SimConfig) error {
 		return domain.ErrInvalidConfig
 	}
 
+	flag := false
+	for _, alg := range domain.RoutingAlgorithms() {
+		if conf.RoutingAlgorithm == alg {
+			flag = true
+			break
+		}
+	}
+	if !flag {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("routing_algorithm", string(conf.RoutingAlgorithm)).Msg("invalid routing algorithm")
+		return domain.ErrInvalidConfig
+	}
+
 	if conf.MaxPriority < 1 {
 		log.Log.Error().Err(domain.ErrInvalidConfig).Int("max_priority", conf.MaxPriority).Msg("max priority must be greater than 0")
 		return domain.ErrInvalidConfig

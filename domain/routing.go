@@ -12,3 +12,10 @@ type NodeID struct {
 }
 
 type Route []NodeID
+
+// Returns an array of all valid routing algorithms.
+func RoutingAlgorithms() []RoutingAlgorithm {
+	return []RoutingAlgorithm{
+		XYRouting,
+	}
+}

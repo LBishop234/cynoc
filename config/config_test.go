@@ -53,14 +53,14 @@ func TestReadConfig(t *testing.T) {
 				"cycle_limit": 0,
 			},
 		},
-		// {
-		// 	name:     "invalid_routing_algorithm",
-		// 	err:      domain.ErrInvalidConfig,
-		// 	baseFile: "valid_basic.yaml",
-		// 	overrides: map[string]any{
-		// 		"routing_algorithm": "UNKNOWN",
-		// 	},
-		// },
+		{
+			name:     "invalid_routing_algorithm",
+			err:      domain.ErrInvalidConfig,
+			baseFile: "valid_basic.yaml",
+			overrides: map[string]any{
+				"routing_algorithm": "UNKNOWN",
+			},
+		},
 		{
 			name:     "invalid_max_priority_zero",
 			err:      domain.ErrInvalidConfig,
