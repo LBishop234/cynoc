@@ -20,7 +20,7 @@ var (
 	ErrInvalidFlitSize         = errors.New("invalid flit size")
 	ErrInvalidBufferSize       = errors.New("invalid buffer size")
 	ErrInvalidProcessingDelay  = errors.New("invalid processing delay")
-	// ErrInvalidLinkBandwidth = errors.New("invalid link bandwidth")
+	// ErrInvalidLinkBandwidth = errors.New("invalid link bandwidth").
 )
 
 func ReadConfig(fPath string) (domain.SimConfig, error) {

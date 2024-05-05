@@ -156,7 +156,7 @@ func TestReadConfig(t *testing.T) {
 			yBytes, err := yaml.Marshal(data)
 			require.NoError(t, err)
 
-			err = os.WriteFile(yPath, yBytes, 0644)
+			err = os.WriteFile(yPath, yBytes, 0o644)
 			require.NoError(t, err)
 
 			t.Run("YAML", func(t *testing.T) {
@@ -183,7 +183,6 @@ func TestReadConfig(t *testing.T) {
 				if err == nil {
 					assert.Equal(t, tc.conf, conf)
 				}
-
 			})
 		})
 	}
@@ -231,7 +230,7 @@ func yamlFileToJsonFile(tb testing.TB, tmpDir string, yPath string) string {
 	jFilename := strings.TrimSuffix(filepath.Base(yPath), filepath.Ext(yPath)) + ".json"
 	jPath := path.Join(tmpDir, jFilename)
 
-	err = os.WriteFile(jPath, jBytes, 0644)
+	err = os.WriteFile(jPath, jBytes, 0o644)
 	require.NoError(tb, err)
 
 	return jPath
