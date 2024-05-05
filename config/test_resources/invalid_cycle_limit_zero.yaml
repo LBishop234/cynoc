@@ -1,7 +1,0 @@
-cycle_limit: 0
-routing_algorithm: XY
-max_priority: 6
-flit_size: 2
-buffer_size: 12
-link_bandwidth: 6
-processing_delay: 6
