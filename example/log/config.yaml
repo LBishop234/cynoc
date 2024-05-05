@@ -1,0 +1,6 @@
+cycle_limit: 1600000
+max_priority: 10
+routing_algorithm: XY
+buffer_size: 80
+flit_size: 4
+processing_delay: 6

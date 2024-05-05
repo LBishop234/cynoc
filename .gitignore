@@ -1,0 +1,7 @@
+# VSCode artefacts
+.vscode
+**.DS_Store
+
+# Simulator build artefacts
+main
+simulator

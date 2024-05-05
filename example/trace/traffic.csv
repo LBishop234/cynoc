@@ -1,0 +1,4 @@
+id,src,dst,priority,period,deadline,jitter,packet_size
+t1,n1,n3,1,50,100,0,4
+t2,n1,n3,1,60,100,0,4
+t3,n1,n3,2,50,100,0,4

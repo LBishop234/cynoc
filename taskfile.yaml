@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+
+  dependencies:
+    dir: .
+    deps:
+      - go-exists
+      - install-lint-deps
+
+  go-exists:
+    preconditions:
+      - which go
+
+  install-lint-deps:
+    status:
+      - which golangci-lint
+    cmds:
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
+  
+  test:
+    dir: .
+    deps:
+      - dependencies
+    cmds:
+      - go test -cover ./...
+
+  lint:
+    dir: .
+    deps:
+      - dependencies
+    cmds:
+      - golangci-lint run --config=.golangci.yml
+
+  lint-fix:
+    dir: .
+    deps:
+      - dependencies
+    cmds:
+      - golangci-lint run --config=.golangci.yml --disable-all -E gofumpt --fix
+      - golangci-lint run --config=.golangci.yml --fix
+
+  build:
+    dir: .
+    deps:
+      - dependencies
+    cmds:
+      - go mod tidy
+      - go build -o simulator
+
+  # trace:
+  #   dir: .
+  #   deps:
+  #     - build
+  #   cmds:
+  #     - ./simulator -c example/trace/config.yaml -t example/trace/3-h-line.xml -tr example/trace/traffic.csv -a -trace
+
+  debug:
+    dir: .
+    deps:
+      - build
+    cmds:
+      - ./simulator -c example/debug/config.yaml -t example/debug/3-3-square.xml -tr example/debug/traffic.csv -a -debug
+
+  log:
+    dir: .
+    deps:
+      - build
+    cmds:
+      - ./simulator -c example/log/config.yaml -t example/log/3-3-square.xml -tr example/log/traffic.csv -a -log
+
+  run:
+    dir: .
+    deps:
+      - build
+    cmds:
+      - ./simulator -c example/run/config.yaml -t example/run/3-3-square.xml -tr example/run/traffic.csv -a
