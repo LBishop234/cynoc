@@ -72,15 +72,15 @@ func validate(conf domain.SimConfig) error {
 		return domain.ErrInvalidConfig
 	}
 
-	if conf.LinkBandwidth < 1 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Int("link_bandwidth", conf.LinkBandwidth).Msg("link bandwidth must be greater than 0")
-		return domain.ErrInvalidConfig
-	}
+	// if conf.LinkBandwidth < 1 {
+	// 	log.Log.Error().Err(domain.ErrInvalidConfig).Int("link_bandwidth", conf.LinkBandwidth).Msg("link bandwidth must be greater than 0")
+	// 	return domain.ErrInvalidConfig
+	// }
 
-	if conf.LinkBandwidth%conf.FlitSize != 0 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Int("link_bandwidth", conf.LinkBandwidth).Int("flit_size", conf.FlitSize).Msg("link bandwidth must be a multiple of flit size")
-		return domain.ErrInvalidConfig
-	}
+	// if conf.LinkBandwidth%conf.FlitSize != 0 {
+	// 	log.Log.Error().Err(domain.ErrInvalidConfig).Int("link_bandwidth", conf.LinkBandwidth).Int("flit_size", conf.FlitSize).Msg("link bandwidth must be a multiple of flit size")
+	// 	return domain.ErrInvalidConfig
+	// }
 
 	return nil
 }
