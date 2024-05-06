@@ -3,6 +3,8 @@ package cli
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"main/log"
 	"main/src/config"
 	"main/src/core/analysis"
@@ -12,7 +14,6 @@ import (
 	"main/src/domain"
 	"main/src/topology"
 	"main/src/traffic"
-	"sync"
 
 	"github.com/urfave/cli/v2"
 )
