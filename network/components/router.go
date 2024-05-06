@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sync"
 
+	"main/core/log"
 	"main/domain"
-	"main/log"
 	"main/traffic/packet"
 
 	"github.com/google/uuid"

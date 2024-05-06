@@ -3,9 +3,9 @@ package analysis
 import (
 	"context"
 
-	"main/analysis/basic"
-	"main/analysis/shiburns"
-	"main/analysis/util"
+	"main/core/analysis/basic"
+	"main/core/analysis/shiburns"
+	"main/core/analysis/util"
 	"main/domain"
 	"main/topology"
 )

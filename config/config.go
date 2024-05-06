@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"main/core/log"
 	"main/domain"
-	"main/log"
 
 	"gopkg.in/yaml.v3"
 )

@@ -1,8 +1,8 @@
 package network
 
 import (
+	"main/core/log"
 	"main/domain"
-	"main/log"
 	"main/network/components"
 	"main/topology"
 )

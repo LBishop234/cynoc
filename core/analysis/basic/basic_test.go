@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"testing"
 
-	"main/analysis/util"
+	"main/core/analysis/util"
 	"main/domain"
 	"main/topology"
 

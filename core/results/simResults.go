@@ -3,55 +3,39 @@ package results
 import (
 	"strconv"
 
-	"main/analysis"
+	"main/core/simulation"
 	"main/domain"
-	"main/simulation"
 
 	"github.com/alexeyco/simpletable"
 )
 
-type simAnalysisResults struct {
+type simResults struct {
 	simResults   localSimResults
-	trafficFlows []tfSimAnalysis
+	trafficFlows []tfSim
 }
 
-func NewResultsWithAnalysis(sim simulation.Results, analyses analysis.AnalysisResults, tfOrder []domain.TrafficFlowConfig) (Results, error) {
-	var results simAnalysisResults
+func NewResults(sim simulation.Results, tfOrder []domain.TrafficFlowConfig) (Results, error) {
+	var results simResults
 
 	results.simResults = localSimResults(sim.SimResults)
 
 	for i := 0; i < len(tfOrder); i++ {
-		tfSimStats, exists := sim.TFStats[tfOrder[i].ID]
+		tfStats, exists := sim.TFStats[tfOrder[i].ID]
 		if !exists {
 			return nil, domain.ErrMissingTrafficFlow
 		}
 
-		tfAnalysis, exists := analyses[tfOrder[i].ID]
-		if !exists {
-			return nil, domain.ErrMissingTrafficFlow
-		}
-
-		analysisHolds := true
-		// if tfAnalysis.AnalysisSchedulable() && (tfSimStats.WorstLatency > (tfOrder[i].Jitter + tfAnalysis.ShiAndBurns)) {
-		if tfAnalysis.AnalysisSchedulable() && !tfSimStats.Schedulable() {
-			analysisHolds = false
-		}
-
-		results.trafficFlows = append(results.trafficFlows, tfSimAnalysis{
-			tfSim: tfSim{
-				ID:                 tfOrder[i].ID,
-				Deadline:           tfOrder[i].Deadline,
-				TrafficFlowStatSet: tfSimStats,
-			},
-			TrafficFlowAnalysisSet: tfAnalysis,
-			AnalysisHolds:          analysisHolds,
+		results.trafficFlows = append(results.trafficFlows, tfSim{
+			ID:                 tfOrder[i].ID,
+			Deadline:           tfOrder[i].Deadline,
+			TrafficFlowStatSet: tfStats,
 		})
 	}
 
 	return &results, nil
 }
 
-func (r *simAnalysisResults) Prettify() (string, error) {
+func (r *simResults) Prettify() (string, error) {
 	var str string
 
 	str += r.simResults.prettify()
@@ -60,7 +44,7 @@ func (r *simAnalysisResults) Prettify() (string, error) {
 	return str, nil
 }
 
-func (r *simAnalysisResults) prettifyTfInfo() (str string) {
+func (r *simResults) prettifyTfInfo() (str string) {
 	str += "Traffic Flow Results\n"
 	str += "====================\n"
 	str += r.prettifyTfTable()
@@ -68,10 +52,9 @@ func (r *simAnalysisResults) prettifyTfInfo() (str string) {
 	return str
 }
 
-func (r *simAnalysisResults) prettifyTfTable() (str string) {
-	tfTable := simpletable.New()
-
-	tfTable.Header = &simpletable.Header{
+func (r *simResults) prettifyTfTable() (str string) {
+	table := simpletable.New()
+	table.Header = &simpletable.Header{
 		Cells: []*simpletable.Cell{
 			{Align: simpletable.AlignLeft, Text: "Traffic Flow"},
 			{Align: simpletable.AlignLeft, Text: "Packets Routed"},
@@ -81,24 +64,20 @@ func (r *simAnalysisResults) prettifyTfTable() (str string) {
 			{Align: simpletable.AlignLeft, Text: "Mean Latency"},
 			{Align: simpletable.AlignLeft, Text: "Worst Latency"},
 			{Align: simpletable.AlignLeft, Text: "Deadline"},
-			{Align: simpletable.AlignLeft, Text: "Jitter"},
-			{Align: simpletable.AlignLeft, Text: "Basic"},
-			{Align: simpletable.AlignLeft, Text: "Shi & Burns"},
-			{Align: simpletable.AlignLeft, Text: "Analysis Holds"},
 		},
 	}
 
 	for i := 0; i < len(r.trafficFlows); i++ {
-		tfTable.Body.Cells = append(tfTable.Body.Cells, r.prettifyTfRow(r.trafficFlows[i]))
+		row := r.prettifyTfRow(r.trafficFlows[i])
+		table.Body.Cells = append(table.Body.Cells, row)
 	}
 
-	str += tfTable.String()
-	str += "\n"
+	str += table.String()
 
 	return str
 }
 
-func (r *simAnalysisResults) prettifyTfRow(tf tfSimAnalysis) []*simpletable.Cell {
+func (r *simResults) prettifyTfRow(tf tfSim) []*simpletable.Cell {
 	row := []*simpletable.Cell{
 		{Align: simpletable.AlignLeft, Text: tf.ID},
 		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.PacketsRouted)},
@@ -108,16 +87,12 @@ func (r *simAnalysisResults) prettifyTfRow(tf tfSimAnalysis) []*simpletable.Cell
 		{Align: simpletable.AlignLeft, Text: cleanMeanLatency(tf.MeanLatency)},
 		{Align: simpletable.AlignLeft, Text: cleanWorstLatency(tf.WorstLatency)},
 		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.Deadline)},
-		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.Jitter)},
-		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.Basic)},
-		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.ShiAndBurns)},
-		{Align: simpletable.AlignLeft, Text: strconv.FormatBool(tf.AnalysisHolds)},
 	}
 
 	return row
 }
 
-func (r *simAnalysisResults) OutputCSV(path string) error {
+func (r *simResults) OutputCSV(path string) error {
 	data := [][]string{
 		{
 			"Traffic Flow",
@@ -125,18 +100,11 @@ func (r *simAnalysisResults) OutputCSV(path string) error {
 			"Packets Arrived",
 			"Packets Exceeded Deadline",
 			"Packets Lost",
-			"Direct Interference",
-			"Indirect Interference",
 			"Best Latency",
 			"Mean Latency",
 			"Worst Latency",
 			"Deadline",
-			"Jitter",
-			"Basic",
-			"Shi & Burns",
-			"Analysis Schedulable",
 			"Schedulable",
-			"Analysis Holds",
 		},
 	}
 
@@ -147,18 +115,11 @@ func (r *simAnalysisResults) OutputCSV(path string) error {
 			strconv.Itoa(r.trafficFlows[i].PacketsArrived),
 			strconv.Itoa(r.trafficFlows[i].PacketsExceededDeadline),
 			strconv.Itoa(r.trafficFlows[i].PacketsLost),
-			strconv.Itoa(r.trafficFlows[i].DirectInterferenceCount),
-			strconv.Itoa(r.trafficFlows[i].IndirectInterferenceCount),
 			cleanBestLatency(r.trafficFlows[i].BestLatency),
 			cleanMeanLatency(r.trafficFlows[i].MeanLatency),
 			cleanWorstLatency(r.trafficFlows[i].WorstLatency),
 			strconv.Itoa(r.trafficFlows[i].Deadline),
-			strconv.Itoa(r.trafficFlows[i].Jitter),
-			strconv.Itoa(r.trafficFlows[i].Basic),
-			strconv.Itoa(r.trafficFlows[i].ShiAndBurns),
-			strconv.FormatBool(r.trafficFlows[i].AnalysisSchedulable()),
 			strconv.FormatBool(r.trafficFlows[i].Schedulable()),
-			strconv.FormatBool(r.trafficFlows[i].AnalysisHolds),
 		})
 	}
 

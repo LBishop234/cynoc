@@ -1,8 +1,8 @@
 package components
 
 import (
+	"main/core/log"
 	"main/domain"
-	"main/log"
 )
 
 type RouterNode struct {

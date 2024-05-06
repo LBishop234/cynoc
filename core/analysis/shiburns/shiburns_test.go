@@ -3,7 +3,7 @@ package shiburns
 import (
 	"testing"
 
-	"main/analysis/util"
+	"main/core/analysis/util"
 	"main/domain"
 	"main/topology"
 

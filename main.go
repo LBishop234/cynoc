@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"main/cli"
-	"main/log"
+	"main/core/log"
 )
 
 func main() {

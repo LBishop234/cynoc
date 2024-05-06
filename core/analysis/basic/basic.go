@@ -3,7 +3,7 @@ package basic
 import (
 	"math"
 
-	"main/analysis/util"
+	"main/core/analysis/util"
 	"main/domain"
 )
 

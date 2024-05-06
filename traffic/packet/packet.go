@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math"
 
+	"main/core/log"
 	"main/domain"
-	"main/log"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"

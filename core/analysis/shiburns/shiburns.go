@@ -3,8 +3,8 @@ package shiburns
 import (
 	"math"
 
-	"main/analysis/basic"
-	"main/analysis/util"
+	"main/core/analysis/basic"
+	"main/core/analysis/util"
 	"main/domain"
 )
 

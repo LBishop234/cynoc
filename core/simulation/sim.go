@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
+	"main/core/log"
 	"main/domain"
-	"main/log"
 	"main/network"
 	"main/traffic"
 	"main/traffic/packet"

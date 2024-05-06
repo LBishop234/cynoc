@@ -7,8 +7,8 @@ import (
 	"os"
 	"strconv"
 
-	"main/analysis"
-	"main/simulation"
+	"main/core/analysis"
+	"main/core/simulation"
 )
 
 type Results interface {
