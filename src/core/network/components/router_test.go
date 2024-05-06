@@ -1,0 +1,505 @@
+package components
+
+import (
+	"testing"
+
+	"main/src/domain"
+	"main/src/traffic/packet"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func testRouter(t *testing.T) *routerImpl {
+	router, err := newRouter(RouterConfig{
+		NodeID: domain.NodeID{
+			ID:  "n",
+			Pos: domain.NewPosition(0, 0),
+		},
+		SimConfig: domain.SimConfig{
+			RoutingAlgorithm: domain.XYRouting,
+			BufferSize:       1,
+			FlitSize:         1,
+			MaxPriority:      1,
+			ProcessingDelay:  1,
+		},
+	})
+	require.NoError(t, err)
+
+	return router
+}
+
+type testRouterPair struct {
+	rA   *routerImpl
+	niA  *networkInterfaceImpl
+	rB   *routerImpl
+	niB  *networkInterfaceImpl
+	AtoB *connectionImpl
+	BtoA *connectionImpl
+}
+
+func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxPriority int) testRouterPair {
+	aPos := domain.NewPosition(0, 0)
+	bPos := domain.NewPosition(1, 0)
+
+	rA, err := newRouter(RouterConfig{
+		NodeID: domain.NodeID{
+			ID:  "n-a",
+			Pos: aPos,
+		},
+		SimConfig: domain.SimConfig{
+			RoutingAlgorithm: domain.XYRouting,
+			BufferSize:       bufferSize,
+			FlitSize:         flitSize,
+			ProcessingDelay:  processingDelay,
+			MaxPriority:      maxPriority,
+		},
+	})
+	require.NoError(t, err)
+
+	niA, err := newNetworkInterface(domain.NodeID{ID: "i-a", Pos: aPos}, bufferSize, flitSize, flitSize)
+	require.NoError(t, err)
+
+	err = rA.SetNetworkInterface(niA)
+	require.NoError(t, err)
+
+	rB, err := newRouter(RouterConfig{
+		NodeID: domain.NodeID{
+			ID:  "n-b",
+			Pos: bPos,
+		},
+		SimConfig: domain.SimConfig{
+			RoutingAlgorithm: domain.XYRouting,
+			BufferSize:       bufferSize,
+			FlitSize:         flitSize,
+			ProcessingDelay:  processingDelay,
+			MaxPriority:      maxPriority,
+		},
+	})
+	require.NoError(t, err)
+
+	niB, err := newNetworkInterface(domain.NodeID{ID: "i-b", Pos: bPos}, bufferSize, flitSize, flitSize)
+	require.NoError(t, err)
+
+	err = rB.SetNetworkInterface(niB)
+	require.NoError(t, err)
+
+	AtoB, err := NewConnection(maxPriority)
+	require.NoError(t, err)
+
+	rA.RegisterOutputPort(AtoB)
+	rB.RegisterInputPort(AtoB)
+
+	BtoA, err := NewConnection(maxPriority)
+	require.NoError(t, err)
+
+	rB.RegisterOutputPort(BtoA)
+	rA.RegisterInputPort(BtoA)
+
+	rA.UpdateOutputMap()
+	rB.UpdateOutputMap()
+
+	return testRouterPair{
+		rA:   rA,
+		niA:  niA,
+		rB:   rB,
+		niB:  niB,
+		AtoB: AtoB,
+		BtoA: BtoA,
+	}
+}
+
+func TestNewRouter(t *testing.T) {
+	t.Parallel()
+
+	t.Run("ImplementsInterface", func(t *testing.T) {
+		router := testRouter(t)
+		assert.Implements(t, (*Router)(nil), router)
+	})
+
+	t.Run("Valid", func(t *testing.T) {
+		conf := RouterConfig{
+			NodeID: domain.NodeID{
+				ID:  "n",
+				Pos: domain.NewPosition(0, 0),
+			},
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       1,
+				FlitSize:         1,
+				ProcessingDelay:  1,
+				MaxPriority:      1,
+			},
+		}
+
+		router, err := newRouter(conf)
+		require.NoError(t, err)
+
+		assert.Equal(t, conf.NodeID, router.nodeID)
+
+		assert.NotNil(t, router.inputPorts)
+		assert.NotNil(t, router.outputPorts)
+
+		assert.Equal(t, conf.RoutingAlgorithm, router.routingAlg)
+		assert.Equal(t, conf.BufferSize, router.bufferSize)
+		assert.Equal(t, conf.FlitSize, router.flitSize)
+		assert.Equal(t, conf.MaxPriority, router.maxPriority)
+		assert.Equal(t, conf.ProcessingDelay, router.processingDelay)
+
+		assert.NotNil(t, router.headerFlitsProcessings)
+	})
+
+	t.Run("InvalidBufferSize", func(t *testing.T) {
+		_, err := newRouter(RouterConfig{
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       0,
+				FlitSize:         1,
+				ProcessingDelay:  1,
+				MaxPriority:      1,
+			},
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("InvalidProcessingDelay", func(t *testing.T) {
+		_, err := newRouter(RouterConfig{
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       1,
+				FlitSize:         1,
+				ProcessingDelay:  0,
+				MaxPriority:      1,
+			},
+		})
+		require.ErrorIs(t, err, domain.ErrInvalidParameter)
+	})
+}
+
+func TestRouterNodeID(t *testing.T) {
+	t.Parallel()
+
+	var nodeID domain.NodeID = domain.NodeID{ID: "n", Pos: domain.NewPosition(0, 0)}
+
+	router, err := newRouter(RouterConfig{
+		NodeID: nodeID,
+		SimConfig: domain.SimConfig{
+			RoutingAlgorithm: domain.XYRouting,
+			BufferSize:       1,
+			FlitSize:         1,
+			ProcessingDelay:  1,
+			MaxPriority:      1,
+		},
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, nodeID, router.NodeID())
+}
+
+func TestRouterRegisterInputPort(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid", func(t *testing.T) {
+		router := testRouter(t)
+
+		conn, err := NewConnection(router.maxPriority)
+		require.NoError(t, err)
+
+		err = router.RegisterInputPort(conn)
+		require.NoError(t, err)
+		assert.Equal(t, router.inputPorts[0].connection(), conn)
+	})
+
+	t.Run("NewInputPortError", func(t *testing.T) {
+		router := testRouter(t)
+
+		err := router.RegisterInputPort(nil)
+		require.Error(t, err)
+	})
+
+	t.Run("NewBufferError", func(t *testing.T) {
+		router := testRouter(t)
+
+		router.bufferSize = 0
+
+		conn, err := NewConnection(router.maxPriority)
+		require.NoError(t, err)
+
+		err = router.RegisterInputPort(conn)
+		require.Error(t, err)
+	})
+}
+
+func TestRouterRegisterOutputPort(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid", func(t *testing.T) {
+		router := testRouter(t)
+
+		conn, err := NewConnection(router.maxPriority)
+		require.NoError(t, err)
+
+		err = router.RegisterOutputPort(conn)
+		require.NoError(t, err)
+		assert.Equal(t, router.outputPorts[0].connection(), conn)
+	})
+
+	t.Run("NewOutputPortError", func(t *testing.T) {
+		router := testRouter(t)
+
+		err := router.RegisterOutputPort(nil)
+		require.Error(t, err)
+	})
+}
+
+func TestRouterUpdateOutputMap(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid", func(t *testing.T) {
+		router := testRouter(t)
+
+		conn1, err := NewConnection(router.maxPriority)
+		require.NoError(t, err)
+		port1, err := newOutputPort(conn1, 1)
+		require.NoError(t, err)
+		nodeID1 := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 1)}
+		conn1.SetDstRouter(nodeID1)
+		router.outputPorts = append(router.outputPorts, port1)
+
+		conn2, err := NewConnection(router.maxPriority)
+		require.NoError(t, err)
+		port2, err := newOutputPort(conn2, 1)
+		require.NoError(t, err)
+		nodeID2 := domain.NodeID{ID: "n2", Pos: domain.NewPosition(1, 0)}
+		conn2.SetDstRouter(nodeID2)
+		router.outputPorts = append(router.outputPorts, port2)
+
+		router.UpdateOutputMap()
+		assert.Equal(t, port1, router.outputMap[nodeID1])
+		assert.Equal(t, port2, router.outputMap[nodeID2])
+	})
+}
+
+func TestRouterSetNetworkInterface(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid", func(t *testing.T) {
+		router := testRouter(t)
+
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(1, 1)}, 1, 1, 1)
+		require.NoError(t, err)
+
+		err = router.SetNetworkInterface(netIntfc)
+		require.NoError(t, err)
+	})
+
+	t.Run("NilNetworkInterface", func(t *testing.T) {
+		router := testRouter(t)
+
+		err := router.SetNetworkInterface(nil)
+		require.ErrorIs(t, err, domain.ErrNilParameter)
+	})
+
+	t.Run("InConnNewConnectionError", func(t *testing.T) {
+		router := testRouter(t)
+
+		router.bufferSize = 0
+		err := router.SetNetworkInterface(&networkInterfaceImpl{})
+		require.Error(t, err)
+	})
+
+	t.Run("InConnSetOutputPortError", func(t *testing.T) {
+		t.Skip("Cannot currently test, possible error cases cannot be met")
+	})
+
+	t.Run("InConnRegisterInputPortError", func(t *testing.T) {
+		t.Skip("Cannot currently test, possible error cases cannot be met")
+	})
+
+	t.Run("OutConnNewConnectionError", func(t *testing.T) {
+		t.Skip("Cannot currently test, possible error cases cannot be met")
+	})
+
+	t.Run("OutConnSetOutputPortError", func(t *testing.T) {
+		t.Skip("Cannot currently test, possible error cases cannot be met")
+	})
+
+	t.Run("OutConnRegisterInputPortError", func(t *testing.T) {
+		t.Skip("Cannot currently test, possible error cases cannot be met")
+	})
+}
+
+func TestRouterUpdateOutputPortsCredit(t *testing.T) {
+	t.Parallel()
+
+	router := testRouter(t)
+
+	conn, err := NewConnection(router.maxPriority)
+	require.NoError(t, err)
+	router.RegisterOutputPort(conn)
+
+	conn.creditChannel(1) <- 1
+
+	err = router.UpdateOutputPortsCredit()
+	require.NoError(t, err)
+}
+
+func TestRouterRouteBufferedFlits(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid", func(t *testing.T) {
+		var flitSize int = 1
+
+		testRouterPair := newTestRouterPair(t, 1, flitSize, 1, 1)
+
+		pkt := packet.NewPacket("t", 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, 10)
+
+		err := testRouterPair.niA.RoutePacket(pkt)
+		require.NoError(t, err)
+
+		flits := pkt.Flits(flitSize)
+		for i := 0; i < len(flits); i++ {
+			err = testRouterPair.rA.UpdateOutputPortsCredit()
+			require.NoError(t, err)
+
+			err = testRouterPair.niA.TransmitPendingPackets()
+			require.NoError(t, err)
+
+			err = testRouterPair.rA.ReadFromInputPorts()
+			require.NoError(t, err)
+
+			err = testRouterPair.rA.RouteBufferedFlits()
+			require.NoError(t, err)
+
+			gotFlit := <-testRouterPair.AtoB.flitChannel()
+			assert.Equal(t, pkt.Flits(flitSize)[i].PacketUUID(), gotFlit.PacketUUID())
+			assert.Equal(t, pkt.Flits(flitSize)[i].Type(), gotFlit.Type())
+
+			testRouterPair.AtoB.creditChannel(flits[i].Priority()) <- 1
+		}
+	})
+}
+
+func TestRouterReadFromInputPorts(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid", func(t *testing.T) {
+		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
+
+		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
+		testRouterPair.AtoB.flitChannel() <- flit
+
+		err := testRouterPair.rB.ReadFromInputPorts()
+		require.NoError(t, err)
+
+		gotFlit, exists := testRouterPair.rB.inputPorts[1].peakBuffer(flit.Priority())
+		assert.True(t, exists)
+		assert.Equal(t, flit, gotFlit)
+	})
+
+	t.Run("ReadIntoBufferError", func(t *testing.T) {
+		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
+
+		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
+		testRouterPair.AtoB.flitChannel() <- flit
+
+		err := testRouterPair.rB.ReadFromInputPorts()
+		require.NoError(t, err)
+
+		testRouterPair.AtoB.flitChannel() <- flit
+
+		err = testRouterPair.rB.ReadFromInputPorts()
+		require.Error(t, err)
+	})
+}
+
+func TestRouterRouteFlit(t *testing.T) {
+	t.Parallel()
+
+	t.Run("XYRouting", func(t *testing.T) {
+		t.Skip("Test would replicate code in TestRouterXYRouting")
+	})
+
+	t.Run("MissingPacketsTransmitting", func(t *testing.T) {
+		router := testRouter(t)
+		router.routingAlg = "unknown"
+
+		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{})
+		_, err := router.routeFlit(flit)
+		require.ErrorIs(t, err, domain.ErrNoPort)
+	})
+}
+
+func TestRouterXYRouting(t *testing.T) {
+	t.Parallel()
+
+	t.Run("ValidHopToRouter", func(t *testing.T) {
+		srcRouter, err := newRouter(RouterConfig{
+			NodeID: domain.NodeID{
+				ID:  "n1",
+				Pos: domain.NewPosition(0, 0),
+			},
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       1,
+				FlitSize:         1,
+				ProcessingDelay:  1,
+				MaxPriority:      1,
+			},
+		})
+		require.NoError(t, err)
+
+		dstRouter, err := newRouter(RouterConfig{
+			NodeID: domain.NodeID{
+				ID:  "n2",
+				Pos: domain.NewPosition(0, 1),
+			},
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       1,
+				FlitSize:         1,
+				ProcessingDelay:  1,
+				MaxPriority:      1,
+			},
+		})
+		require.NoError(t, err)
+
+		conn, err := NewConnection(dstRouter.maxPriority)
+		require.NoError(t, err)
+		err = dstRouter.RegisterInputPort(conn)
+		require.NoError(t, err)
+		err = srcRouter.RegisterOutputPort(conn)
+		require.NoError(t, err)
+
+		srcRouter.UpdateOutputMap()
+
+		gotOutputPort, err := srcRouter.routeFlit(packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{srcRouter.NodeID(), dstRouter.NodeID()}))
+		require.NoError(t, err)
+		assert.Equal(t, conn, gotOutputPort.connection())
+	})
+
+	t.Run("NoOutputPort", func(t *testing.T) {
+		var packetUUID uuid.UUID = uuid.New()
+
+		router, err := newRouter(RouterConfig{
+			NodeID: domain.NodeID{
+				ID:  "n",
+				Pos: domain.NewPosition(0, 0),
+			},
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       1,
+				FlitSize:         1,
+				ProcessingDelay:  1,
+				MaxPriority:      1,
+			},
+		})
+		require.NoError(t, err)
+
+		router.packetsNextRouter[packetUUID] = router.nodeID
+
+		_, err = router.routeFlit(packet.NewHeaderFlit("t", packetUUID, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}))
+		require.ErrorIs(t, err, domain.ErrNoPort)
+	})
+}
