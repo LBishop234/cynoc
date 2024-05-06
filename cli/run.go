@@ -40,7 +40,7 @@ func NewApp() *cli.App {
 			log.Log.Fatal().Err(err).Msg("error reading config file")
 		}
 
-		conf = config.ApplyConfigOverrides(cliCtx, conf)
+		conf = ApplyConfigOverrides(cliCtx, conf)
 
 		top, err := topology.ReadTopology(confArgs.TopologyPath)
 		if err != nil {
@@ -153,7 +153,7 @@ func initLogger(logConf *LogConfig) {
 }
 
 func output(cliCtx *cli.Context, results results.Results) error {
-	outputArgs := config.OutputArgs(cliCtx)
+	outputArgs := OutputArgs(cliCtx)
 
 	if outputArgs.OutputFileFlag {
 		if err := results.OutputCSV(outputArgs.OutputFilepath); err != nil {
