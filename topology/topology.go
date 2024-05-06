@@ -3,8 +3,8 @@ package topology
 import (
 	"path/filepath"
 
-	"main/core/log"
 	"main/domain"
+	"main/log"
 )
 
 type Topology struct {

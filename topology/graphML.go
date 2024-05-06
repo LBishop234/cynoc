@@ -5,8 +5,8 @@ import (
 	"os"
 	"strconv"
 
-	"main/core/log"
 	"main/domain"
+	"main/log"
 
 	"github.com/yaricom/goGraphML/graphml"
 )

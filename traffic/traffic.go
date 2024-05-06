@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"path/filepath"
 
-	"main/core/log"
 	"main/domain"
+	"main/log"
 
 	csvtag "github.com/artonge/go-csv-tag/v2"
 )

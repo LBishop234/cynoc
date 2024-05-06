@@ -3,7 +3,7 @@ package simulation
 import (
 	"math"
 
-	"main/core/log"
+	"main/log"
 	"main/traffic/packet"
 
 	"github.com/google/uuid"

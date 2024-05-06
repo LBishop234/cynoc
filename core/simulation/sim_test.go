@@ -5,8 +5,8 @@ import (
 	"math"
 	"testing"
 
+	"main/core/network"
 	"main/domain"
-	"main/network"
 	"main/topology"
 	"main/traffic"
 

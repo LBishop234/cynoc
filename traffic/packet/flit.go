@@ -1,8 +1,8 @@
 package packet
 
 import (
-	"main/core/log"
 	"main/domain"
+	"main/log"
 
 	"github.com/google/uuid"
 )

@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	"main/core/log"
+	"main/core/network"
 	"main/domain"
-	"main/network"
+	"main/log"
 	"main/traffic"
 	"main/traffic/packet"
 )
