@@ -28,6 +28,7 @@ func TestBasicLatency(t *testing.T) {
 				RoutingAlgorithm: "XY",
 				FlitSize:         4,
 				ProcessingDelay:  6,
+				LinkBandwidth:    4,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -43,6 +44,7 @@ func TestBasicLatency(t *testing.T) {
 				RoutingAlgorithm: "XY",
 				FlitSize:         1,
 				ProcessingDelay:  3,
+				LinkBandwidth:    1,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -58,6 +60,7 @@ func TestBasicLatency(t *testing.T) {
 				RoutingAlgorithm: "XY",
 				FlitSize:         4,
 				ProcessingDelay:  6,
+				LinkBandwidth:    4,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
@@ -73,6 +76,7 @@ func TestBasicLatency(t *testing.T) {
 				RoutingAlgorithm: "XY",
 				FlitSize:         4,
 				ProcessingDelay:  6,
+				LinkBandwidth:    4,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
@@ -82,6 +86,38 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 50,
 			},
 			expected: 33,
+		},
+		{
+			conf: domain.SimConfig{
+				RoutingAlgorithm: "XY",
+				FlitSize:         4,
+				ProcessingDelay:  6,
+				LinkBandwidth:    8,
+			},
+			top: topology.ThreeHorozontalLine,
+			tf: domain.TrafficFlowConfig{
+				ID:         "t1",
+				Src:        "n0",
+				Dst:        "n2",
+				PacketSize: 16,
+			},
+			expected: 21,
+		},
+		{
+			conf: domain.SimConfig{
+				RoutingAlgorithm: "XY",
+				FlitSize:         1,
+				ProcessingDelay:  3,
+				LinkBandwidth:    3,
+			},
+			top: topology.ThreeHorozontalLine,
+			tf: domain.TrafficFlowConfig{
+				ID:         "t1",
+				Src:        "n0",
+				Dst:        "n2",
+				PacketSize: 12,
+			},
+			expected: 14,
 		},
 	}
 

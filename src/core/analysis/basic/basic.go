@@ -8,13 +8,15 @@ import (
 )
 
 func BasicLatency(conf domain.SimConfig, tfr util.TrafficFlowAndRoute) int {
-	noFlits := int(math.Ceil((float64(tfr.PacketSize) + float64(util.NoAdditionalFlits*conf.FlitSize)) / float64(conf.FlitSize)))
+	noFlits := math.Ceil((float64(tfr.PacketSize) + float64(util.NoAdditionalFlits*conf.FlitSize)) / float64(conf.FlitSize))
 
-	linkBandwidth := util.LinkBandwidthFlitFactor * conf.FlitSize
+	linkFlitBandwidth := float64(conf.FlitSize) / float64(conf.LinkBandwidth)
 
-	hops := len(tfr.Route)
+	hops := float64(len(tfr.Route))
 
-	basicLatency := noFlits*(conf.FlitSize/linkBandwidth) + hops*conf.ProcessingDelay
+	transmission := math.Ceil(noFlits * linkFlitBandwidth)
 
-	return basicLatency
+	headerProcessing := hops * float64(conf.ProcessingDelay)
+
+	return int(transmission + headerProcessing)
 }
