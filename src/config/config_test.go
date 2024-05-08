@@ -113,23 +113,23 @@ func TestReadConfig(t *testing.T) {
 				"processing_delay": 0,
 			},
 		},
-		// {
-		// 	name:     "invalid_link_bandwidth_zero",
-		// 	err:      ErrInvalidLinkBandwidth,
-		// 	baseFile: "valid_basic.yaml",
-		// 	overrides: map[string]any{
-		// 		"link_bandwidth": 0,
-		// 	},
-		// },
-		// {
-		// 	name:     "invalid_link_bandwidth_not_multiple_flit_size",
-		// 	err:      ErrInvalidLinkBandwidth,
-		// 	baseFile: "valid_basic.yaml",
-		// 	overrides: map[string]any{
-		// 		"flit_size":     4,
-		// 		"link_bandwidth": 5,
-		// 	},
-		// },
+		{
+			name:     "invalid_link_bandwidth_zero",
+			err:      ErrInvalidLinkBandwidth,
+			baseFile: "valid_basic.yaml",
+			overrides: map[string]any{
+				"link_bandwidth": 0,
+			},
+		},
+		{
+			name:     "invalid_link_bandwidth_not_multiple_flit_size",
+			err:      ErrInvalidLinkBandwidth,
+			baseFile: "valid_basic.yaml",
+			overrides: map[string]any{
+				"flit_size":      4,
+				"link_bandwidth": 5,
+			},
+		},
 	}
 
 	tmpDir := t.TempDir()
