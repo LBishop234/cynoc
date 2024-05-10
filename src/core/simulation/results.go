@@ -3,40 +3,16 @@ package simulation
 import (
 	"time"
 
+	"main/src/domain"
 	"main/src/traffic"
 )
 
-type StatSet struct {
-	PacketsRouted           int     `csv:"PacketsRouted"`
-	PacketsArrived          int     `csv:"PacketsArrived"`
-	PacketsLost             int     `csv:"PacketLost"`
-	PacketsExceededDeadline int     `csv:"PacketsExceededDeadline"`
-	BestLatency             int     `csv:"BestLatency"`
-	MeanLatency             float64 `csv:"MeanLatency"`
-	WorstLatency            int     `csv:"WorstLatency"`
-}
-
-type TrafficFlowStatSet struct {
-	StatSet
-}
-
-type SimResults struct {
-	Cycles   int
-	Duration time.Duration
-	StatSet
-}
-
-type Results struct {
-	SimResults SimResults
-	TFStats    map[string]TrafficFlowStatSet
-}
-
-func results(cycles int, dur time.Duration, rcrds *records, trafficFlows []traffic.TrafficFlow) Results {
-	results := Results{
-		SimResults: SimResults{
+func results(cycles int, dur time.Duration, rcrds *records, trafficFlows []traffic.TrafficFlow) domain.Results {
+	results := domain.Results{
+		SimResults: domain.SimResults{
 			Cycles:   cycles,
 			Duration: dur,
-			StatSet: StatSet{
+			StatSet: domain.StatSet{
 				PacketsRouted:           rcrds.noTransmitted(),
 				PacketsArrived:          rcrds.noArrived(),
 				PacketsLost:             rcrds.noLost(),
@@ -46,7 +22,7 @@ func results(cycles int, dur time.Duration, rcrds *records, trafficFlows []traff
 				WorstLatency:            rcrds.worstLatency(),
 			},
 		},
-		TFStats: make(map[string]TrafficFlowStatSet, len(trafficFlows)),
+		TFStats: make(map[string]domain.TrafficFlowStatSet, len(trafficFlows)),
 	}
 
 	for i := 0; i < len(trafficFlows); i++ {
@@ -56,9 +32,9 @@ func results(cycles int, dur time.Duration, rcrds *records, trafficFlows []traff
 	return results
 }
 
-func newTFStatSet(rcrds *records, tfID string) TrafficFlowStatSet {
-	return TrafficFlowStatSet{
-		StatSet: StatSet{
+func newTFStatSet(rcrds *records, tfID string) domain.TrafficFlowStatSet {
+	return domain.TrafficFlowStatSet{
+		StatSet: domain.StatSet{
 			PacketsRouted:           rcrds.noTransmittedByTF(tfID),
 			PacketsArrived:          rcrds.noArrivedByTF(tfID),
 			PacketsLost:             rcrds.noLostByTF(tfID),
@@ -68,8 +44,4 @@ func newTFStatSet(rcrds *records, tfID string) TrafficFlowStatSet {
 			WorstLatency:            rcrds.worstLatencyByTF(tfID),
 		},
 	}
-}
-
-func (s *TrafficFlowStatSet) Schedulable() bool {
-	return s.PacketsExceededDeadline == 0
 }

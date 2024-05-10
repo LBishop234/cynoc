@@ -69,21 +69,21 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, r
 	return simulator, nil
 }
 
-func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int) (Results, error) {
+func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int) (domain.Results, error) {
 	select {
 	case <-ctx.Done():
-		return Results{}, ctx.Err()
+		return domain.Results{}, ctx.Err()
 	default:
 		simulator, err := newSimulator(network, trafficFlows, routingAlg, cycleLimit)
 		if err != nil {
 			log.Log.Error().Err(nil).Msg("error creating simulator")
-			return Results{}, err
+			return domain.Results{}, err
 		}
 
 		simDuration, rcrds, err := simulator.runSimulation(ctx)
 		if err != nil {
 			log.Log.Error().Err(err).Msg("error running simulation")
-			return Results{}, err
+			return domain.Results{}, err
 		}
 
 		return results(cycleLimit, simDuration, rcrds, trafficFlows), nil

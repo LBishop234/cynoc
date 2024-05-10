@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"main/src/core/analysis"
-	"main/src/core/simulation"
+	"main/src/domain"
 )
 
 type Results interface {
@@ -16,10 +16,10 @@ type Results interface {
 	OutputCSV(path string) error
 }
 
-type localSimResults simulation.SimResults
+type localSimResults domain.SimResults
 
 func (r *localSimResults) prettify() (str string) {
-	str += "Simulation Results\n"
+	str += "Simulation domain.Results\n"
 	str += "==================\n"
 	str += fmt.Sprintf("Cycles: %d\n", r.Cycles)
 	str += fmt.Sprintf("Duration (ms): %d\n\n", r.Duration.Milliseconds())
@@ -35,7 +35,7 @@ func (r *localSimResults) prettify() (str string) {
 type tfSim struct {
 	ID       string
 	Deadline int
-	simulation.TrafficFlowStatSet
+	domain.TrafficFlowStatSet
 }
 
 type tfSimAnalysis struct {
