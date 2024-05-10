@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const XiongEtAl = "XiongEtAl"
+const XiongEtAl = "XiongEtAlNoC"
 
 func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.TrafficFlowAndRoute {
 	fourByFourTop := topology.FourByFourMesh(tb)
@@ -133,6 +133,7 @@ func TestShiBurns(t *testing.T) {
 				BufferSize:       25,
 				FlitSize:         1,
 				ProcessingDelay:  6,
+				LinkBandwidth:    1,
 			},
 			tfs: map[string]tfStruct{
 				"t1": {

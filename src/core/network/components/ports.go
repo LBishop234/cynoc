@@ -93,7 +93,7 @@ func (o *outputPortImpl) connection() Connection {
 }
 
 func (o *outputPortImpl) allowedToSend(priority int) bool {
-	return o.credits[priority] > 0 && len(o.conn.flitChannel()) == 0
+	return o.credits[priority] > 0 && len(o.conn.flitChannel()) < o.conn.flitBandwidth()
 }
 
 func (o *outputPortImpl) sendFlit(flit packet.Flit) error {

@@ -41,7 +41,7 @@ func TestReadConfig(t *testing.T) {
 				MaxPriority:      6,
 				BufferSize:       12,
 				FlitSize:         2,
-				LinkBandwidth:    6,
+				LinkBandwidth:    2,
 				ProcessingDelay:  6,
 			},
 		},
@@ -128,6 +128,16 @@ func TestReadConfig(t *testing.T) {
 			overrides: map[string]any{
 				"flit_size":      4,
 				"link_bandwidth": 5,
+			},
+		},
+		{
+			name:     "invalid_link_bandwidth_exceeds_virtual_channel_size",
+			err:      ErrInvalidLinkBandwidth,
+			baseFile: "valid_basic.yaml",
+			overrides: map[string]any{
+				"max_priority":   3,
+				"buffer_size":    12,
+				"link_bandwidth": 6,
 			},
 		},
 	}
