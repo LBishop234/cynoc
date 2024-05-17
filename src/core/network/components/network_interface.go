@@ -27,7 +27,6 @@ type networkInterfaceImpl struct {
 	flitSize    int
 	maxPriority int
 
-	pendingPackets map[int][]packet.Packet
 	flitsInTransit map[int][]packet.Flit
 	outputPort     outputPort
 
@@ -48,7 +47,6 @@ func newNetworkInterface(nodeID domain.NodeID, bufferSize, flitSize, maxPriority
 		bufferSize:     bufferSize,
 		flitSize:       flitSize,
 		maxPriority:    maxPriority,
-		pendingPackets: make(map[int][]packet.Packet, 0),
 		flitsInTransit: make(map[int][]packet.Flit, 0),
 		flitsArriving:  make(map[uuid.UUID]packet.Reconstructor),
 		arrivedPackets: make([]packet.Packet, 0),
@@ -92,7 +90,11 @@ func (n *networkInterfaceImpl) RoutePacket(pkt packet.Packet) error {
 		return domain.ErrNilParameter
 	}
 
-	n.pendingPackets[pkt.Priority()] = append(n.pendingPackets[pkt.Priority()], pkt)
+	flits := pkt.Flits(n.flitSize)
+
+	for i := 0; i < len(flits); i++ {
+		n.flitsInTransit[pkt.Priority()] = append(n.flitsInTransit[pkt.Priority()], flits[i])
+	}
 
 	log.Log.Trace().Str("network_interface", n.NodeID().ID).Str("packet", pkt.UUID().String()).
 		Msg("network interface received packet")
@@ -200,39 +202,25 @@ func (n *networkInterfaceImpl) TransmitPendingPackets() error {
 	n.outputPort.updateCredits()
 
 	for p := 0; p <= n.maxPriority; p++ {
-		n.updateFlitsInTransit(p)
+		for len(n.flitsInTransit[p]) > 0 && n.outputPort.allowedToSend(n.flitsInTransit[p][0].Priority()) {
+			if err := n.outputPort.sendFlit(n.flitsInTransit[p][0]); err != nil {
+				log.Log.Error().Err(err).
+					Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketUUID().String()).
+					Str("flit", n.flitsInTransit[p][0].UUID().String()).Str("type", n.flitsInTransit[p][0].Type().String()).
+					Msg("error sending flit")
 
-		if len(n.flitsInTransit[p]) > 0 {
-			for i := 0; i < len(n.flitsInTransit[p]); i++ {
-				if n.outputPort.allowedToSend(n.flitsInTransit[p][0].Priority()) {
-					if err := n.outputPort.sendFlit(n.flitsInTransit[p][0]); err != nil {
-						log.Log.Error().Err(err).
-							Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketUUID().String()).
-							Str("flit", n.flitsInTransit[p][0].UUID().String()).Str("type", n.flitsInTransit[p][0].Type().String()).
-							Msg("error sending flit")
-
-						return err
-					}
-
-					log.Log.Trace().
-						Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketUUID().String()).
-						Str("flit", n.flitsInTransit[p][0].UUID().String()).Str("type", n.flitsInTransit[p][0].Type().String()).
-						Int("priority", n.flitsInTransit[p][0].Priority()).
-						Msg("flit sent from network interface")
-
-					n.flitsInTransit[p] = n.flitsInTransit[p][1:]
-					return nil
-				}
+				return err
 			}
+
+			log.Log.Trace().
+				Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketUUID().String()).
+				Str("flit", n.flitsInTransit[p][0].UUID().String()).Str("type", n.flitsInTransit[p][0].Type().String()).
+				Int("priority", n.flitsInTransit[p][0].Priority()).
+				Msg("flit sent from network interface")
+
+			n.flitsInTransit[p] = n.flitsInTransit[p][1:]
 		}
 	}
 
 	return nil
-}
-
-func (n *networkInterfaceImpl) updateFlitsInTransit(priority int) {
-	if len(n.flitsInTransit[priority]) == 0 && len(n.pendingPackets[priority]) > 0 {
-		n.flitsInTransit[priority] = n.pendingPackets[priority][0].Flits(n.flitSize)
-		n.pendingPackets[priority] = n.pendingPackets[priority][1:]
-	}
 }

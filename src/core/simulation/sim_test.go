@@ -5,6 +5,7 @@ import (
 	"math"
 	"testing"
 
+	"main/log"
 	"main/src/core/network"
 	"main/src/domain"
 	"main/src/topology"
@@ -32,6 +33,15 @@ var (
 		FlitSize:         1,
 		ProcessingDelay:  3,
 		LinkBandwidth:    1,
+	}
+
+	TwoPriorityConfig2LinkBandwidth = domain.SimConfig{
+		RoutingAlgorithm: domain.XYRouting,
+		MaxPriority:      2,
+		BufferSize:       4,
+		FlitSize:         1,
+		ProcessingDelay:  3,
+		LinkBandwidth:    2,
 	}
 
 	FourPriorityConfig = domain.SimConfig{
@@ -62,17 +72,17 @@ var (
 	}
 )
 
-type stdTestCase struct {
-	run          bool
+type templateTestCase struct {
+	templateRun  bool
 	cycles       int
 	topologyFunc func(t testing.TB) *topology.Topology
 	networkConf  domain.SimConfig
 	traffic      []domain.TrafficFlowConfig
 }
 
-var stdTestCases = map[string]stdTestCase{
+var templateTestCases = map[string]templateTestCase{
 	"3hLineOnePkt": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeHorozontalLine,
 		networkConf:  OnePriorityConfig,
@@ -90,7 +100,7 @@ var stdTestCases = map[string]stdTestCase{
 		},
 	},
 	"3hLineTwoPkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeHorozontalLine,
 		networkConf:  TwoPriorityConfig,
@@ -117,8 +127,36 @@ var stdTestCases = map[string]stdTestCase{
 			},
 		},
 	},
+	"3hLineTwoPkts2LinkBandwidth": {
+		templateRun:  true,
+		cycles:       1000,
+		topologyFunc: topology.ThreeHorozontalLine,
+		networkConf:  TwoPriorityConfig2LinkBandwidth,
+		traffic: []domain.TrafficFlowConfig{
+			{
+				ID:         "t1",
+				Src:        "n0",
+				Dst:        "n2",
+				Priority:   1,
+				Period:     50,
+				Deadline:   50,
+				Jitter:     0,
+				PacketSize: 2,
+			},
+			{
+				ID:         "t2",
+				Src:        "n0",
+				Dst:        "n2",
+				Priority:   2,
+				Period:     math.MaxInt,
+				Deadline:   math.MaxInt,
+				Jitter:     0,
+				PacketSize: 2,
+			},
+		},
+	},
 	"3x3Mesh4Pkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeByThreeMesh,
 		networkConf:  TwoPriorityConfig,
@@ -166,7 +204,7 @@ var stdTestCases = map[string]stdTestCase{
 		},
 	},
 	"3x3Mesh10Pkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeByThreeMesh,
 		networkConf:  TenPriorityConfig,
@@ -274,7 +312,7 @@ var stdTestCases = map[string]stdTestCase{
 		},
 	},
 	"3x3Mesh20Pkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeByThreeMesh,
 		networkConf:  TwentyPriorityConfig,
@@ -484,9 +522,9 @@ var stdTestCases = map[string]stdTestCase{
 }
 
 func BenchmarkNewSimulator(b *testing.B) {
-	for name, testCase := range stdTestCases {
+	for name, testCase := range templateTestCases {
 		b.Run(name, func(b *testing.B) {
-			if !testCase.run {
+			if !testCase.templateRun {
 				b.Skip()
 			}
 
@@ -521,15 +559,16 @@ func TestRunSimulation(t *testing.T) {
 		}
 
 		testCase struct {
-			stdTestCase
+			run bool
+			templateTestCase
 			expected []expectedPkts
 		}
 	)
 
-	// Test Cases
 	testCases := map[string]testCase{
 		"3hLineOnePkt": {
-			stdTestCase: stdTestCases["3hLineOnePkt"],
+			run:              true,
+			templateTestCase: templateTestCases["3hLineOnePkt"],
 			expected: []expectedPkts{
 				{
 					trafficFlowID: "t1",
@@ -538,7 +577,8 @@ func TestRunSimulation(t *testing.T) {
 			},
 		},
 		"3hLineTwoPkts": {
-			stdTestCase: stdTestCases["3hLineTwoPkts"],
+			run:              true,
+			templateTestCase: templateTestCases["3hLineTwoPkts"],
 			expected: []expectedPkts{
 				{
 					trafficFlowID: "t1",
@@ -550,17 +590,31 @@ func TestRunSimulation(t *testing.T) {
 				},
 			},
 		},
+		"3hLineTwoPkts2LinkBandwidth": {
+			run:              true,
+			templateTestCase: templateTestCases["3hLineTwoPkts2LinkBandwidth"],
+			expected: []expectedPkts{
+				{
+					trafficFlowID: "t1",
+					cycle:         11,
+				},
+				{
+					trafficFlowID: "t2",
+					cycle:         12,
+				},
+			},
+		},
 	}
 
 	// Restrict cycle limit for expected packets
 	for name, testCase := range testCases {
-		testCase.cycles = 100
+		testCase.cycles = 20
 		testCases[name] = testCase
 	}
 
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
-			if !testCase.run {
+			if !testCase.run || !testCase.templateRun {
 				t.Skip()
 			}
 
@@ -580,6 +634,8 @@ func TestRunSimulation(t *testing.T) {
 
 			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
 			require.NoError(t, err)
+
+			log.InitLogger(log.TRACE)
 
 			_, records, err := simulator.runSimulation(context.Background())
 			require.NoError(t, err)
@@ -606,9 +662,29 @@ func TestRunSimulation(t *testing.T) {
 }
 
 func BenchmarkRunSimulation(b *testing.B) {
-	for name, testCase := range stdTestCases {
+	type testCase struct {
+		run bool
+		templateTestCase
+	}
+
+	testCases := map[string]testCase{
+		"3hLineOnePkt": {
+			run:              true,
+			templateTestCase: templateTestCases["3hLineOnePkt"],
+		},
+		"3x3Mesh4Pkts": {
+			run:              true,
+			templateTestCase: templateTestCases["3x3Mesh4Pkts"],
+		},
+		"3x3Mesh20Pkts": {
+			run:              true,
+			templateTestCase: templateTestCases["3x3Mesh20Pkts"],
+		},
+	}
+
+	for name, testCase := range testCases {
 		b.Run(name, func(b *testing.B) {
-			if !testCase.run {
+			if !testCase.run || !testCase.templateRun {
 				b.Skip()
 			}
 
