@@ -48,10 +48,11 @@ func TestNewInputPort(t *testing.T) {
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		var maxPriority int = 1
-		var linkBandwidth int = 1
+		var bufferSize int = 32
+		var maxPriority int = 4
+		var linkBandwidth int = 4
 
-		buff, err := newBuffer(1, 1)
+		buff, err := newBuffer(bufferSize, maxPriority)
 		require.NoError(t, err)
 
 		conn, err := NewConnection(maxPriority, linkBandwidth)

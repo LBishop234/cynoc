@@ -33,7 +33,7 @@ func NewConnection(maxPriority, bandwidth int) (*connectionImpl, error) {
 		creditChan[i] = make(chan int, bandwidth)
 	}
 
-	log.Log.Trace().Msg("new connection")
+	log.Log.Trace().Int("credit_channels", maxPriority).Int("flit_bandwidth", bandwidth).Msg("new connection")
 	return &connectionImpl{
 		flitChan:   make(chan packet.Flit, bandwidth),
 		creditChan: creditChan,

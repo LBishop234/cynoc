@@ -11,7 +11,6 @@ import (
 	"main/src/core/network"
 	"main/src/core/results"
 	"main/src/core/simulation"
-	"main/src/domain"
 	"main/src/topology"
 	"main/src/traffic"
 
@@ -50,13 +49,7 @@ func NewApp() *cli.App {
 
 		network, err := network.NewNetwork(
 			top,
-			domain.SimConfig{
-				RoutingAlgorithm: conf.RoutingAlgorithm,
-				BufferSize:       conf.BufferSize,
-				FlitSize:         conf.FlitSize,
-				MaxPriority:      conf.MaxPriority,
-				ProcessingDelay:  conf.ProcessingDelay,
-			},
+			conf,
 		)
 		if err != nil {
 			log.Log.Fatal().Err(err).Msg("error reading topology file")

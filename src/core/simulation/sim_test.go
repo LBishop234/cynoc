@@ -5,7 +5,6 @@ import (
 	"math"
 	"testing"
 
-	"main/log"
 	"main/src/core/network"
 	"main/src/domain"
 	"main/src/topology"
@@ -634,8 +633,6 @@ func TestRunSimulation(t *testing.T) {
 
 			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
 			require.NoError(t, err)
-
-			log.InitLogger(log.TRACE)
 
 			_, records, err := simulator.runSimulation(context.Background())
 			require.NoError(t, err)
