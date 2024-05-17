@@ -22,6 +22,7 @@ var (
 		BufferSize:       2,
 		FlitSize:         1,
 		ProcessingDelay:  3,
+		LinkBandwidth:    1,
 	}
 
 	TwoPriorityConfig = domain.SimConfig{
@@ -30,6 +31,16 @@ var (
 		BufferSize:       4,
 		FlitSize:         1,
 		ProcessingDelay:  3,
+		LinkBandwidth:    1,
+	}
+
+	TwoPriorityConfig2LinkBandwidth = domain.SimConfig{
+		RoutingAlgorithm: domain.XYRouting,
+		MaxPriority:      2,
+		BufferSize:       4,
+		FlitSize:         1,
+		ProcessingDelay:  3,
+		LinkBandwidth:    2,
 	}
 
 	FourPriorityConfig = domain.SimConfig{
@@ -38,6 +49,7 @@ var (
 		BufferSize:       32,
 		FlitSize:         4,
 		ProcessingDelay:  6,
+		LinkBandwidth:    1,
 	}
 
 	TenPriorityConfig = domain.SimConfig{
@@ -46,6 +58,7 @@ var (
 		BufferSize:       80,
 		FlitSize:         4,
 		ProcessingDelay:  6,
+		LinkBandwidth:    1,
 	}
 
 	TwentyPriorityConfig = domain.SimConfig{
@@ -54,20 +67,21 @@ var (
 		BufferSize:       160,
 		FlitSize:         4,
 		ProcessingDelay:  6,
+		LinkBandwidth:    1,
 	}
 )
 
-type stdTestCase struct {
-	run          bool
+type templateTestCase struct {
+	templateRun  bool
 	cycles       int
 	topologyFunc func(t testing.TB) *topology.Topology
 	networkConf  domain.SimConfig
 	traffic      []domain.TrafficFlowConfig
 }
 
-var stdTestCases = map[string]stdTestCase{
+var templateTestCases = map[string]templateTestCase{
 	"3hLineOnePkt": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeHorozontalLine,
 		networkConf:  OnePriorityConfig,
@@ -85,7 +99,7 @@ var stdTestCases = map[string]stdTestCase{
 		},
 	},
 	"3hLineTwoPkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeHorozontalLine,
 		networkConf:  TwoPriorityConfig,
@@ -112,8 +126,36 @@ var stdTestCases = map[string]stdTestCase{
 			},
 		},
 	},
+	"3hLineTwoPkts2LinkBandwidth": {
+		templateRun:  true,
+		cycles:       1000,
+		topologyFunc: topology.ThreeHorozontalLine,
+		networkConf:  TwoPriorityConfig2LinkBandwidth,
+		traffic: []domain.TrafficFlowConfig{
+			{
+				ID:         "t1",
+				Src:        "n0",
+				Dst:        "n2",
+				Priority:   1,
+				Period:     50,
+				Deadline:   50,
+				Jitter:     0,
+				PacketSize: 2,
+			},
+			{
+				ID:         "t2",
+				Src:        "n0",
+				Dst:        "n2",
+				Priority:   2,
+				Period:     math.MaxInt,
+				Deadline:   math.MaxInt,
+				Jitter:     0,
+				PacketSize: 2,
+			},
+		},
+	},
 	"3x3Mesh4Pkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeByThreeMesh,
 		networkConf:  TwoPriorityConfig,
@@ -124,7 +166,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n2",
 				Priority:   1,
 				Period:     100,
-				Deadline:   250,
+				Deadline:   75,
 				Jitter:     0,
 				PacketSize: 32,
 			},
@@ -133,8 +175,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n1",
 				Dst:        "n8",
 				Priority:   2,
-				Period:     50,
-				Deadline:   300,
+				Period:     120,
+				Deadline:   105,
 				Jitter:     0,
 				PacketSize: 40,
 			},
@@ -144,7 +186,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n1",
 				Priority:   3,
 				Period:     100,
-				Deadline:   500,
+				Deadline:   85,
 				Jitter:     0,
 				PacketSize: 32,
 			},
@@ -154,14 +196,14 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n8",
 				Priority:   4,
 				Period:     100,
-				Deadline:   500,
+				Deadline:   90,
 				Jitter:     0,
 				PacketSize: 32,
 			},
 		},
 	},
 	"3x3Mesh10Pkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeByThreeMesh,
 		networkConf:  TenPriorityConfig,
@@ -172,7 +214,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n2",
 				Priority:   1,
 				Period:     100,
-				Deadline:   250,
+				Deadline:   90,
 				Jitter:     0,
 				PacketSize: 32,
 			},
@@ -181,8 +223,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n1",
 				Dst:        "n8",
 				Priority:   2,
-				Period:     50,
-				Deadline:   300,
+				Period:     120,
+				Deadline:   110,
 				Jitter:     0,
 				PacketSize: 40,
 			},
@@ -192,7 +234,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n7",
 				Priority:   3,
 				Period:     150,
-				Deadline:   400,
+				Deadline:   120,
 				Jitter:     0,
 				PacketSize: 64,
 			},
@@ -202,7 +244,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n5",
 				Priority:   4,
 				Period:     100,
-				Deadline:   500,
+				Deadline:   75,
 				Jitter:     0,
 				PacketSize: 32,
 			},
@@ -211,8 +253,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n2",
 				Dst:        "n3",
 				Priority:   5,
-				Period:     25,
-				Deadline:   500,
+				Period:     75,
+				Deadline:   50,
 				Jitter:     0,
 				PacketSize: 8,
 			},
@@ -231,8 +273,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n6",
 				Dst:        "n0",
 				Priority:   7,
-				Period:     50,
-				Deadline:   200,
+				Period:     120,
+				Deadline:   105,
 				Jitter:     0,
 				PacketSize: 16,
 			},
@@ -241,8 +283,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n7",
 				Dst:        "n2",
 				Priority:   8,
-				Period:     50,
-				Deadline:   200,
+				Period:     120,
+				Deadline:   100,
 				Jitter:     0,
 				PacketSize: 32,
 			},
@@ -252,7 +294,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n2",
 				Priority:   9,
 				Period:     100,
-				Deadline:   400,
+				Deadline:   85,
 				Jitter:     0,
 				PacketSize: 48,
 			},
@@ -261,15 +303,15 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n8",
 				Dst:        "n0",
 				Priority:   10,
-				Period:     50,
-				Deadline:   200,
+				Period:     110,
+				Deadline:   90,
 				Jitter:     0,
 				PacketSize: 40,
 			},
 		},
 	},
 	"3x3Mesh20Pkts": {
-		run:          true,
+		templateRun:  true,
 		cycles:       1000,
 		topologyFunc: topology.ThreeByThreeMesh,
 		networkConf:  TwentyPriorityConfig,
@@ -280,7 +322,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n2",
 				Priority:   1,
 				Period:     100,
-				Deadline:   250,
+				Deadline:   80,
 				Jitter:     10,
 				PacketSize: 32,
 			},
@@ -289,8 +331,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n1",
 				Dst:        "n8",
 				Priority:   2,
-				Period:     50,
-				Deadline:   300,
+				Period:     120,
+				Deadline:   115,
 				Jitter:     3,
 				PacketSize: 40,
 			},
@@ -300,7 +342,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n7",
 				Priority:   3,
 				Period:     150,
-				Deadline:   400,
+				Deadline:   135,
 				Jitter:     6,
 				PacketSize: 64,
 			},
@@ -310,7 +352,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n5",
 				Priority:   4,
 				Period:     100,
-				Deadline:   200,
+				Deadline:   90,
 				Jitter:     5,
 				PacketSize: 32,
 			},
@@ -319,8 +361,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n2",
 				Dst:        "n3",
 				Priority:   5,
-				Period:     25,
-				Deadline:   300,
+				Period:     120,
+				Deadline:   100,
 				Jitter:     1,
 				PacketSize: 8,
 			},
@@ -330,7 +372,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n3",
 				Priority:   6,
 				Period:     200,
-				Deadline:   500,
+				Deadline:   180,
 				Jitter:     8,
 				PacketSize: 96,
 			},
@@ -339,8 +381,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n6",
 				Dst:        "n0",
 				Priority:   7,
-				Period:     50,
-				Deadline:   200,
+				Period:     70,
+				Deadline:   50,
 				Jitter:     2,
 				PacketSize: 16,
 			},
@@ -350,7 +392,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n2",
 				Priority:   8,
 				Period:     50,
-				Deadline:   200,
+				Deadline:   45,
 				Jitter:     5,
 				PacketSize: 32,
 			},
@@ -360,7 +402,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n2",
 				Priority:   9,
 				Period:     100,
-				Deadline:   400,
+				Deadline:   70,
 				Jitter:     9,
 				PacketSize: 48,
 			},
@@ -369,8 +411,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n8",
 				Dst:        "n0",
 				Priority:   10,
-				Period:     50,
-				Deadline:   200,
+				Period:     120,
+				Deadline:   90,
 				Jitter:     14,
 				PacketSize: 40,
 			},
@@ -380,7 +422,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n1",
 				Priority:   11,
 				Period:     100,
-				Deadline:   300,
+				Deadline:   85,
 				Jitter:     7,
 				PacketSize: 64,
 			},
@@ -389,8 +431,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n7",
 				Dst:        "n4",
 				Priority:   12,
-				Period:     50,
-				Deadline:   200,
+				Period:     120,
+				Deadline:   115,
 				Jitter:     4,
 				PacketSize: 32,
 			},
@@ -400,7 +442,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n6",
 				Priority:   13,
 				Period:     100,
-				Deadline:   400,
+				Deadline:   95,
 				Jitter:     10,
 				PacketSize: 48,
 			},
@@ -409,8 +451,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n5",
 				Dst:        "n7",
 				Priority:   14,
-				Period:     50,
-				Deadline:   200,
+				Period:     75,
+				Deadline:   70,
 				Jitter:     13,
 				PacketSize: 40,
 			},
@@ -420,7 +462,7 @@ var stdTestCases = map[string]stdTestCase{
 				Dst:        "n5",
 				Priority:   15,
 				Period:     100,
-				Deadline:   350,
+				Deadline:   85,
 				Jitter:     12,
 				PacketSize: 64,
 			},
@@ -429,8 +471,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n1",
 				Dst:        "n6",
 				Priority:   16,
-				Period:     50,
-				Deadline:   200,
+				Period:     120,
+				Deadline:   100,
 				Jitter:     11,
 				PacketSize: 32,
 			},
@@ -449,8 +491,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n2",
 				Dst:        "n8",
 				Priority:   18,
-				Period:     50,
-				Deadline:   200,
+				Period:     115,
+				Deadline:   100,
 				Jitter:     16,
 				PacketSize: 40,
 			},
@@ -459,8 +501,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n4",
 				Dst:        "n5",
 				Priority:   19,
-				Period:     100,
-				Deadline:   300,
+				Period:     110,
+				Deadline:   100,
 				Jitter:     17,
 				PacketSize: 64,
 			},
@@ -469,8 +511,8 @@ var stdTestCases = map[string]stdTestCase{
 				Src:        "n7",
 				Dst:        "n3",
 				Priority:   20,
-				Period:     50,
-				Deadline:   200,
+				Period:     110,
+				Deadline:   95,
 				Jitter:     18,
 				PacketSize: 32,
 			},
@@ -479,9 +521,9 @@ var stdTestCases = map[string]stdTestCase{
 }
 
 func BenchmarkNewSimulator(b *testing.B) {
-	for name, testCase := range stdTestCases {
+	for name, testCase := range templateTestCases {
 		b.Run(name, func(b *testing.B) {
-			if !testCase.run {
+			if !testCase.templateRun {
 				b.Skip()
 			}
 
@@ -516,15 +558,16 @@ func TestRunSimulation(t *testing.T) {
 		}
 
 		testCase struct {
-			stdTestCase
+			run bool
+			templateTestCase
 			expected []expectedPkts
 		}
 	)
 
-	// Test Cases
 	testCases := map[string]testCase{
 		"3hLineOnePkt": {
-			stdTestCase: stdTestCases["3hLineOnePkt"],
+			run:              true,
+			templateTestCase: templateTestCases["3hLineOnePkt"],
 			expected: []expectedPkts{
 				{
 					trafficFlowID: "t1",
@@ -533,7 +576,8 @@ func TestRunSimulation(t *testing.T) {
 			},
 		},
 		"3hLineTwoPkts": {
-			stdTestCase: stdTestCases["3hLineTwoPkts"],
+			run:              true,
+			templateTestCase: templateTestCases["3hLineTwoPkts"],
 			expected: []expectedPkts{
 				{
 					trafficFlowID: "t1",
@@ -545,17 +589,31 @@ func TestRunSimulation(t *testing.T) {
 				},
 			},
 		},
+		"3hLineTwoPkts2LinkBandwidth": {
+			run:              true,
+			templateTestCase: templateTestCases["3hLineTwoPkts2LinkBandwidth"],
+			expected: []expectedPkts{
+				{
+					trafficFlowID: "t1",
+					cycle:         11,
+				},
+				{
+					trafficFlowID: "t2",
+					cycle:         12,
+				},
+			},
+		},
 	}
 
 	// Restrict cycle limit for expected packets
 	for name, testCase := range testCases {
-		testCase.cycles = 100
+		testCase.cycles = 20
 		testCases[name] = testCase
 	}
 
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
-			if !testCase.run {
+			if !testCase.run || !testCase.templateRun {
 				t.Skip()
 			}
 
@@ -601,9 +659,29 @@ func TestRunSimulation(t *testing.T) {
 }
 
 func BenchmarkRunSimulation(b *testing.B) {
-	for name, testCase := range stdTestCases {
+	type testCase struct {
+		run bool
+		templateTestCase
+	}
+
+	testCases := map[string]testCase{
+		"3hLineOnePkt": {
+			run:              true,
+			templateTestCase: templateTestCases["3hLineOnePkt"],
+		},
+		"3x3Mesh4Pkts": {
+			run:              true,
+			templateTestCase: templateTestCases["3x3Mesh4Pkts"],
+		},
+		"3x3Mesh20Pkts": {
+			run:              true,
+			templateTestCase: templateTestCases["3x3Mesh20Pkts"],
+		},
+	}
+
+	for name, testCase := range testCases {
 		b.Run(name, func(b *testing.B) {
-			if !testCase.run {
+			if !testCase.run || !testCase.templateRun {
 				b.Skip()
 			}
 

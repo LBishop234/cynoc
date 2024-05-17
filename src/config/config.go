@@ -20,7 +20,7 @@ var (
 	ErrInvalidFlitSize         = errors.New("invalid flit size")
 	ErrInvalidBufferSize       = errors.New("invalid buffer size")
 	ErrInvalidProcessingDelay  = errors.New("invalid processing delay")
-	// ErrInvalidLinkBandwidth = errors.New("invalid link bandwidth").
+	ErrInvalidLinkBandwidth    = errors.New("invalid link bandwidth")
 )
 
 func ReadConfig(fPath string) (domain.SimConfig, error) {
@@ -104,17 +104,23 @@ func validate(conf domain.SimConfig) error {
 		return err
 	}
 
-	// if conf.LinkBandwidth < 1 {
-	//	err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
-	// 	log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Msg("link bandwidth must be greater than 0")
-	// 	return err
-	// }
+	if conf.LinkBandwidth < 1 {
+		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
+		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Msg("link bandwidth must be greater than 0")
+		return err
+	}
 
-	// if conf.LinkBandwidth%conf.FlitSize != 0 {
-	//	err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
-	// 	log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("flit_size", conf.FlitSize).Msg("link bandwidth must be a multiple of flit size")
-	// 	return err
-	// }
+	if conf.LinkBandwidth%conf.FlitSize != 0 {
+		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
+		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("flit_size", conf.FlitSize).Msg("link bandwidth must be a multiple of flit size")
+		return err
+	}
+
+	if conf.LinkBandwidth > (conf.BufferSize / conf.MaxPriority) {
+		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
+		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("link bandwidth must be less then or equal to the size of a virtual channel")
+		return err
+	}
 
 	return nil
 }

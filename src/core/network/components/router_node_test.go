@@ -24,6 +24,7 @@ func TestNewRouterNode(t *testing.T) {
 				FlitSize:         8,
 				MaxPriority:      4,
 				ProcessingDelay:  5,
+				LinkBandwidth:    1,
 			},
 		}
 
@@ -46,6 +47,7 @@ func TestNewRouterNode(t *testing.T) {
 				FlitSize:         8,
 				MaxPriority:      3,
 				ProcessingDelay:  5,
+				LinkBandwidth:    1,
 			},
 		}
 

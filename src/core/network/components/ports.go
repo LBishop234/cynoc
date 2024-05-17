@@ -37,11 +37,11 @@ func newInputPort(conn Connection, buff buffer) (*inputPortImpl, error) {
 	}
 
 	for priority, credChan := range conn.creditChannels() {
-		log.Log.Trace().Int("priority", priority).Msg("publishing input port buffer capacity for priority to connection src")
+		log.Log.Trace().Int("priority", priority).Int("cap", cap(credChan)).Int("Credit", buff.vChanCapacity()).Msg("publishing input port virtual channel credits to connection source object")
 		credChan <- buff.vChanCapacity()
 	}
 
-	log.Log.Trace().Msg("published input port buffer capacity to connection src")
+	log.Log.Trace().Msg("published input port buffer capacity to connection source")
 
 	log.Log.Trace().Msg("new input port")
 	return &inputPortImpl{
@@ -93,7 +93,7 @@ func (o *outputPortImpl) connection() Connection {
 }
 
 func (o *outputPortImpl) allowedToSend(priority int) bool {
-	return o.credits[priority] > 0 && len(o.conn.flitChannel()) == 0
+	return o.credits[priority] > 0 && len(o.conn.flitChannel()) < o.conn.flitBandwidth()
 }
 
 func (o *outputPortImpl) sendFlit(flit packet.Flit) error {

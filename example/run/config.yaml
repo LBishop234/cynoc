@@ -4,3 +4,4 @@ routing_algorithm: XY
 buffer_size: 160
 flit_size: 4
 processing_delay: 6
+link_bandwidth: 8

@@ -23,6 +23,7 @@ func testRouter(t *testing.T) *routerImpl {
 			FlitSize:         1,
 			MaxPriority:      1,
 			ProcessingDelay:  1,
+			LinkBandwidth:    1,
 		},
 	})
 	require.NoError(t, err)
@@ -39,7 +40,7 @@ type testRouterPair struct {
 	BtoA *connectionImpl
 }
 
-func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxPriority int) testRouterPair {
+func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxPriority, linkBandwidth int) testRouterPair {
 	aPos := domain.NewPosition(0, 0)
 	bPos := domain.NewPosition(1, 0)
 
@@ -54,6 +55,7 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 			FlitSize:         flitSize,
 			ProcessingDelay:  processingDelay,
 			MaxPriority:      maxPriority,
+			LinkBandwidth:    linkBandwidth,
 		},
 	})
 	require.NoError(t, err)
@@ -75,6 +77,7 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 			FlitSize:         flitSize,
 			ProcessingDelay:  processingDelay,
 			MaxPriority:      maxPriority,
+			LinkBandwidth:    linkBandwidth,
 		},
 	})
 	require.NoError(t, err)
@@ -85,13 +88,13 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 	err = rB.SetNetworkInterface(niB)
 	require.NoError(t, err)
 
-	AtoB, err := NewConnection(maxPriority)
+	AtoB, err := NewConnection(maxPriority, linkBandwidth)
 	require.NoError(t, err)
 
 	rA.RegisterOutputPort(AtoB)
 	rB.RegisterInputPort(AtoB)
 
-	BtoA, err := NewConnection(maxPriority)
+	BtoA, err := NewConnection(maxPriority, linkBandwidth)
 	require.NoError(t, err)
 
 	rB.RegisterOutputPort(BtoA)
@@ -130,6 +133,7 @@ func TestNewRouter(t *testing.T) {
 				FlitSize:         1,
 				ProcessingDelay:  1,
 				MaxPriority:      1,
+				LinkBandwidth:    1,
 			},
 		}
 
@@ -141,11 +145,7 @@ func TestNewRouter(t *testing.T) {
 		assert.NotNil(t, router.inputPorts)
 		assert.NotNil(t, router.outputPorts)
 
-		assert.Equal(t, conf.RoutingAlgorithm, router.routingAlg)
-		assert.Equal(t, conf.BufferSize, router.bufferSize)
-		assert.Equal(t, conf.FlitSize, router.flitSize)
-		assert.Equal(t, conf.MaxPriority, router.maxPriority)
-		assert.Equal(t, conf.ProcessingDelay, router.processingDelay)
+		assert.Equal(t, conf.SimConfig, router.simConf)
 
 		assert.NotNil(t, router.headerFlitsProcessings)
 	})
@@ -158,6 +158,7 @@ func TestNewRouter(t *testing.T) {
 				FlitSize:         1,
 				ProcessingDelay:  1,
 				MaxPriority:      1,
+				LinkBandwidth:    1,
 			},
 		})
 		require.Error(t, err)
@@ -171,6 +172,7 @@ func TestNewRouter(t *testing.T) {
 				FlitSize:         1,
 				ProcessingDelay:  0,
 				MaxPriority:      1,
+				LinkBandwidth:    1,
 			},
 		})
 		require.ErrorIs(t, err, domain.ErrInvalidParameter)
@@ -190,6 +192,7 @@ func TestRouterNodeID(t *testing.T) {
 			FlitSize:         1,
 			ProcessingDelay:  1,
 			MaxPriority:      1,
+			LinkBandwidth:    1,
 		},
 	})
 	require.NoError(t, err)
@@ -203,7 +206,7 @@ func TestRouterRegisterInputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn, err := NewConnection(router.maxPriority)
+		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
 		require.NoError(t, err)
 
 		err = router.RegisterInputPort(conn)
@@ -221,9 +224,9 @@ func TestRouterRegisterInputPort(t *testing.T) {
 	t.Run("NewBufferError", func(t *testing.T) {
 		router := testRouter(t)
 
-		router.bufferSize = 0
+		router.simConf.BufferSize = 0
 
-		conn, err := NewConnection(router.maxPriority)
+		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
 		require.NoError(t, err)
 
 		err = router.RegisterInputPort(conn)
@@ -237,7 +240,7 @@ func TestRouterRegisterOutputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn, err := NewConnection(router.maxPriority)
+		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
 		require.NoError(t, err)
 
 		err = router.RegisterOutputPort(conn)
@@ -259,7 +262,7 @@ func TestRouterUpdateOutputMap(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn1, err := NewConnection(router.maxPriority)
+		conn1, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
 		require.NoError(t, err)
 		port1, err := newOutputPort(conn1, 1)
 		require.NoError(t, err)
@@ -267,7 +270,7 @@ func TestRouterUpdateOutputMap(t *testing.T) {
 		conn1.SetDstRouter(nodeID1)
 		router.outputPorts = append(router.outputPorts, port1)
 
-		conn2, err := NewConnection(router.maxPriority)
+		conn2, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
 		require.NoError(t, err)
 		port2, err := newOutputPort(conn2, 1)
 		require.NoError(t, err)
@@ -304,7 +307,7 @@ func TestRouterSetNetworkInterface(t *testing.T) {
 	t.Run("InConnNewConnectionError", func(t *testing.T) {
 		router := testRouter(t)
 
-		router.bufferSize = 0
+		router.simConf.BufferSize = 0
 		err := router.SetNetworkInterface(&networkInterfaceImpl{})
 		require.Error(t, err)
 	})
@@ -335,7 +338,7 @@ func TestRouterUpdateOutputPortsCredit(t *testing.T) {
 
 	router := testRouter(t)
 
-	conn, err := NewConnection(router.maxPriority)
+	conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
 	require.NoError(t, err)
 	router.RegisterOutputPort(conn)
 
@@ -351,7 +354,7 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		var flitSize int = 1
 
-		testRouterPair := newTestRouterPair(t, 1, flitSize, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, flitSize, 1, 1, 1)
 
 		pkt := packet.NewPacket("t", 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, 10)
 
@@ -385,7 +388,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
 
 		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
@@ -399,7 +402,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	})
 
 	t.Run("ReadIntoBufferError", func(t *testing.T) {
-		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
 
 		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
@@ -423,7 +426,7 @@ func TestRouterRouteFlit(t *testing.T) {
 
 	t.Run("MissingPacketsTransmitting", func(t *testing.T) {
 		router := testRouter(t)
-		router.routingAlg = "unknown"
+		router.simConf.RoutingAlgorithm = "unknown"
 
 		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{})
 		_, err := router.routeFlit(flit)
@@ -446,6 +449,7 @@ func TestRouterXYRouting(t *testing.T) {
 				FlitSize:         1,
 				ProcessingDelay:  1,
 				MaxPriority:      1,
+				LinkBandwidth:    1,
 			},
 		})
 		require.NoError(t, err)
@@ -461,11 +465,12 @@ func TestRouterXYRouting(t *testing.T) {
 				FlitSize:         1,
 				ProcessingDelay:  1,
 				MaxPriority:      1,
+				LinkBandwidth:    1,
 			},
 		})
 		require.NoError(t, err)
 
-		conn, err := NewConnection(dstRouter.maxPriority)
+		conn, err := NewConnection(dstRouter.simConf.MaxPriority, dstRouter.simConf.LinkBandwidth)
 		require.NoError(t, err)
 		err = dstRouter.RegisterInputPort(conn)
 		require.NoError(t, err)
@@ -493,6 +498,7 @@ func TestRouterXYRouting(t *testing.T) {
 				FlitSize:         1,
 				ProcessingDelay:  1,
 				MaxPriority:      1,
+				LinkBandwidth:    1,
 			},
 		})
 		require.NoError(t, err)

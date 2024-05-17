@@ -3,7 +3,6 @@ package results
 import (
 	"strconv"
 
-	"main/src/core/simulation"
 	"main/src/domain"
 
 	"github.com/alexeyco/simpletable"
@@ -14,7 +13,7 @@ type simResults struct {
 	trafficFlows []tfSim
 }
 
-func NewResults(sim simulation.Results, tfOrder []domain.TrafficFlowConfig) (Results, error) {
+func NewResults(sim domain.Results, tfOrder []domain.TrafficFlowConfig) (Results, error) {
 	var results simResults
 
 	results.simResults = localSimResults(sim.SimResults)
@@ -45,7 +44,7 @@ func (r *simResults) Prettify() (string, error) {
 }
 
 func (r *simResults) prettifyTfInfo() (str string) {
-	str += "Traffic Flow Results\n"
+	str += "Traffic Flow domain.Results\n"
 	str += "====================\n"
 	str += r.prettifyTfTable()
 

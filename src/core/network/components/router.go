@@ -33,15 +33,12 @@ type routerImpl struct {
 	outputMap     map[domain.NodeID]outputPort
 
 	// Configuration Constants
-	routingAlg      domain.RoutingAlgorithm
-	bufferSize      int
-	flitSize        int
-	maxPriority     int
-	processingDelay int
+	simConf domain.SimConfig
 
 	// Internal Operation
-	headerFlitsProcessings map[uuid.UUID]int
-	packetsNextRouter      map[uuid.UUID]domain.NodeID
+	headerFlitsProcessings       map[uuid.UUID]int
+	headerFlitsProcessedPerCycle map[uuid.UUID]bool
+	packetsNextRouter            map[uuid.UUID]domain.NodeID
 }
 
 type RouterConfig struct {
@@ -66,14 +63,11 @@ func newRouter(conf RouterConfig) (*routerImpl, error) {
 
 		outputMap: make(map[domain.NodeID]outputPort),
 
-		routingAlg:      conf.RoutingAlgorithm,
-		bufferSize:      conf.BufferSize,
-		flitSize:        conf.FlitSize,
-		maxPriority:     conf.MaxPriority,
-		processingDelay: conf.ProcessingDelay,
+		simConf: conf.SimConfig,
 
-		headerFlitsProcessings: make(map[uuid.UUID]int),
-		packetsNextRouter:      make(map[uuid.UUID]domain.NodeID),
+		headerFlitsProcessings:       make(map[uuid.UUID]int),
+		headerFlitsProcessedPerCycle: make(map[uuid.UUID]bool),
+		packetsNextRouter:            make(map[uuid.UUID]domain.NodeID),
 	}, nil
 }
 
@@ -82,7 +76,7 @@ func (r *routerImpl) NodeID() domain.NodeID {
 }
 
 func (r *routerImpl) RegisterInputPort(conn Connection) error {
-	buff, err := newBuffer(r.bufferSize, r.maxPriority)
+	buff, err := newBuffer(r.simConf.BufferSize, r.simConf.MaxPriority)
 	if err != nil {
 		return err
 	}
@@ -100,7 +94,7 @@ func (r *routerImpl) RegisterInputPort(conn Connection) error {
 }
 
 func (r *routerImpl) RegisterOutputPort(conn Connection) error {
-	port, err := newOutputPort(conn, r.maxPriority)
+	port, err := newOutputPort(conn, r.simConf.MaxPriority)
 	if err != nil {
 		return err
 	}
@@ -125,7 +119,7 @@ func (r *routerImpl) SetNetworkInterface(netIntfc NetworkInterface) error {
 		return domain.ErrNilParameter
 	}
 
-	inConn, err := NewConnection(r.maxPriority)
+	inConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth)
 	if err != nil {
 		return err
 	}
@@ -140,7 +134,7 @@ func (r *routerImpl) SetNetworkInterface(netIntfc NetworkInterface) error {
 		return err
 	}
 
-	outConn, err := NewConnection(r.maxPriority)
+	outConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth)
 	if err != nil {
 		return err
 	}
@@ -167,11 +161,15 @@ func (r *routerImpl) UpdateOutputPortsCredit() error {
 }
 
 func (r *routerImpl) RouteBufferedFlits() error {
-	for p := 1; p <= r.maxPriority; p++ {
-		for i := 0; i < len(r.inputPorts); i++ {
-			if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
-				if err := r.arbitrateFlit(i, flit); err != nil {
-					return err
+	r.headerFlitsProcessedPerCycle = make(map[uuid.UUID]bool)
+
+	for b := 0; b < r.simConf.LinkBandwidth; b++ {
+		for p := 1; p <= r.simConf.MaxPriority; p++ {
+			for i := 0; i < len(r.inputPorts); i++ {
+				if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
+					if err := r.arbitrateFlit(i, flit); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -244,24 +242,27 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 }
 
 func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
-	if _, exists := r.headerFlitsProcessings[flit.UUID()]; exists {
-		r.headerFlitsProcessings[flit.UUID()]++
-	} else {
-		r.headerFlitsProcessings[flit.UUID()] = 1
-	}
-
-	if r.headerFlitsProcessings[flit.UUID()] >= r.processingDelay {
-		outPort, err := r.routeFlit(flit)
-		if err != nil {
-			return false, err
+	if _, previouslyProcessed := r.headerFlitsProcessedPerCycle[flit.UUID()]; !previouslyProcessed {
+		if _, exists := r.headerFlitsProcessings[flit.UUID()]; exists {
+			r.headerFlitsProcessings[flit.UUID()]++
+		} else {
+			r.headerFlitsProcessings[flit.UUID()] = 1
 		}
 
-		r.packetsNextRouter[flit.PacketUUID()] = outPort.connection().GetDstRouter()
+		r.headerFlitsProcessedPerCycle[flit.UUID()] = true
 
-		return true, nil
-	} else {
-		return false, nil
+		if r.headerFlitsProcessings[flit.UUID()] >= r.simConf.ProcessingDelay {
+			outPort, err := r.routeFlit(flit)
+			if err != nil {
+				return false, err
+			}
+
+			r.packetsNextRouter[flit.PacketUUID()] = outPort.connection().GetDstRouter()
+
+			return true, nil
+		}
 	}
+	return false, nil
 }
 
 func (r *routerImpl) sendFlit(inputPortIndex int, flit packet.Flit) (bool, error) {
