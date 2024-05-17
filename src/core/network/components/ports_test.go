@@ -133,7 +133,7 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 	t.Parallel()
 
 	t.Run("FlitInChannel", func(t *testing.T) {
-		var bufferSize = 3
+		bufferSize := 3
 		var maxPriority int = 1
 		var linkBandwidth int = 3
 
@@ -156,7 +156,7 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 	})
 
 	t.Run("NoFlitInChannel", func(t *testing.T) {
-		var bufferSize = 1
+		bufferSize := 1
 		var maxPriority int = 1
 		var linkBandwidth int = 1
 
@@ -167,7 +167,7 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 	})
 
 	t.Run("FullBuffer", func(t *testing.T) {
-		var bufferSize = 1
+		bufferSize := 1
 		var maxPriority int = 1
 		var linkBandwidth int = 1
 
@@ -189,7 +189,7 @@ func TestInputPortPeakBuffer(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		var bufferSize = 1
+		bufferSize := 1
 		var maxPriority int = 1
 		var linkBandwidth int = 1
 
@@ -204,7 +204,7 @@ func TestInputPortPeakBuffer(t *testing.T) {
 	})
 
 	t.Run("EmptyBuffer", func(t *testing.T) {
-		var bufferSize = 1
+		bufferSize := 1
 		var maxPriority int = 1
 		var linkBandwidth int = 1
 
@@ -220,7 +220,7 @@ func TestInputPortReadOutOfBuffer(t *testing.T) {
 	t.Parallel()
 
 	t.Run("FlitInBuffer", func(t *testing.T) {
-		var bufferSize = 3
+		bufferSize := 3
 		var maxPriority int = 1
 		var linkBandwidth int = 3
 
@@ -238,11 +238,10 @@ func TestInputPortReadOutOfBuffer(t *testing.T) {
 			assert.Equal(t, flits[i], gotFlit)
 			assert.Equal(t, 1, <-port.conn.creditChannel(flits[i].Priority()))
 		}
-
 	})
 
 	t.Run("NoFlitInBuffer", func(t *testing.T) {
-		var bufferSize = 1
+		bufferSize := 1
 		var maxPriority int = 1
 		var linkBandwidth int = 1
 
@@ -284,7 +283,6 @@ func TestOutputPortAllowedToSend(t *testing.T) {
 			port.credits[priority]--
 			port.conn.flitChannel() <- packet.NewTailFlit(uuid.New(), priority)
 		}
-
 	})
 
 	t.Run("NotAllowedLackingCredits", func(t *testing.T) {

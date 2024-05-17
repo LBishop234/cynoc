@@ -344,8 +344,8 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 	t.Parallel()
 
 	t.Run("NoFlitsToTransit", func(t *testing.T) {
-		var maxPriority int = 2
-		var linkBandwidth int = 2
+		var maxPriority int = 1
+		var linkBandwidth int = 1
 
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, maxPriority)
 		require.NoError(t, err)
