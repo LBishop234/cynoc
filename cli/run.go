@@ -6,7 +6,7 @@ import (
 	"main/log"
 	"main/src/config"
 	"main/src/core"
-	"main/src/core/results"
+	"main/src/domain"
 	"main/src/topology"
 	"main/src/traffic"
 
@@ -76,7 +76,7 @@ func initLogger(logConf *LogConfig) {
 	log.InitLogger(logLevel)
 }
 
-func output(cliCtx *cli.Context, results results.Results) error {
+func output(cliCtx *cli.Context, results domain.Results) error {
 	outputArgs := OutputArgs(cliCtx)
 
 	if outputArgs.OutputFileFlag {

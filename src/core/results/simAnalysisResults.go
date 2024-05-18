@@ -14,7 +14,7 @@ type simAnalysisResults struct {
 	trafficFlows []tfSimAnalysis
 }
 
-func NewResultsWithAnalysis(sim domain.Results, analyses analysis.AnalysisResults, tfOrder []domain.TrafficFlowConfig) (Results, error) {
+func NewResultsWithAnalysis(sim domain.FullResults, analyses analysis.AnalysisResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
 	var results simAnalysisResults
 
 	results.simResults = localSimResults(sim.SimResults)

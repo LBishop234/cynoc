@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.TrafficFlowConfig, runAnalysisFlag bool) (results.Results, error) {
+func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.TrafficFlowConfig, runAnalysisFlag bool) (domain.Results, error) {
 	network, err := network.NewNetwork(
 		top,
 		conf,
@@ -77,7 +77,7 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 		return nil, err
 	}
 
-	var resultsSet results.Results
+	var resultsSet domain.Results
 	if runAnalysisFlag {
 		wg.Wait()
 		var analysisResults analysis.AnalysisResults = <-analysisResultsChan

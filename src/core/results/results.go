@@ -11,11 +11,6 @@ import (
 	"main/src/domain"
 )
 
-type Results interface {
-	Prettify() (string, error)
-	OutputCSV(path string) error
-}
-
 type localSimResults domain.SimResults
 
 func (r *localSimResults) prettify() (str string) {

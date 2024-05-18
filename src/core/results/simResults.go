@@ -13,7 +13,7 @@ type simResults struct {
 	trafficFlows []tfSim
 }
 
-func NewResults(sim domain.Results, tfOrder []domain.TrafficFlowConfig) (Results, error) {
+func NewResults(sim domain.FullResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
 	var results simResults
 
 	results.simResults = localSimResults(sim.SimResults)

@@ -641,13 +641,13 @@ func TestRunSimulation(t *testing.T) {
 			for i := 0; i < len(testCase.expected); i++ {
 				expctTfID := testCase.expected[i].trafficFlowID
 
-				assert.NotEmpty(t, records.arrivedByTF[expctTfID], 0)
+				assert.NotEmpty(t, records.ArrivedByTF[expctTfID], 0)
 
 				found := false
-				for uuid, pkt := range records.arrivedByTF[expctTfID] {
-					if pkt.receivedCycle == testCase.expected[i].cycle {
+				for uuid, pkt := range records.ArrivedByTF[expctTfID] {
+					if pkt.ReceivedCycle == testCase.expected[i].cycle {
 						found = true
-						delete(records.arrivedByTF[expctTfID], uuid)
+						delete(records.ArrivedByTF[expctTfID], uuid)
 						break
 					}
 				}

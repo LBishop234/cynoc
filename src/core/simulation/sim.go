@@ -23,7 +23,7 @@ type simulator struct {
 	routingAlg   domain.RoutingAlgorithm
 	cycleLimit   int
 
-	rcrds *records
+	rcrds *Records
 }
 
 type trafficFlowRoute struct {
@@ -69,28 +69,28 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, r
 	return simulator, nil
 }
 
-func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int) (domain.Results, error) {
+func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int) (domain.FullResults, error) {
 	select {
 	case <-ctx.Done():
-		return domain.Results{}, ctx.Err()
+		return domain.FullResults{}, ctx.Err()
 	default:
 		simulator, err := newSimulator(network, trafficFlows, routingAlg, cycleLimit)
 		if err != nil {
 			log.Log.Error().Err(nil).Msg("error creating simulator")
-			return domain.Results{}, err
+			return domain.FullResults{}, err
 		}
 
 		simDuration, rcrds, err := simulator.runSimulation(ctx)
 		if err != nil {
 			log.Log.Error().Err(err).Msg("error running simulation")
-			return domain.Results{}, err
+			return domain.FullResults{}, err
 		}
 
 		return results(cycleLimit, simDuration, rcrds, trafficFlows), nil
 	}
 }
 
-func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *records, error) {
+func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records, error) {
 	logProgressInterval := int(math.Round(float64(s.cycleLimit) * simProgressMultiple))
 	if logProgressInterval > maxProgressInterval {
 		logProgressInterval = maxProgressInterval
