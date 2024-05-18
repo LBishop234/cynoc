@@ -2,6 +2,8 @@ package core
 
 import (
 	"context"
+	"sync"
+
 	"main/log"
 	"main/src/core/analysis"
 	"main/src/core/network"
@@ -10,7 +12,6 @@ import (
 	"main/src/domain"
 	"main/src/topology"
 	"main/src/traffic"
-	"sync"
 )
 
 func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.TrafficFlowConfig, runAnalysisFlag bool) (domain.Results, error) {
