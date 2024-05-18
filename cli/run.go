@@ -1,16 +1,12 @@
 package cli
 
 import (
-	"context"
 	"fmt"
-	"sync"
 
 	"main/log"
 	"main/src/config"
-	"main/src/core/analysis"
-	"main/src/core/network"
-	"main/src/core/results"
-	"main/src/core/simulation"
+	"main/src/core"
+	"main/src/domain"
 	"main/src/topology"
 	"main/src/traffic"
 
@@ -39,7 +35,6 @@ func NewApp() *cli.App {
 		if err != nil {
 			log.Log.Fatal().Err(err).Msg("error reading config file")
 		}
-
 		conf = ApplyConfigOverrides(cliCtx, conf)
 
 		top, err := topology.ReadTopology(confArgs.TopologyPath)
@@ -47,79 +42,14 @@ func NewApp() *cli.App {
 			log.Log.Fatal().Err(err).Msg("error reading topology")
 		}
 
-		network, err := network.NewNetwork(
-			top,
-			conf,
-		)
-		if err != nil {
-			log.Log.Fatal().Err(err).Msg("error reading topology file")
-		}
-
 		trafficFlowConfigs, err := traffic.LoadTrafficFlowConfig(confArgs.TrafficPath)
 		if err != nil {
 			log.Log.Fatal().Err(err).Msg("error reading traffic flows file")
 		}
 
-		trafficFlows, err := traffic.TrafficFlows(conf, trafficFlowConfigs)
+		resultsSet, err := core.Run(conf, top, trafficFlowConfigs, analysisArgs.Analysis)
 		if err != nil {
-			log.Log.Fatal().Err(err).Msg("error constructing traffic flows")
-		}
-
-		var wg sync.WaitGroup
-		analysisResultsChan := make(chan analysis.AnalysisResults, 1)
-		ctx, cancelFunc := context.WithCancel(context.Background())
-		defer cancelFunc()
-
-		if analysisArgs.Analysis {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-
-				log.Log.Info().Msg("Running analysis")
-
-				analysisResults, err := analysis.Analysis(
-					ctx,
-					conf,
-					top,
-					trafficFlowConfigs,
-				)
-				if err != nil {
-					log.Log.Error().Err(err).Msg("error running analysis")
-					cancelFunc()
-					return
-				}
-
-				analysisResultsChan <- analysisResults
-
-				if !analysisResults.AnalysesSchedulable() {
-					log.Log.Warn().Msg("Analysis indicates the network is not schedulable")
-				}
-			}()
-		}
-
-		simResults, err := simulation.Simulate(
-			ctx,
-			network,
-			trafficFlows,
-			conf.RoutingAlgorithm,
-			conf.CycleLimit,
-		)
-		if err != nil {
-			cancelFunc()
-			log.Log.Fatal().Err(err).Msg("error running simulation")
-		}
-
-		var resultsSet results.Results
-		if analysisArgs.Analysis {
-			wg.Wait()
-			var analysisResults analysis.AnalysisResults = <-analysisResultsChan
-
-			resultsSet, err = results.NewResultsWithAnalysis(simResults, analysisResults, trafficFlowConfigs)
-		} else {
-			resultsSet, err = results.NewResults(simResults, trafficFlowConfigs)
-		}
-		if err != nil {
-			log.Log.Fatal().Err(err).Msg("error constructing results")
+			log.Log.Fatal().Err(err).Msg("error running simulator")
 		}
 
 		if err := output(cliCtx, resultsSet); err != nil {
@@ -146,7 +76,7 @@ func initLogger(logConf *LogConfig) {
 	log.InitLogger(logLevel)
 }
 
-func output(cliCtx *cli.Context, results results.Results) error {
+func output(cliCtx *cli.Context, results domain.Results) error {
 	outputArgs := OutputArgs(cliCtx)
 
 	if outputArgs.OutputFileFlag {

@@ -7,8 +7,8 @@ import (
 	"main/src/traffic"
 )
 
-func results(cycles int, dur time.Duration, rcrds *records, trafficFlows []traffic.TrafficFlow) domain.Results {
-	results := domain.Results{
+func results(cycles int, dur time.Duration, rcrds *Records, trafficFlows []traffic.TrafficFlow) domain.FullResults {
+	results := domain.FullResults{
 		SimResults: domain.SimResults{
 			Cycles:   cycles,
 			Duration: dur,
@@ -32,7 +32,7 @@ func results(cycles int, dur time.Duration, rcrds *records, trafficFlows []traff
 	return results
 }
 
-func newTFStatSet(rcrds *records, tfID string) domain.TrafficFlowStatSet {
+func newTFStatSet(rcrds *Records, tfID string) domain.TrafficFlowStatSet {
 	return domain.TrafficFlowStatSet{
 		StatSet: domain.StatSet{
 			PacketsRouted:           rcrds.noTransmittedByTF(tfID),
