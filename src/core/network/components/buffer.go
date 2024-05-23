@@ -36,7 +36,7 @@ func newBuffer(capacity, maxPriority int) (*bufferImpl, error) {
 	return &bufferImpl{
 		bufferCap: capacity,
 		vChanCap:  vChanCap,
-		flits:     make(map[int][]packet.Flit, 0),
+		flits:     make(map[int][]packet.Flit),
 	}, nil
 }
 
