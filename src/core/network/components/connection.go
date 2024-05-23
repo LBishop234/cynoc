@@ -29,7 +29,7 @@ type connectionImpl struct {
 
 func NewConnection(maxPriority, bandwidth int) (*connectionImpl, error) {
 	creditChan := make(map[int]chan int, maxPriority)
-	for i := 0; i <= maxPriority; i++ {
+	for i := 1; i <= maxPriority; i++ {
 		creditChan[i] = make(chan int, bandwidth)
 	}
 
