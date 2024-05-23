@@ -47,7 +47,7 @@ func newNetworkInterface(nodeID domain.NodeID, bufferSize, flitSize, maxPriority
 		bufferSize:     bufferSize,
 		flitSize:       flitSize,
 		maxPriority:    maxPriority,
-		flitsInTransit: make(map[int][]packet.Flit, 0),
+		flitsInTransit: make(map[int][]packet.Flit),
 		flitsArriving:  make(map[uuid.UUID]packet.Reconstructor),
 		arrivedPackets: make([]packet.Packet, 0),
 	}, nil
@@ -201,7 +201,7 @@ func (n *networkInterfaceImpl) arrivedTailFlit(flit packet.TailFlit) error {
 func (n *networkInterfaceImpl) TransmitPendingPackets() error {
 	n.outputPort.updateCredits()
 
-	for p := 0; p <= n.maxPriority; p++ {
+	for p := 1; p <= n.maxPriority; p++ {
 		for len(n.flitsInTransit[p]) > 0 && n.outputPort.allowedToSend(n.flitsInTransit[p][0].Priority()) {
 			if err := n.outputPort.sendFlit(n.flitsInTransit[p][0]); err != nil {
 				log.Log.Error().Err(err).

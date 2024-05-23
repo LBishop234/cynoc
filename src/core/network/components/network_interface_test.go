@@ -212,7 +212,7 @@ func TestNetworkInterfaceHandleArrivingFlits(t *testing.T) {
 		err = netIntfc.SetInputPort(inConn)
 		require.NoError(t, err)
 
-		for i := 0; i <= maxPriority; i++ {
+		for i := 1; i <= maxPriority; i++ {
 			<-inConn.creditChannel(i)
 		}
 
