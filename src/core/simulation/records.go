@@ -201,5 +201,5 @@ func arrivedPacketLatency(pkt arrivedPacket) float64 {
 }
 
 func arrivedPacketInDeadline(pkt arrivedPacket) bool {
-	return arrivedPacketLatency(pkt) < float64(pkt.Packet.Deadline())
+	return arrivedPacketLatency(pkt) <= float64(pkt.Packet.Deadline())
 }
