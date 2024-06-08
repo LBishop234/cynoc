@@ -142,7 +142,7 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 
 		flits := make([]packet.Flit, linkBandwidth)
 		for i := 0; i < linkBandwidth; i++ {
-			flits[i] = packet.NewHeaderFlit(fmt.Sprintf("t%d", i), uuid.New(), 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
+			flits[i] = packet.NewHeaderFlit(fmt.Sprintf("t%d", i), uuid.New(), 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
 			port.conn.flitChannel() <- flits[i]
 		}
 
@@ -174,7 +174,7 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 
 		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
+		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
 
 		port.conn.flitChannel() <- flit
 		err := port.readIntoBuffer()
@@ -196,7 +196,7 @@ func TestInputPortPeakBuffer(t *testing.T) {
 
 		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}, domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
+		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}, domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
 		port.buff.addFlit(flit)
 
 		gotFlit, exists := port.peakBuffer(flit.Priority())
@@ -229,7 +229,7 @@ func TestInputPortReadOutOfBuffer(t *testing.T) {
 
 		flits := make([]packet.Flit, linkBandwidth)
 		for i := 0; i < linkBandwidth; i++ {
-			flits[i] = packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
+			flits[i] = packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
 			port.buff.addFlit(flits[i])
 		}
 
@@ -282,7 +282,7 @@ func TestOutputPortAllowedToSend(t *testing.T) {
 		for i := 0; i < linkBandwidth; i++ {
 			assert.True(t, port.allowedToSend(priority))
 			port.credits[priority]--
-			port.conn.flitChannel() <- packet.NewTailFlit(uuid.New(), priority)
+			port.conn.flitChannel() <- packet.NewTailFlit(uuid.New(), 2, priority)
 		}
 	})
 
@@ -306,7 +306,7 @@ func TestOutputPortAllowedToSend(t *testing.T) {
 		port.credits[priority] = linkBandwidth + 1
 
 		for i := 0; i < linkBandwidth; i++ {
-			port.conn.flitChannel() <- packet.NewTailFlit(uuid.New(), priority)
+			port.conn.flitChannel() <- packet.NewTailFlit(uuid.New(), 2, priority)
 		}
 
 		assert.False(t, port.allowedToSend(priority))
@@ -327,7 +327,7 @@ func TestOutputPortSendFlit(t *testing.T) {
 		}
 
 		for i := 0; i < priority; i++ {
-			flit := packet.NewTailFlit(uuid.New(), i)
+			flit := packet.NewTailFlit(uuid.New(), 2, i)
 
 			err := port.sendFlit(flit)
 			require.NoError(t, err)
@@ -344,7 +344,7 @@ func TestOutputPortSendFlit(t *testing.T) {
 
 		port.credits[priority] = 0
 
-		err := port.sendFlit(packet.NewTailFlit(uuid.New(), priority))
+		err := port.sendFlit(packet.NewTailFlit(uuid.New(), 2, priority))
 		require.ErrorIs(t, err, domain.ErrPortNoCredit)
 		assert.Empty(t, port.conn.flitChannel())
 	})

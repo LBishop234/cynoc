@@ -69,7 +69,7 @@ func TestBufferPopFlit(t *testing.T) {
 		buff, err := newBuffer(1, 1)
 		require.NoError(t, err)
 
-		flit := packet.NewTailFlit(uuid.New(), 1)
+		flit := packet.NewTailFlit(uuid.New(), 2, 1)
 		buff.flits[flit.Priority()] = append(buff.flits[flit.Priority()], flit)
 
 		gotFlit, exists := buff.popFlit(flit.Priority())
@@ -82,10 +82,10 @@ func TestBufferPopFlit(t *testing.T) {
 		buff, err := newBuffer(2, 2)
 		require.NoError(t, err)
 
-		flit1 := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
+		flit1 := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
 		buff.flits[flit1.Priority()] = append(buff.flits[flit1.Priority()], flit1)
 
-		flit2 := packet.NewTailFlit(uuid.New(), 1)
+		flit2 := packet.NewTailFlit(uuid.New(), 1, 1)
 		buff.flits[flit2.Priority()] = append(buff.flits[flit2.Priority()], flit2)
 
 		gotFlit1, exists := buff.popFlit(flit1.Priority())
@@ -107,7 +107,7 @@ func TestBufferAddFlit(t *testing.T) {
 		buff, err := newBuffer(1, 1)
 		require.NoError(t, err)
 
-		flit := packet.NewTailFlit(uuid.New(), 1)
+		flit := packet.NewTailFlit(uuid.New(), 2, 1)
 		err = buff.addFlit(flit)
 		require.NoError(t, err)
 		assert.Contains(t, buff.flits[flit.Priority()], flit)
@@ -117,7 +117,7 @@ func TestBufferAddFlit(t *testing.T) {
 		buff, err := newBuffer(1, 1)
 		require.NoError(t, err)
 
-		flit := packet.NewTailFlit(uuid.New(), 1)
+		flit := packet.NewTailFlit(uuid.New(), 2, 1)
 		err = buff.addFlit(flit)
 		require.NoError(t, err)
 

@@ -238,7 +238,7 @@ func TestNetworkInterfaceArrivedHeaderFlit(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, 1)
 		require.NoError(t, err)
 
-		headerFlit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
+		headerFlit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
 
 		err = netIntfc.arrivedHeaderFlit(headerFlit)
 		require.NoError(t, err)
@@ -262,7 +262,7 @@ func TestNetworkInterfaceArrivedBodyFlit(t *testing.T) {
 
 		netIntfc.flitsArriving[pktUUID] = packet.NewReconstructor()
 
-		bodyFlit := packet.NewBodyFlit(pktUUID, 4, 1)
+		bodyFlit := packet.NewBodyFlit(pktUUID, 1, 4, 1)
 
 		err = netIntfc.arrivedBodyFlit(bodyFlit)
 		require.NoError(t, err)
@@ -289,16 +289,16 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, 1)
 		require.NoError(t, err)
 
-		headerFlit := packet.NewHeaderFlit(trafficFlowID, pktUUID, priority, deadline, route)
+		headerFlit := packet.NewHeaderFlit(trafficFlowID, pktUUID, 0, priority, deadline, route)
 		netIntfc.flitsArriving[pktUUID] = packet.NewReconstructor()
 		err = netIntfc.flitsArriving[pktUUID].SetHeader(headerFlit)
 		require.NoError(t, err)
 
-		bodyFlit := packet.NewBodyFlit(pktUUID, bodySize, priority)
+		bodyFlit := packet.NewBodyFlit(pktUUID, 1, bodySize, priority)
 		err = netIntfc.flitsArriving[pktUUID].AddBody(bodyFlit)
 		require.NoError(t, err)
 
-		tailFlit := packet.NewTailFlit(pktUUID, priority)
+		tailFlit := packet.NewTailFlit(pktUUID, 2, priority)
 		err = netIntfc.arrivedTailFlit(tailFlit)
 		require.NoError(t, err)
 
@@ -319,9 +319,9 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		require.NoError(t, err)
 
 		netIntfc.flitsArriving[pktUUID] = packet.NewReconstructor()
-		netIntfc.flitsArriving[pktUUID].SetTail(packet.NewTailFlit(pktUUID, 1))
+		netIntfc.flitsArriving[pktUUID].SetTail(packet.NewTailFlit(pktUUID, 2, 1))
 
-		tailFlit := packet.NewTailFlit(pktUUID, 1)
+		tailFlit := packet.NewTailFlit(pktUUID, 2, 1)
 		err = netIntfc.arrivedTailFlit(tailFlit)
 		require.Error(t, err)
 	})
@@ -334,7 +334,7 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 
 		netIntfc.flitsArriving[pktUUID] = packet.NewReconstructor()
 
-		tailFlit := packet.NewTailFlit(pktUUID, 1)
+		tailFlit := packet.NewTailFlit(pktUUID, 2, 1)
 		err = netIntfc.arrivedTailFlit(tailFlit)
 		require.Error(t, err)
 	})

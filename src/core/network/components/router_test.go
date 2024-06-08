@@ -390,7 +390,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
+		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
 
 		err := testRouterPair.rB.ReadFromInputPorts()
@@ -404,7 +404,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	t.Run("ReadIntoBufferError", func(t *testing.T) {
 		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
+		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
 
 		err := testRouterPair.rB.ReadFromInputPorts()
@@ -428,7 +428,7 @@ func TestRouterRouteFlit(t *testing.T) {
 		router := testRouter(t)
 		router.simConf.RoutingAlgorithm = "unknown"
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{})
+		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{})
 		_, err := router.routeFlit(flit)
 		require.ErrorIs(t, err, domain.ErrNoPort)
 	})
@@ -479,7 +479,7 @@ func TestRouterXYRouting(t *testing.T) {
 
 		srcRouter.UpdateOutputMap()
 
-		gotOutputPort, err := srcRouter.routeFlit(packet.NewHeaderFlit("t", uuid.New(), 1, 100, domain.Route{srcRouter.NodeID(), dstRouter.NodeID()}))
+		gotOutputPort, err := srcRouter.routeFlit(packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{srcRouter.NodeID(), dstRouter.NodeID()}))
 		require.NoError(t, err)
 		assert.Equal(t, conn, gotOutputPort.connection())
 	})
@@ -505,7 +505,7 @@ func TestRouterXYRouting(t *testing.T) {
 
 		router.packetsNextRouter[packetUUID] = router.nodeID
 
-		_, err = router.routeFlit(packet.NewHeaderFlit("t", packetUUID, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}))
+		_, err = router.routeFlit(packet.NewHeaderFlit("t", packetUUID, 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}))
 		require.ErrorIs(t, err, domain.ErrNoPort)
 	})
 }
