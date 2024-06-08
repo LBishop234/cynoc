@@ -96,7 +96,7 @@ func TestFlitUUID(t *testing.T) {
 	_, _, route := testDummyRoute(t)
 
 	flit := NewHeaderFlit("t", uuid.New(), 0, 1, 100, route)
-	assert.Equal(t, flit.uuid, flit.UUID())
+	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestHeaderFlitType(t *testing.T) {
@@ -165,7 +165,7 @@ func TestBodyFlitUUID(t *testing.T) {
 	t.Parallel()
 
 	flit := NewBodyFlit(uuid.New(), 1, 1, 1)
-	assert.Equal(t, flit.uuid, flit.UUID())
+	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestBodyFlitType(t *testing.T) {
@@ -208,7 +208,7 @@ func TestTailFlitUUID(t *testing.T) {
 	t.Parallel()
 
 	flit := NewTailFlit(uuid.New(), 2, 1)
-	assert.Equal(t, flit.uuid, flit.UUID())
+	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestTailFlitType(t *testing.T) {

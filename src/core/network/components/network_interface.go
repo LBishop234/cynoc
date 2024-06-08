@@ -138,14 +138,14 @@ func (n *networkInterfaceImpl) HandleArrivingFlits() error {
 			if err != nil {
 				log.Log.Error().Err(err).
 					Str("network_interface", n.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-					Str("flit", flit.UUID().String()).Str("type", flit.Type().String()).
+					Str("flit", flit.ID()).Str("type", flit.Type().String()).
 					Msg("error handling arrived flit")
 				return err
 			}
 
 			log.Log.Trace().
 				Str("network_interface", n.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-				Str("type", flit.Type().String()).Str("flit", flit.UUID().String()).
+				Str("type", flit.Type().String()).Str("flit", flit.ID()).
 				Int("priority", flit.Priority()).
 				Msg("flit arrived at network interface")
 		}
@@ -206,7 +206,7 @@ func (n *networkInterfaceImpl) TransmitPendingPackets() error {
 			if err := n.outputPort.sendFlit(n.flitsInTransit[p][0]); err != nil {
 				log.Log.Error().Err(err).
 					Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketUUID().String()).
-					Str("flit", n.flitsInTransit[p][0].UUID().String()).Str("type", n.flitsInTransit[p][0].Type().String()).
+					Str("flit", n.flitsInTransit[p][0].ID()).Str("type", n.flitsInTransit[p][0].Type().String()).
 					Msg("error sending flit")
 
 				return err
@@ -214,7 +214,7 @@ func (n *networkInterfaceImpl) TransmitPendingPackets() error {
 
 			log.Log.Trace().
 				Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketUUID().String()).
-				Str("flit", n.flitsInTransit[p][0].UUID().String()).Str("type", n.flitsInTransit[p][0].Type().String()).
+				Str("flit", n.flitsInTransit[p][0].ID()).Str("type", n.flitsInTransit[p][0].Type().String()).
 				Int("priority", n.flitsInTransit[p][0].Priority()).
 				Msg("flit sent from network interface")
 

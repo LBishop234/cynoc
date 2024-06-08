@@ -36,8 +36,8 @@ type routerImpl struct {
 	simConf domain.SimConfig
 
 	// Internal Operation
-	headerFlitsProcessings       map[uuid.UUID]int
-	headerFlitsProcessedPerCycle map[uuid.UUID]bool
+	headerFlitsProcessings       map[string]int
+	headerFlitsProcessedPerCycle map[string]bool
 	packetsNextRouter            map[uuid.UUID]domain.NodeID
 }
 
@@ -65,8 +65,8 @@ func newRouter(conf RouterConfig) (*routerImpl, error) {
 
 		simConf: conf.SimConfig,
 
-		headerFlitsProcessings:       make(map[uuid.UUID]int),
-		headerFlitsProcessedPerCycle: make(map[uuid.UUID]bool),
+		headerFlitsProcessings:       make(map[string]int),
+		headerFlitsProcessedPerCycle: make(map[string]bool),
 		packetsNextRouter:            make(map[uuid.UUID]domain.NodeID),
 	}, nil
 }
@@ -161,7 +161,7 @@ func (r *routerImpl) UpdateOutputPortsCredit() error {
 }
 
 func (r *routerImpl) RouteBufferedFlits() error {
-	r.headerFlitsProcessedPerCycle = make(map[uuid.UUID]bool)
+	r.headerFlitsProcessedPerCycle = make(map[string]bool)
 
 	for b := 0; b < r.simConf.LinkBandwidth; b++ {
 		for p := 1; p <= r.simConf.MaxPriority; p++ {
@@ -185,7 +185,7 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 			if err != nil {
 				log.Log.Error().Err(err).
 					Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-					Str("type", flit.Type().String()).Str("flit", flit.UUID().String()).
+					Str("type", flit.Type().String()).Str("flit", flit.ID()).
 					Msg("error routing buffered flit")
 
 				return err
@@ -195,7 +195,7 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 		} else {
 			log.Log.Error().Err(domain.ErrUnknownFlitType).
 				Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-				Str("type", flit.Type().String()).Str("flit", flit.UUID().String()).
+				Str("type", flit.Type().String()).Str("flit", flit.ID()).
 				Msg("error casting header flit to packet.HeaderFlit type")
 
 			return domain.ErrUnknownFlitType
@@ -206,14 +206,14 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 		if flit.Type() == packet.HeaderFlitType {
 			log.Log.Error().Err(domain.ErrNoPort).
 				Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-				Str("type", flit.Type().String()).Str("flit", flit.UUID().String()).
+				Str("type", flit.Type().String()).Str("flit", flit.ID()).
 				Msg("error routing buffered flit")
 
 			return domain.ErrNoPort
 		} else {
 			log.Log.Error().Err(domain.ErrMisorderedPacket).
 				Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-				Str("type", flit.Type().String()).Str("flit", flit.UUID().String()).
+				Str("type", flit.Type().String()).Str("flit", flit.ID()).
 				Msg("header flit for packet not previously processed. No output port allocated for flit")
 
 			return domain.ErrMisorderedPacket
@@ -224,7 +224,7 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 	if err != nil {
 		log.Log.Error().Err(err).
 			Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-			Str("type", flit.Type().String()).Str("flit", flit.UUID().String()).
+			Str("type", flit.Type().String()).Str("flit", flit.ID()).
 			Msg("error sending buffered flit")
 
 		return err
@@ -233,7 +233,7 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 	if sent {
 		log.Log.Trace().
 			Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-			Str("type", flit.Type().String()).Str("flit", flit.UUID().String()).
+			Str("type", flit.Type().String()).Str("flit", flit.ID()).
 			Int("priority", flit.Priority()).
 			Msg("routed buffered flit")
 	}
@@ -242,16 +242,16 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 }
 
 func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
-	if _, previouslyProcessed := r.headerFlitsProcessedPerCycle[flit.UUID()]; !previouslyProcessed {
-		if _, exists := r.headerFlitsProcessings[flit.UUID()]; exists {
-			r.headerFlitsProcessings[flit.UUID()]++
+	if _, previouslyProcessed := r.headerFlitsProcessedPerCycle[flit.ID()]; !previouslyProcessed {
+		if _, exists := r.headerFlitsProcessings[flit.ID()]; exists {
+			r.headerFlitsProcessings[flit.ID()]++
 		} else {
-			r.headerFlitsProcessings[flit.UUID()] = 1
+			r.headerFlitsProcessings[flit.ID()] = 1
 		}
 
-		r.headerFlitsProcessedPerCycle[flit.UUID()] = true
+		r.headerFlitsProcessedPerCycle[flit.ID()] = true
 
-		if r.headerFlitsProcessings[flit.UUID()] >= r.simConf.ProcessingDelay {
+		if r.headerFlitsProcessings[flit.ID()] >= r.simConf.ProcessingDelay {
 			outPort, err := r.routeFlit(flit)
 			if err != nil {
 				return false, err
