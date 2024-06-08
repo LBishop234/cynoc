@@ -12,6 +12,14 @@ import (
 	"github.com/google/uuid"
 )
 
+// type PktEvent string
+
+// const (
+// 	PktCreated           PktEvent = "Packet created"
+// 	PktReleasedToNetwork PktEvent = "Packet released to the network"
+// 	PktSplitToFlits      PktEvent = "Packet split into flits"
+// )
+
 type Packet interface {
 	UUID() uuid.UUID
 	TrafficFlowID() string
@@ -75,14 +83,14 @@ func (p *packet) BodySize() int {
 func (p *packet) Flits(flitSize int) []Flit {
 	flits := make([]Flit, 1+p.bodyFlitCount(flitSize)+1)
 
-	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.UUID(), p.priority, p.deadline, p.route)
+	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.UUID(), 0, p.priority, p.deadline, p.route)
 
 	bodyFlits := p.bodyFlits(flitSize)
 	for i := 0; i < len(bodyFlits); i++ {
 		flits[i+1] = bodyFlits[i]
 	}
 
-	flits[len(flits)-1] = NewTailFlit(p.UUID(), p.priority)
+	flits[len(flits)-1] = NewTailFlit(p.UUID(), len(flits)-1, p.priority)
 
 	return flits
 }
@@ -91,9 +99,9 @@ func (p *packet) bodyFlits(flitSize int) []BodyFlit {
 	bodyFlits := make([]BodyFlit, p.bodyFlitCount(flitSize))
 	for i := 0; i < p.bodyFlitCount(flitSize); i++ {
 		if (i+1)*flitSize < p.bodySize {
-			bodyFlits[i] = NewBodyFlit(p.UUID(), p.priority, flitSize)
+			bodyFlits[i] = NewBodyFlit(p.UUID(), i+1, p.priority, flitSize)
 		} else {
-			bodyFlits[i] = NewBodyFlit(p.UUID(), p.priority, p.bodySize-(i*flitSize))
+			bodyFlits[i] = NewBodyFlit(p.UUID(), i+1, p.priority, p.bodySize-(i*flitSize))
 		}
 	}
 

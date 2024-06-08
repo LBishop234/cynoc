@@ -23,6 +23,7 @@ type Flit interface {
 	UUID() uuid.UUID
 	Type() FlitType
 	PacketUUID() uuid.UUID
+	PacketIndex() int
 	Priority() int
 }
 
@@ -31,6 +32,7 @@ type HeaderFlit interface {
 	Type() FlitType
 	TrafficFlowID() string
 	PacketUUID() uuid.UUID
+	PacketIndex() int
 	Priority() int
 	Deadline() int
 	Route() domain.Route
@@ -40,6 +42,7 @@ type headerFlit struct {
 	uuid          uuid.UUID
 	trafficFlowID string
 	packetUUID    uuid.UUID
+	pktIndex      int
 	priority      int
 	deadline      int
 	route         domain.Route
@@ -49,6 +52,7 @@ type BodyFlit interface {
 	UUID() uuid.UUID
 	Type() FlitType
 	PacketUUID() uuid.UUID
+	PacketIndex() int
 	Priority() int
 	DataSize() int
 }
@@ -56,6 +60,7 @@ type BodyFlit interface {
 type bodyFlit struct {
 	uuid       uuid.UUID
 	packetUUID uuid.UUID
+	pktIndex   int
 	priority   int
 	dataSize   int
 }
@@ -64,16 +69,18 @@ type TailFlit interface {
 	UUID() uuid.UUID
 	Type() FlitType
 	PacketUUID() uuid.UUID
+	PacketIndex() int
 	Priority() int
 }
 
 type tailFlit struct {
 	uuid       uuid.UUID
 	packetUUID uuid.UUID
+	pktIndex   int
 	priority   int
 }
 
-func NewHeaderFlit(trafficFlowID string, packetUUID uuid.UUID, priority, deadline int, route domain.Route) *headerFlit {
+func NewHeaderFlit(trafficFlowID string, packetUUID uuid.UUID, pktIndex int, priority, deadline int, route domain.Route) *headerFlit {
 	flitID := uuid.New()
 
 	log.Log.Trace().
@@ -84,13 +91,14 @@ func NewHeaderFlit(trafficFlowID string, packetUUID uuid.UUID, priority, deadlin
 		trafficFlowID: trafficFlowID,
 		uuid:          flitID,
 		packetUUID:    packetUUID,
+		pktIndex:      pktIndex,
 		priority:      priority,
 		deadline:      deadline,
 		route:         route,
 	}
 }
 
-func NewBodyFlit(packetUUID uuid.UUID, priority, dataSize int) *bodyFlit {
+func NewBodyFlit(packetUUID uuid.UUID, pktIndex int, priority, dataSize int) *bodyFlit {
 	flitID := uuid.New()
 
 	log.Log.Trace().
@@ -100,12 +108,13 @@ func NewBodyFlit(packetUUID uuid.UUID, priority, dataSize int) *bodyFlit {
 	return &bodyFlit{
 		uuid:       flitID,
 		packetUUID: packetUUID,
+		pktIndex:   pktIndex,
 		priority:   priority,
 		dataSize:   dataSize,
 	}
 }
 
-func NewTailFlit(packetUUID uuid.UUID, priority int) *tailFlit {
+func NewTailFlit(packetUUID uuid.UUID, pktIndex int, priority int) *tailFlit {
 	flitID := uuid.New()
 
 	log.Log.Trace().
@@ -115,6 +124,7 @@ func NewTailFlit(packetUUID uuid.UUID, priority int) *tailFlit {
 	return &tailFlit{
 		uuid:       flitID,
 		packetUUID: packetUUID,
+		pktIndex:   pktIndex,
 		priority:   priority,
 	}
 }
@@ -125,6 +135,10 @@ func (f *headerFlit) UUID() uuid.UUID {
 
 func (f *headerFlit) Type() FlitType {
 	return HeaderFlitType
+}
+
+func (f *headerFlit) PacketIndex() int {
+	return f.pktIndex
 }
 
 func (f *headerFlit) TrafficFlowID() string {
@@ -155,6 +169,10 @@ func (f *bodyFlit) Type() FlitType {
 	return BodyFlitType
 }
 
+func (f *bodyFlit) PacketIndex() int {
+	return f.pktIndex
+}
+
 func (f *bodyFlit) PacketUUID() uuid.UUID {
 	return f.packetUUID
 }
@@ -173,6 +191,10 @@ func (f *tailFlit) UUID() uuid.UUID {
 
 func (f *tailFlit) Type() FlitType {
 	return TailFlitType
+}
+
+func (f *tailFlit) PacketIndex() int {
+	return f.pktIndex
 }
 
 func (f *tailFlit) PacketUUID() uuid.UUID {
