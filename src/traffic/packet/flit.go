@@ -16,8 +16,20 @@ const (
 	TailFlitType   FlitType = "tail"
 )
 
-func (f FlitType) String() string {
-	return string(f)
+func (t FlitType) String() string {
+	return string(t)
+}
+
+type FlitEvent string
+
+const (
+	FlitCreated     FlitEvent = "flit created"
+	FlitTransmitted FlitEvent = "flit transmitted"
+	FlitArrived     FlitEvent = "flit arrived"
+)
+
+func (e FlitEvent) String() string {
+	return string(e)
 }
 
 type Flit interface {
@@ -27,6 +39,7 @@ type Flit interface {
 	PacketUUID() uuid.UUID
 	PacketIndex() int
 	Priority() int
+	RecordEvent(cycle int, event FlitEvent, location string)
 }
 
 type HeaderFlit interface {
@@ -38,6 +51,7 @@ type HeaderFlit interface {
 	Priority() int
 	Deadline() int
 	Route() domain.Route
+	RecordEvent(cycle int, event FlitEvent, location string)
 }
 
 type headerFlit struct {
@@ -58,6 +72,7 @@ type BodyFlit interface {
 	PacketIndex() int
 	Priority() int
 	DataSize() int
+	RecordEvent(cycle int, event FlitEvent, location string)
 }
 
 type bodyFlit struct {
@@ -76,6 +91,7 @@ type TailFlit interface {
 	PacketUUID() uuid.UUID
 	PacketIndex() int
 	Priority() int
+	RecordEvent(cycle int, event FlitEvent, location string)
 }
 
 type tailFlit struct {
@@ -167,6 +183,10 @@ func (f *headerFlit) Route() domain.Route {
 	return f.route
 }
 
+func (f *headerFlit) RecordEvent(cycle int, event FlitEvent, location string) {
+	recordEvent(f, cycle, event, location)
+}
+
 func (f *bodyFlit) ID() string {
 	return f.id
 }
@@ -195,6 +215,10 @@ func (f *bodyFlit) DataSize() int {
 	return f.dataSize
 }
 
+func (f *bodyFlit) RecordEvent(cycle int, event FlitEvent, location string) {
+	recordEvent(f, cycle, event, location)
+}
+
 func (f *tailFlit) ID() string {
 	return f.id
 }
@@ -217,4 +241,12 @@ func (f *tailFlit) PacketIndex() int {
 
 func (f *tailFlit) Priority() int {
 	return f.priority
+}
+
+func (f *tailFlit) RecordEvent(cycle int, event FlitEvent, location string) {
+	recordEvent(f, cycle, event, location)
+}
+
+func recordEvent(f Flit, cycle int, event FlitEvent, location string) {
+	log.Log.Trace().Int("cycle", cycle).Str("flit", f.ID()).Str("event", event.String()).Str("location", location).Msgf("%s at %s", event.String(), location)
 }
