@@ -48,7 +48,7 @@ func TestNewHeaderFlit(t *testing.T) {
 	flit := NewHeaderFlit(trafficFlowID, packetUUID, packetIndex, priority, deadline, route)
 	assert.Equal(t, trafficFlowID, flit.trafficFlowID)
 	assert.Equal(t, packetUUID, flit.packetUUID)
-	assert.Equal(t, packetIndex, flit.pktIndex)
+	assert.Equal(t, packetIndex, flit.packetIndex)
 	assert.Equal(t, priority, flit.priority)
 	assert.Equal(t, route, flit.route)
 
@@ -66,7 +66,7 @@ func TestNewBodyFlit(t *testing.T) {
 
 	flit := NewBodyFlit("t", packetUUID, packetIndex, priority, dataSize)
 	assert.Equal(t, packetUUID, flit.packetUUID)
-	assert.Equal(t, packetIndex, flit.pktIndex)
+	assert.Equal(t, packetIndex, flit.packetIndex)
 	assert.Equal(t, priority, flit.priority)
 	assert.Equal(t, dataSize, flit.dataSize)
 
@@ -83,7 +83,7 @@ func TestNewTailFlit(t *testing.T) {
 
 	flit := NewTailFlit("t", packetUUID, packetIndex, priority)
 	assert.Equal(t, packetUUID, flit.packetUUID)
-	assert.Equal(t, packetIndex, flit.pktIndex)
+	assert.Equal(t, packetIndex, flit.packetIndex)
 	assert.Equal(t, priority, flit.priority)
 
 	assert.Implements(t, (*TailFlit)(nil), flit)
