@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"context"
+	"io"
 	"math"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	"main/src/traffic"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -528,7 +530,7 @@ func BenchmarkNewSimulator(b *testing.B) {
 			}
 
 			// Setup & Run Simulation
-			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf)
+			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf, zerolog.New(io.Discard).With().Logger())
 			require.NoError(b, err)
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
@@ -620,7 +622,7 @@ func TestRunSimulation(t *testing.T) {
 			t.Parallel()
 
 			// Setup & Run Simulation
-			network, err := network.NewNetwork(testCase.topologyFunc(t), testCase.networkConf)
+			network, err := network.NewNetwork(testCase.topologyFunc(t), testCase.networkConf, zerolog.New(io.Discard).With().Logger())
 			require.NoError(t, err)
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
@@ -686,7 +688,7 @@ func BenchmarkRunSimulation(b *testing.B) {
 			}
 
 			// Setup & Run Simulation
-			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf)
+			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf, zerolog.New(io.Discard).With().Logger())
 			require.NoError(b, err)
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))

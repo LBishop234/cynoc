@@ -1,11 +1,13 @@
 package components
 
 import (
+	"io"
 	"testing"
 
 	"main/src/domain"
 	"main/src/traffic/packet"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +16,7 @@ func TestNewBuffer(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ImplementsInterface", func(t *testing.T) {
-		buff, err := newBuffer(1, 1)
+		buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		assert.Implements(t, (*buffer)(nil), buff)
@@ -24,7 +26,7 @@ func TestNewBuffer(t *testing.T) {
 		var capacity int = 1
 		var maxPriority int = 1
 
-		buff, err := newBuffer(capacity, maxPriority)
+		buff, err := newBuffer(capacity, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		assert.Equal(t, capacity, buff.bufferCap)
@@ -35,7 +37,7 @@ func TestNewBuffer(t *testing.T) {
 	t.Run("InvalidCapacity", func(t *testing.T) {
 		var capacity int = 0
 
-		_, err := newBuffer(capacity, 1)
+		_, err := newBuffer(capacity, 1, zerolog.New(io.Discard))
 		require.Error(t, err)
 	})
 }
@@ -46,7 +48,7 @@ func TestBufferTotalCapacity(t *testing.T) {
 	var capacity int = 1
 	var maxPriority int = 1
 
-	buff, err := newBuffer(capacity, maxPriority)
+	buff, err := newBuffer(capacity, maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	assert.Equal(t, capacity, buff.totalCapacity())
@@ -56,7 +58,7 @@ func TestBufferPopFlit(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ValidEmpty", func(t *testing.T) {
-		buff, err := newBuffer(1, 1)
+		buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		flit, exists := buff.popFlit(0)
@@ -65,7 +67,7 @@ func TestBufferPopFlit(t *testing.T) {
 	})
 
 	t.Run("ValidFlit", func(t *testing.T) {
-		buff, err := newBuffer(1, 1)
+		buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		flit := packet.NewTailFlit("t", "AA", 2, 1)
@@ -78,7 +80,7 @@ func TestBufferPopFlit(t *testing.T) {
 	})
 
 	t.Run("ValidMultipleFlits", func(t *testing.T) {
-		buff, err := newBuffer(2, 2)
+		buff, err := newBuffer(2, 2, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		flit1 := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
@@ -103,7 +105,7 @@ func TestBufferAddFlit(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		buff, err := newBuffer(1, 1)
+		buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		flit := packet.NewTailFlit("t", "AA", 2, 1)
@@ -113,7 +115,7 @@ func TestBufferAddFlit(t *testing.T) {
 	})
 
 	t.Run("NoCapacity", func(t *testing.T) {
-		buff, err := newBuffer(1, 1)
+		buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		flit := packet.NewTailFlit("t", "AA", 2, 1)

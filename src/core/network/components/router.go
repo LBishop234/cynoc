@@ -4,9 +4,10 @@ import (
 	"errors"
 	"sync"
 
-	"main/log"
 	"main/src/domain"
 	"main/src/traffic/packet"
+
+	"github.com/rs/zerolog"
 )
 
 type Router interface {
@@ -37,6 +38,9 @@ type routerImpl struct {
 	headerFlitsProcessings       map[string]int
 	headerFlitsProcessedPerCycle map[string]bool
 	packetsNextRouter            map[string]domain.NodeID
+
+	// Utility
+	logger zerolog.Logger
 }
 
 type RouterConfig struct {
@@ -44,7 +48,7 @@ type RouterConfig struct {
 	domain.SimConfig
 }
 
-func newRouter(conf RouterConfig) (*routerImpl, error) {
+func newRouter(conf RouterConfig, logger zerolog.Logger) (*routerImpl, error) {
 	if err := validBufferSize(conf.BufferSize, conf.MaxPriority); err != nil {
 		return nil, err
 	}
@@ -53,8 +57,7 @@ func newRouter(conf RouterConfig) (*routerImpl, error) {
 		return nil, errors.Join(domain.ErrInvalidParameter, errors.New("router processing delay less then 1"))
 	}
 
-	log.Log.Trace().Str("id", conf.ID).Msg("new router")
-	return &routerImpl{
+	rtr := routerImpl{
 		nodeID:      conf.NodeID,
 		inputPorts:  make([]inputPort, 0),
 		outputPorts: make([]outputPort, 0),
@@ -66,7 +69,12 @@ func newRouter(conf RouterConfig) (*routerImpl, error) {
 		headerFlitsProcessings:       make(map[string]int),
 		headerFlitsProcessedPerCycle: make(map[string]bool),
 		packetsNextRouter:            make(map[string]domain.NodeID),
-	}, nil
+
+		logger: logger.With().Str("component", "router").Str("node_id", conf.ID).Logger(),
+	}
+
+	rtr.logger.Trace().Msg("router created")
+	return &rtr, nil
 }
 
 func (r *routerImpl) NodeID() domain.NodeID {
@@ -74,12 +82,12 @@ func (r *routerImpl) NodeID() domain.NodeID {
 }
 
 func (r *routerImpl) RegisterInputPort(conn Connection) error {
-	buff, err := newBuffer(r.simConf.BufferSize, r.simConf.MaxPriority)
+	buff, err := newBuffer(r.simConf.BufferSize, r.simConf.MaxPriority, r.logger)
 	if err != nil {
 		return err
 	}
 
-	port, err := newInputPort(conn, buff)
+	port, err := newInputPort(conn, buff, r.logger)
 	if err != nil {
 		return err
 	}
@@ -92,7 +100,7 @@ func (r *routerImpl) RegisterInputPort(conn Connection) error {
 }
 
 func (r *routerImpl) RegisterOutputPort(conn Connection) error {
-	port, err := newOutputPort(conn, r.simConf.MaxPriority)
+	port, err := newOutputPort(conn, r.simConf.MaxPriority, r.logger)
 	if err != nil {
 		return err
 	}
@@ -117,7 +125,7 @@ func (r *routerImpl) SetNetworkInterface(netIntfc NetworkInterface) error {
 		return domain.ErrNilParameter
 	}
 
-	inConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth)
+	inConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth, r.logger)
 	if err != nil {
 		return err
 	}
@@ -132,7 +140,7 @@ func (r *routerImpl) SetNetworkInterface(netIntfc NetworkInterface) error {
 		return err
 	}
 
-	outConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth)
+	outConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth, r.logger)
 	if err != nil {
 		return err
 	}
@@ -177,54 +185,36 @@ func (r *routerImpl) RouteBufferedFlits(cycle int) error {
 }
 
 func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Flit) error {
+	logger := r.logger.With().Int("cycle", cycle).Str("flit", flit.ID()).Str("type", flit.Type().String()).Logger()
+
 	if flit.Type() == packet.HeaderFlitType {
 		if headerFlit, ok := flit.(packet.HeaderFlit); ok {
 			ready, err := r.processHeaderFlit(headerFlit)
 			if err != nil {
-				log.Log.Error().Err(err).
-					Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
-					Str("type", flit.Type().String()).Str("flit", flit.ID()).
-					Msg("error routing buffered flit")
-
+				logger.Error().Err(err).Msg("error routing buffered flit")
 				return err
 			} else if !ready {
 				return nil
 			}
 		} else {
-			log.Log.Error().Err(domain.ErrUnknownFlitType).
-				Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
-				Str("type", flit.Type().String()).Str("flit", flit.ID()).
-				Msg("error casting header flit to packet.HeaderFlit type")
-
+			logger.Error().Err(domain.ErrUnknownFlitType).Msg("error casting header flit to packet.HeaderFlit type")
 			return domain.ErrUnknownFlitType
 		}
 	}
 
 	if _, exists := r.outputMap[r.packetsNextRouter[flit.PacketID()]]; !exists {
 		if flit.Type() == packet.HeaderFlitType {
-			log.Log.Error().Err(domain.ErrNoPort).
-				Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
-				Str("type", flit.Type().String()).Str("flit", flit.ID()).
-				Msg("error routing buffered flit")
-
+			logger.Error().Err(domain.ErrNoPort).Msg("error routing buffered flit")
 			return domain.ErrNoPort
 		} else {
-			log.Log.Error().Err(domain.ErrMisorderedPacket).
-				Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
-				Str("type", flit.Type().String()).Str("flit", flit.ID()).
-				Msg("header flit for packet not previously processed. No output port allocated for flit")
-
+			logger.Error().Err(domain.ErrMisorderedPacket).Msg("header flit for packet not previously processed. No output port allocated for flit")
 			return domain.ErrMisorderedPacket
 		}
 	}
 
 	_, err := r.sendFlit(cycle, inputPortIndex, flit)
 	if err != nil {
-		log.Log.Error().Err(err).
-			Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
-			Str("type", flit.Type().String()).Str("flit", flit.ID()).
-			Msg("error sending buffered flit")
-
+		logger.Error().Err(err).Msg("error sending buffered flit")
 		return err
 	}
 
@@ -271,10 +261,8 @@ func (r *routerImpl) sendFlit(cycle int, inputPortIndex int, flit packet.Flit) (
 			return false, err
 		}
 
-		log.Log.Trace().
-			Int("cycle", cycle).Str("router", r.NodeID().ID).
-			Str("type", flit.Type().String()).Str("flit", flit.ID()).
-			Int("priority", flit.Priority()).
+		r.logger.Trace().
+			Int("cycle", cycle).Str("flit", flit.ID()).Str("type", flit.Type().String()).
 			Msg("routed and sent buffered flit")
 
 		return true, nil

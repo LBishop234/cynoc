@@ -12,12 +12,15 @@ import (
 	"main/src/domain"
 	"main/src/topology"
 	"main/src/traffic"
+
+	"github.com/rs/zerolog"
 )
 
-func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.TrafficFlowConfig, runAnalysisFlag bool) (domain.Results, error) {
+func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.TrafficFlowConfig, runAnalysisFlag bool, logger zerolog.Logger) (domain.Results, error) {
 	network, err := network.NewNetwork(
 		top,
 		conf,
+		logger,
 	)
 	if err != nil {
 		log.Log.Error().Err(err).Msg("error reading topology file")

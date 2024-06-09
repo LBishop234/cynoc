@@ -1,30 +1,35 @@
 package components
 
 import (
+	"io"
 	"testing"
 
 	"main/src/domain"
 	"main/src/traffic/packet"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func testRouter(t *testing.T) *routerImpl {
-	router, err := newRouter(RouterConfig{
-		NodeID: domain.NodeID{
-			ID:  "n",
-			Pos: domain.NewPosition(0, 0),
+	router, err := newRouter(
+		RouterConfig{
+			NodeID: domain.NodeID{
+				ID:  "n",
+				Pos: domain.NewPosition(0, 0),
+			},
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       1,
+				FlitSize:         1,
+				MaxPriority:      1,
+				ProcessingDelay:  1,
+				LinkBandwidth:    1,
+			},
 		},
-		SimConfig: domain.SimConfig{
-			RoutingAlgorithm: domain.XYRouting,
-			BufferSize:       1,
-			FlitSize:         1,
-			MaxPriority:      1,
-			ProcessingDelay:  1,
-			LinkBandwidth:    1,
-		},
-	})
+		zerolog.New(io.Discard).With().Logger(),
+	)
 	require.NoError(t, err)
 
 	return router
@@ -43,57 +48,63 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 	aPos := domain.NewPosition(0, 0)
 	bPos := domain.NewPosition(1, 0)
 
-	rA, err := newRouter(RouterConfig{
-		NodeID: domain.NodeID{
-			ID:  "n-a",
-			Pos: aPos,
+	rA, err := newRouter(
+		RouterConfig{
+			NodeID: domain.NodeID{
+				ID:  "n-a",
+				Pos: aPos,
+			},
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       bufferSize,
+				FlitSize:         flitSize,
+				ProcessingDelay:  processingDelay,
+				MaxPriority:      maxPriority,
+				LinkBandwidth:    linkBandwidth,
+			},
 		},
-		SimConfig: domain.SimConfig{
-			RoutingAlgorithm: domain.XYRouting,
-			BufferSize:       bufferSize,
-			FlitSize:         flitSize,
-			ProcessingDelay:  processingDelay,
-			MaxPriority:      maxPriority,
-			LinkBandwidth:    linkBandwidth,
-		},
-	})
+		zerolog.New(io.Discard).With().Logger(),
+	)
 	require.NoError(t, err)
 
-	niA, err := newNetworkInterface(domain.NodeID{ID: "i-a", Pos: aPos}, bufferSize, flitSize, flitSize)
+	niA, err := newNetworkInterface(domain.NodeID{ID: "i-a", Pos: aPos}, bufferSize, flitSize, flitSize, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	err = rA.SetNetworkInterface(niA)
 	require.NoError(t, err)
 
-	rB, err := newRouter(RouterConfig{
-		NodeID: domain.NodeID{
-			ID:  "n-b",
-			Pos: bPos,
+	rB, err := newRouter(
+		RouterConfig{
+			NodeID: domain.NodeID{
+				ID:  "n-b",
+				Pos: bPos,
+			},
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       bufferSize,
+				FlitSize:         flitSize,
+				ProcessingDelay:  processingDelay,
+				MaxPriority:      maxPriority,
+				LinkBandwidth:    linkBandwidth,
+			},
 		},
-		SimConfig: domain.SimConfig{
-			RoutingAlgorithm: domain.XYRouting,
-			BufferSize:       bufferSize,
-			FlitSize:         flitSize,
-			ProcessingDelay:  processingDelay,
-			MaxPriority:      maxPriority,
-			LinkBandwidth:    linkBandwidth,
-		},
-	})
+		zerolog.New(io.Discard).With().Logger(),
+	)
 	require.NoError(t, err)
 
-	niB, err := newNetworkInterface(domain.NodeID{ID: "i-b", Pos: bPos}, bufferSize, flitSize, flitSize)
+	niB, err := newNetworkInterface(domain.NodeID{ID: "i-b", Pos: bPos}, bufferSize, flitSize, flitSize, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	err = rB.SetNetworkInterface(niB)
 	require.NoError(t, err)
 
-	AtoB, err := NewConnection(maxPriority, linkBandwidth)
+	AtoB, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	rA.RegisterOutputPort(AtoB)
 	rB.RegisterInputPort(AtoB)
 
-	BtoA, err := NewConnection(maxPriority, linkBandwidth)
+	BtoA, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	rB.RegisterOutputPort(BtoA)
@@ -136,7 +147,7 @@ func TestNewRouter(t *testing.T) {
 			},
 		}
 
-		router, err := newRouter(conf)
+		router, err := newRouter(conf, zerolog.New(io.Discard).With().Logger())
 		require.NoError(t, err)
 
 		assert.Equal(t, conf.NodeID, router.nodeID)
@@ -150,30 +161,36 @@ func TestNewRouter(t *testing.T) {
 	})
 
 	t.Run("InvalidBufferSize", func(t *testing.T) {
-		_, err := newRouter(RouterConfig{
-			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       0,
-				FlitSize:         1,
-				ProcessingDelay:  1,
-				MaxPriority:      1,
-				LinkBandwidth:    1,
+		_, err := newRouter(
+			RouterConfig{
+				SimConfig: domain.SimConfig{
+					RoutingAlgorithm: domain.XYRouting,
+					BufferSize:       0,
+					FlitSize:         1,
+					ProcessingDelay:  1,
+					MaxPriority:      1,
+					LinkBandwidth:    1,
+				},
 			},
-		})
+			zerolog.New(io.Discard).With().Logger(),
+		)
 		require.Error(t, err)
 	})
 
 	t.Run("InvalidProcessingDelay", func(t *testing.T) {
-		_, err := newRouter(RouterConfig{
-			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       1,
-				FlitSize:         1,
-				ProcessingDelay:  0,
-				MaxPriority:      1,
-				LinkBandwidth:    1,
+		_, err := newRouter(
+			RouterConfig{
+				SimConfig: domain.SimConfig{
+					RoutingAlgorithm: domain.XYRouting,
+					BufferSize:       1,
+					FlitSize:         1,
+					ProcessingDelay:  0,
+					MaxPriority:      1,
+					LinkBandwidth:    1,
+				},
 			},
-		})
+			zerolog.New(io.Discard).With().Logger(),
+		)
 		require.ErrorIs(t, err, domain.ErrInvalidParameter)
 	})
 }
@@ -183,17 +200,20 @@ func TestRouterNodeID(t *testing.T) {
 
 	var nodeID domain.NodeID = domain.NodeID{ID: "n", Pos: domain.NewPosition(0, 0)}
 
-	router, err := newRouter(RouterConfig{
-		NodeID: nodeID,
-		SimConfig: domain.SimConfig{
-			RoutingAlgorithm: domain.XYRouting,
-			BufferSize:       1,
-			FlitSize:         1,
-			ProcessingDelay:  1,
-			MaxPriority:      1,
-			LinkBandwidth:    1,
+	router, err := newRouter(
+		RouterConfig{
+			NodeID: nodeID,
+			SimConfig: domain.SimConfig{
+				RoutingAlgorithm: domain.XYRouting,
+				BufferSize:       1,
+				FlitSize:         1,
+				ProcessingDelay:  1,
+				MaxPriority:      1,
+				LinkBandwidth:    1,
+			},
 		},
-	})
+		zerolog.New(io.Discard).With().Logger(),
+	)
 	require.NoError(t, err)
 
 	assert.Equal(t, nodeID, router.NodeID())
@@ -205,7 +225,7 @@ func TestRouterRegisterInputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
+		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.RegisterInputPort(conn)
@@ -225,7 +245,7 @@ func TestRouterRegisterInputPort(t *testing.T) {
 
 		router.simConf.BufferSize = 0
 
-		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
+		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.RegisterInputPort(conn)
@@ -239,7 +259,7 @@ func TestRouterRegisterOutputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
+		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.RegisterOutputPort(conn)
@@ -261,17 +281,17 @@ func TestRouterUpdateOutputMap(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn1, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
+		conn1, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
-		port1, err := newOutputPort(conn1, 1)
+		port1, err := newOutputPort(conn1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 		nodeID1 := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 1)}
 		conn1.SetDstRouter(nodeID1)
 		router.outputPorts = append(router.outputPorts, port1)
 
-		conn2, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
+		conn2, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
-		port2, err := newOutputPort(conn2, 1)
+		port2, err := newOutputPort(conn2, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 		nodeID2 := domain.NodeID{ID: "n2", Pos: domain.NewPosition(1, 0)}
 		conn2.SetDstRouter(nodeID2)
@@ -289,7 +309,7 @@ func TestRouterSetNetworkInterface(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(1, 1)}, 1, 1, 1)
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(1, 1)}, 1, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.SetNetworkInterface(netIntfc)
@@ -337,7 +357,7 @@ func TestRouterUpdateOutputPortsCredit(t *testing.T) {
 
 	router := testRouter(t)
 
-	conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth)
+	conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
 	require.NoError(t, err)
 	router.RegisterOutputPort(conn)
 
@@ -438,39 +458,45 @@ func TestRouterXYRouting(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ValidHopToRouter", func(t *testing.T) {
-		srcRouter, err := newRouter(RouterConfig{
-			NodeID: domain.NodeID{
-				ID:  "n1",
-				Pos: domain.NewPosition(0, 0),
+		srcRouter, err := newRouter(
+			RouterConfig{
+				NodeID: domain.NodeID{
+					ID:  "n1",
+					Pos: domain.NewPosition(0, 0),
+				},
+				SimConfig: domain.SimConfig{
+					RoutingAlgorithm: domain.XYRouting,
+					BufferSize:       1,
+					FlitSize:         1,
+					ProcessingDelay:  1,
+					MaxPriority:      1,
+					LinkBandwidth:    1,
+				},
 			},
-			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       1,
-				FlitSize:         1,
-				ProcessingDelay:  1,
-				MaxPriority:      1,
-				LinkBandwidth:    1,
-			},
-		})
+			zerolog.New(io.Discard).With().Logger(),
+		)
 		require.NoError(t, err)
 
-		dstRouter, err := newRouter(RouterConfig{
-			NodeID: domain.NodeID{
-				ID:  "n2",
-				Pos: domain.NewPosition(0, 1),
+		dstRouter, err := newRouter(
+			RouterConfig{
+				NodeID: domain.NodeID{
+					ID:  "n2",
+					Pos: domain.NewPosition(0, 1),
+				},
+				SimConfig: domain.SimConfig{
+					RoutingAlgorithm: domain.XYRouting,
+					BufferSize:       1,
+					FlitSize:         1,
+					ProcessingDelay:  1,
+					MaxPriority:      1,
+					LinkBandwidth:    1,
+				},
 			},
-			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       1,
-				FlitSize:         1,
-				ProcessingDelay:  1,
-				MaxPriority:      1,
-				LinkBandwidth:    1,
-			},
-		})
+			zerolog.New(io.Discard).With().Logger(),
+		)
 		require.NoError(t, err)
 
-		conn, err := NewConnection(dstRouter.simConf.MaxPriority, dstRouter.simConf.LinkBandwidth)
+		conn, err := NewConnection(dstRouter.simConf.MaxPriority, dstRouter.simConf.LinkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
 		err = dstRouter.RegisterInputPort(conn)
 		require.NoError(t, err)
@@ -487,20 +513,23 @@ func TestRouterXYRouting(t *testing.T) {
 	t.Run("NoOutputPort", func(t *testing.T) {
 		var packetID string = "AA"
 
-		router, err := newRouter(RouterConfig{
-			NodeID: domain.NodeID{
-				ID:  "n",
-				Pos: domain.NewPosition(0, 0),
+		router, err := newRouter(
+			RouterConfig{
+				NodeID: domain.NodeID{
+					ID:  "n",
+					Pos: domain.NewPosition(0, 0),
+				},
+				SimConfig: domain.SimConfig{
+					RoutingAlgorithm: domain.XYRouting,
+					BufferSize:       1,
+					FlitSize:         1,
+					ProcessingDelay:  1,
+					MaxPriority:      1,
+					LinkBandwidth:    1,
+				},
 			},
-			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       1,
-				FlitSize:         1,
-				ProcessingDelay:  1,
-				MaxPriority:      1,
-				LinkBandwidth:    1,
-			},
-		})
+			zerolog.New(io.Discard).With().Logger(),
+		)
 		require.NoError(t, err)
 
 		router.packetsNextRouter[packetID] = router.nodeID

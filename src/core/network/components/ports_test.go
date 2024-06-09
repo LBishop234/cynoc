@@ -2,22 +2,24 @@ package components
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
 	"main/src/domain"
 	"main/src/traffic/packet"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func testInputPort(t *testing.T, bufferSize, maxPriority, linkBandwidth int) *inputPortImpl {
-	conn, err := NewConnection(maxPriority, linkBandwidth)
+	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 	require.NoError(t, err)
-	buff, err := newBuffer(bufferSize, 1)
+	buff, err := newBuffer(bufferSize, 1, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
-	port, err := newInputPort(conn, buff)
+	port, err := newInputPort(conn, buff, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	for _, credChan := range conn.creditChannels() {
@@ -28,10 +30,10 @@ func testInputPort(t *testing.T, bufferSize, maxPriority, linkBandwidth int) *in
 }
 
 func testOutputPort(t *testing.T, maxPriority, linkBandwidth int) *outputPortImpl {
-	conn, err := NewConnection(maxPriority, linkBandwidth)
+	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
-	port, err := newOutputPort(conn, maxPriority)
+	port, err := newOutputPort(conn, maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	return port
@@ -51,13 +53,13 @@ func TestNewInputPort(t *testing.T) {
 		var maxPriority int = 4
 		var linkBandwidth int = 4
 
-		buff, err := newBuffer(bufferSize, maxPriority)
+		buff, err := newBuffer(bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		conn, err := NewConnection(maxPriority, linkBandwidth)
+		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		port, err := newInputPort(conn, buff)
+		port, err := newInputPort(conn, buff, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		assert.Equal(t, conn, port.conn)
@@ -65,10 +67,10 @@ func TestNewInputPort(t *testing.T) {
 	})
 
 	t.Run("NilConnection", func(t *testing.T) {
-		buff, err := newBuffer(1, 1)
+		buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		_, err = newInputPort(nil, buff)
+		_, err = newInputPort(nil, buff, zerolog.New(io.Discard))
 		require.ErrorIs(t, err, domain.ErrNilParameter)
 	})
 
@@ -76,10 +78,10 @@ func TestNewInputPort(t *testing.T) {
 		var maxPriority int = 1
 		var linkBandwidth int = 1
 
-		conn, err := NewConnection(maxPriority, linkBandwidth)
+		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		_, err = newInputPort(conn, nil)
+		_, err = newInputPort(conn, nil, zerolog.New(io.Discard))
 		require.ErrorIs(t, err, domain.ErrNilParameter)
 	})
 }
@@ -98,17 +100,17 @@ func TestNewOutputPort(t *testing.T) {
 		var maxPriority int = 1
 		var linkBandwidth int = 1
 
-		conn, err := NewConnection(maxPriority, linkBandwidth)
+		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		outputPort, err := newOutputPort(conn, priority)
+		outputPort, err := newOutputPort(conn, priority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		assert.Equal(t, conn, outputPort.conn)
 	})
 
 	t.Run("NilConnection", func(t *testing.T) {
-		_, err := newOutputPort(nil, 1)
+		_, err := newOutputPort(nil, 1, zerolog.New(io.Discard))
 		require.ErrorIs(t, err, domain.ErrNilParameter)
 	})
 }
@@ -119,12 +121,12 @@ func TestInputPortConnection(t *testing.T) {
 	var maxPriority int = 1
 	var linkBandwidth int = 1
 
-	conn, err := NewConnection(maxPriority, linkBandwidth)
+	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 	require.NoError(t, err)
-	buff, err := newBuffer(1, 1)
+	buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
-	port, err := newInputPort(conn, buff)
+	port, err := newInputPort(conn, buff, zerolog.New(io.Discard))
 	require.NoError(t, err)
 	assert.Equal(t, conn, port.connection())
 }
@@ -260,9 +262,9 @@ func TestOutputPortConnection(t *testing.T) {
 	var maxPriority int = 1
 	var linkBandwidth int = 1
 
-	conn, err := NewConnection(maxPriority, linkBandwidth)
+	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
 	require.NoError(t, err)
-	port, err := newOutputPort(conn, 1)
+	port, err := newOutputPort(conn, 1, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	assert.Equal(t, conn, port.connection())
