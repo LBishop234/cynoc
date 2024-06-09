@@ -262,7 +262,7 @@ func (r *routerImpl) sendFlit(cycle int, inputPortIndex int, flit packet.Flit) (
 	}
 
 	if outPort.allowedToSend(flit.Priority()) {
-		flit, exists := r.inputPorts[inputPortIndex].readOutOfBuffer(flit.Priority())
+		flit, exists := r.inputPorts[inputPortIndex].readOutOfBuffer(cycle, flit.Priority())
 		if !exists {
 			return false, domain.ErrInvalidParameter
 		}

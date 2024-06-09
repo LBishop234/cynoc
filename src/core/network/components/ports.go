@@ -10,7 +10,7 @@ type inputPort interface {
 	connection() Connection
 	readIntoBuffer(cycle int) error
 	peakBuffer(priority int) (packet.Flit, bool)
-	readOutOfBuffer(priority int) (packet.Flit, bool)
+	readOutOfBuffer(cycle, priority int) (packet.Flit, bool)
 }
 
 type outputPort interface {
@@ -87,9 +87,14 @@ func (i *inputPortImpl) peakBuffer(priority int) (packet.Flit, bool) {
 	return i.buff.peakFlit(priority)
 }
 
-func (i *inputPortImpl) readOutOfBuffer(priority int) (packet.Flit, bool) {
+func (i *inputPortImpl) readOutOfBuffer(cycle, priority int) (packet.Flit, bool) {
 	flit, exists := i.buff.popFlit(priority)
 	if exists {
+		log.Log.Trace().
+			Int("cycle", cycle).Str("flit", flit.ID()).
+			Str("type", flit.Type().String()).Int("priority", flit.Priority()).
+			Msg("flit read out of buffer")
+
 		i.conn.creditChannel(flit.Priority()) <- 1
 	}
 	return flit, exists

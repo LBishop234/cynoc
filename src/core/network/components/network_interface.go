@@ -122,7 +122,7 @@ func (n *networkInterfaceImpl) HandleArrivingFlits(cycle int) error {
 
 		for p := 1; p <= n.maxPriority; p++ {
 			for b := 0; b < n.bufferSize; b++ {
-				flit, exists := n.inputPort.readOutOfBuffer(p)
+				flit, exists := n.inputPort.readOutOfBuffer(cycle, p)
 
 				if !exists {
 					break
@@ -142,15 +142,15 @@ func (n *networkInterfaceImpl) HandleArrivingFlits(cycle int) error {
 				}
 				if err != nil {
 					log.Log.Error().Err(err).
-						Str("network_interface", n.NodeID().ID).Str("packet", flit.PacketID()).
+						Str("network_interface", n.NodeID().ID).Int("cycle", cycle).
 						Str("flit", flit.ID()).Str("type", flit.Type().String()).
 						Msg("error handling arrived flit")
 					return err
 				}
 
 				log.Log.Trace().
-					Int("cycle", cycle).Str("network_interface", n.NodeID().ID).Str("type", flit.Type().String()).
-					Str("flit", flit.ID()).Int("priority", flit.Priority()).
+					Str("network_interface", n.NodeID().ID).Int("cycle", cycle).
+					Str("type", flit.Type().String()).Str("flit", flit.ID()).Int("priority", flit.Priority()).
 					Msg("flit arrived at network interface")
 			}
 		}
@@ -214,7 +214,7 @@ func (n *networkInterfaceImpl) TransmitPendingPackets(cycle int) error {
 		for len(n.flitsInTransit[p]) > 0 && n.outputPort.allowedToSend(n.flitsInTransit[p][0].Priority()) {
 			if err := n.outputPort.sendFlit(cycle, n.flitsInTransit[p][0]); err != nil {
 				log.Log.Error().Err(err).
-					Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketID()).
+					Str("network_interface", n.NodeID().ID).Int("cycle", cycle).
 					Str("flit", n.flitsInTransit[p][0].ID()).Str("type", n.flitsInTransit[p][0].Type().String()).
 					Msg("error sending flit")
 
@@ -222,7 +222,7 @@ func (n *networkInterfaceImpl) TransmitPendingPackets(cycle int) error {
 			}
 
 			log.Log.Trace().
-				Int("cycle", cycle).Str("network_interface", n.NodeID().ID).
+				Str("network_interface", n.NodeID().ID).Int("cycle", cycle).
 				Str("flit", n.flitsInTransit[p][0].ID()).Str("type", n.flitsInTransit[p][0].Type().String()).
 				Int("priority", n.flitsInTransit[p][0].Priority()).
 				Msg("flit sent from network interface")

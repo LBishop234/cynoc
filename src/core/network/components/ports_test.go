@@ -234,7 +234,7 @@ func TestInputPortReadOutOfBuffer(t *testing.T) {
 		}
 
 		for i := 0; i < linkBandwidth; i++ {
-			gotFlit, exists := port.readOutOfBuffer(flits[i].Priority())
+			gotFlit, exists := port.readOutOfBuffer(0, flits[i].Priority())
 			assert.True(t, exists)
 			assert.Equal(t, flits[i], gotFlit)
 			assert.Equal(t, 1, <-port.conn.creditChannel(flits[i].Priority()))
@@ -248,7 +248,7 @@ func TestInputPortReadOutOfBuffer(t *testing.T) {
 
 		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
 
-		gotFlit, exists := port.readOutOfBuffer(1)
+		gotFlit, exists := port.readOutOfBuffer(0, 1)
 		assert.False(t, exists)
 		assert.Nil(t, gotFlit)
 	})
