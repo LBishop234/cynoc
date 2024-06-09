@@ -72,9 +72,9 @@ func (r *reconstructor) Reconstruct() (Packet, error) {
 		bodySize += r.bodyFlits[i].DataSize()
 	}
 
-	return newPacketWithUUID(
+	return NewPacket(
 		r.headerFlit.TrafficFlowID(),
-		r.headerFlit.PacketUUID(),
+		r.headerFlit.PacketID(),
 		r.headerFlit.Priority(),
 		r.headerFlit.Deadline(),
 		r.headerFlit.Route(),

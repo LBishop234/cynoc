@@ -6,7 +6,6 @@ import (
 	"main/src/domain"
 	"main/src/traffic/packet"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -357,7 +356,7 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 
 		testRouterPair := newTestRouterPair(t, 1, flitSize, 1, 1, 1)
 
-		pkt := packet.NewPacket("t", 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, 10)
+		pkt := packet.NewPacket("t", "AA", 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, 10)
 
 		err := testRouterPair.niA.RoutePacket(0, pkt)
 		require.NoError(t, err)
@@ -377,7 +376,7 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 			require.NoError(t, err)
 
 			gotFlit := <-testRouterPair.AtoB.flitChannel()
-			assert.Equal(t, pkt.Flits(flitSize)[i].PacketUUID(), gotFlit.PacketUUID())
+			assert.Equal(t, pkt.Flits(flitSize)[i].PacketID(), gotFlit.PacketID())
 			assert.Equal(t, pkt.Flits(flitSize)[i].Type(), gotFlit.Type())
 
 			testRouterPair.AtoB.creditChannel(flits[i].Priority()) <- 1
@@ -391,7 +390,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
+		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
 
 		err := testRouterPair.rB.ReadFromInputPorts(0)
@@ -405,7 +404,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	t.Run("ReadIntoBufferError", func(t *testing.T) {
 		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
+		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
 
 		err := testRouterPair.rB.ReadFromInputPorts(0)
@@ -429,7 +428,7 @@ func TestRouterRouteFlit(t *testing.T) {
 		router := testRouter(t)
 		router.simConf.RoutingAlgorithm = "unknown"
 
-		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{})
+		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{})
 		_, err := router.routeFlit(flit)
 		require.ErrorIs(t, err, domain.ErrNoPort)
 	})
@@ -480,13 +479,13 @@ func TestRouterXYRouting(t *testing.T) {
 
 		srcRouter.UpdateOutputMap()
 
-		gotOutputPort, err := srcRouter.routeFlit(packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{srcRouter.NodeID(), dstRouter.NodeID()}))
+		gotOutputPort, err := srcRouter.routeFlit(packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{srcRouter.NodeID(), dstRouter.NodeID()}))
 		require.NoError(t, err)
 		assert.Equal(t, conn, gotOutputPort.connection())
 	})
 
 	t.Run("NoOutputPort", func(t *testing.T) {
-		var packetUUID uuid.UUID = uuid.New()
+		var packetID string = "AA"
 
 		router, err := newRouter(RouterConfig{
 			NodeID: domain.NodeID{
@@ -504,9 +503,9 @@ func TestRouterXYRouting(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		router.packetsNextRouter[packetUUID] = router.nodeID
+		router.packetsNextRouter[packetID] = router.nodeID
 
-		_, err = router.routeFlit(packet.NewHeaderFlit("t", packetUUID, 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}))
+		_, err = router.routeFlit(packet.NewHeaderFlit("t", packetID, 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}))
 		require.ErrorIs(t, err, domain.ErrNoPort)
 	})
 }

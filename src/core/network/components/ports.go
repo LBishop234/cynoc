@@ -76,7 +76,7 @@ func (i *inputPortImpl) readIntoBuffer(cycle int) (err error) {
 		}
 
 		log.Log.Trace().
-			Int("cycle", -1).Str("flit", flit.ID()).
+			Int("cycle", cycle).Str("flit", flit.ID()).
 			Str("type", flit.Type().String()).Int("priority", flit.Priority()).
 			Msg("flit read into buffer")
 	}

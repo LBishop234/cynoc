@@ -265,16 +265,16 @@ func TestTrafficFlowRleasePacket(t *testing.T) {
 
 		var cycle int = 0
 
-		released, periodCycle := trafficFlow.ReleasePacket(cycle)
+		released, _, periodCycle := trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{})
 		assert.True(t, released)
 		assert.Equal(t, cycle, periodCycle)
 
 		cycle = 1
-		released, _ = trafficFlow.ReleasePacket(cycle)
+		released, _, _ = trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{})
 		assert.False(t, released)
 
 		cycle = 75
-		released, periodCycle = trafficFlow.ReleasePacket(cycle)
+		released, _, periodCycle = trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{})
 		assert.True(t, released)
 		assert.Equal(t, cycle, periodCycle)
 	})

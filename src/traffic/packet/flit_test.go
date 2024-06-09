@@ -7,7 +7,6 @@ import (
 
 	"main/src/domain"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,15 +38,15 @@ func TestNewHeaderFlit(t *testing.T) {
 	t.Parallel()
 
 	trafficFlowID := "t"
-	packetUUID := uuid.New()
+	packetID := "AABBCCDD"
 	packetIndex := 0
 	priority := 1
 	deadline := 100
 	_, _, route := testDummyRoute(t)
 
-	flit := NewHeaderFlit(trafficFlowID, packetUUID, packetIndex, priority, deadline, route)
+	flit := NewHeaderFlit(trafficFlowID, packetID, packetIndex, priority, deadline, route)
 	assert.Equal(t, trafficFlowID, flit.trafficFlowID)
-	assert.Equal(t, packetUUID, flit.packetUUID)
+	assert.Equal(t, packetID, flit.packetID)
 	assert.Equal(t, packetIndex, flit.packetIndex)
 	assert.Equal(t, priority, flit.priority)
 	assert.Equal(t, route, flit.route)
@@ -59,13 +58,13 @@ func TestNewHeaderFlit(t *testing.T) {
 func TestNewBodyFlit(t *testing.T) {
 	t.Parallel()
 
-	packetUUID := uuid.New()
+	packetID := "AABBCCDD"
 	packetIndex := 1
 	priority := 1
 	dataSize := 4
 
-	flit := NewBodyFlit("t", packetUUID, packetIndex, priority, dataSize)
-	assert.Equal(t, packetUUID, flit.packetUUID)
+	flit := NewBodyFlit("t", packetID, packetIndex, priority, dataSize)
+	assert.Equal(t, packetID, flit.packetID)
 	assert.Equal(t, packetIndex, flit.packetIndex)
 	assert.Equal(t, priority, flit.priority)
 	assert.Equal(t, dataSize, flit.dataSize)
@@ -77,12 +76,12 @@ func TestNewBodyFlit(t *testing.T) {
 func TestNewTailFlit(t *testing.T) {
 	t.Parallel()
 
-	packetUUID := uuid.New()
+	packetID := "AABBCCDD"
 	packetIndex := 2
 	priority := 1
 
-	flit := NewTailFlit("t", packetUUID, packetIndex, priority)
-	assert.Equal(t, packetUUID, flit.packetUUID)
+	flit := NewTailFlit("t", packetID, packetIndex, priority)
+	assert.Equal(t, packetID, flit.packetID)
 	assert.Equal(t, packetIndex, flit.packetIndex)
 	assert.Equal(t, priority, flit.priority)
 
@@ -90,12 +89,12 @@ func TestNewTailFlit(t *testing.T) {
 	assert.Implements(t, (*Flit)(nil), flit)
 }
 
-func TestFlitUUID(t *testing.T) {
+func TestFlitID(t *testing.T) {
 	t.Parallel()
 
 	_, _, route := testDummyRoute(t)
 
-	flit := NewHeaderFlit("t", uuid.New(), 0, 1, 100, route)
+	flit := NewHeaderFlit("t", "AABBCCDD", 0, 1, 100, route)
 	assert.Equal(t, flit.id, flit.ID())
 }
 
@@ -104,7 +103,7 @@ func TestHeaderFlitType(t *testing.T) {
 
 	_, _, route := testDummyRoute(t)
 
-	assert.Equal(t, HeaderFlitType, NewHeaderFlit("t", uuid.New(), 0, 1, 100, route).Type())
+	assert.Equal(t, HeaderFlitType, NewHeaderFlit("t", "AABBCCDD", 0, 1, 100, route).Type())
 }
 
 func TestHeaderFlitTrafficFlowID(t *testing.T) {
@@ -113,16 +112,16 @@ func TestHeaderFlitTrafficFlowID(t *testing.T) {
 	trafficFlowID := "t"
 	_, _, route := testDummyRoute(t)
 
-	assert.Equal(t, trafficFlowID, NewHeaderFlit(trafficFlowID, uuid.New(), 0, 1, 100, route).TrafficFlowID())
+	assert.Equal(t, trafficFlowID, NewHeaderFlit(trafficFlowID, "AABBCCDD", 0, 1, 100, route).TrafficFlowID())
 }
 
-func TestHeaderFlitPacketUUID(t *testing.T) {
+func TestHeaderFlitPacketID(t *testing.T) {
 	t.Parallel()
 
-	packetUUID := uuid.New()
+	packetID := "AABBCCDD"
 	_, _, route := testDummyRoute(t)
 
-	assert.Equal(t, packetUUID, NewHeaderFlit("t", packetUUID, 0, 1, 100, route).PacketUUID())
+	assert.Equal(t, packetID, NewHeaderFlit("t", packetID, 0, 1, 100, route).PacketID())
 }
 
 func TestHeaderFlitPacketIndex(t *testing.T) {
@@ -131,7 +130,7 @@ func TestHeaderFlitPacketIndex(t *testing.T) {
 	packetIndex := rand.Intn(math.MaxInt)
 	_, _, route := testDummyRoute(t)
 
-	assert.Equal(t, packetIndex, NewHeaderFlit("t", uuid.New(), packetIndex, 1, 100, route).PacketIndex())
+	assert.Equal(t, packetIndex, NewHeaderFlit("t", "AABBCCDD", packetIndex, 1, 100, route).PacketIndex())
 }
 
 func TestHeaderFlitPriority(t *testing.T) {
@@ -140,7 +139,7 @@ func TestHeaderFlitPriority(t *testing.T) {
 	priority := 1
 	_, _, route := testDummyRoute(t)
 
-	assert.Equal(t, priority, NewHeaderFlit("t", uuid.New(), 0, priority, 100, route).Priority())
+	assert.Equal(t, priority, NewHeaderFlit("t", "AABBCCDD", 0, priority, 100, route).Priority())
 }
 
 func TestHeaderFlitDeadline(t *testing.T) {
@@ -149,7 +148,7 @@ func TestHeaderFlitDeadline(t *testing.T) {
 	deadline := 100
 	_, _, route := testDummyRoute(t)
 
-	assert.Equal(t, deadline, NewHeaderFlit("t", uuid.New(), 0, 1, deadline, route).Deadline())
+	assert.Equal(t, deadline, NewHeaderFlit("t", "AABBCCDD", 0, 1, deadline, route).Deadline())
 }
 
 func TestHeaderFlitRoute(t *testing.T) {
@@ -157,42 +156,42 @@ func TestHeaderFlitRoute(t *testing.T) {
 
 	_, _, route := testDummyRoute(t)
 
-	flit := NewHeaderFlit("t", uuid.New(), 0, 1, 100, route)
+	flit := NewHeaderFlit("t", "AABBCCDD", 0, 1, 100, route)
 	assert.Equal(t, route, flit.Route())
 }
 
-func TestBodyFlitUUID(t *testing.T) {
+func TestBodyFlitID(t *testing.T) {
 	t.Parallel()
 
-	flit := NewBodyFlit("t", uuid.New(), 1, 1, 1)
+	flit := NewBodyFlit("t", "AABBCCDD", 1, 1, 1)
 	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestBodyFlitType(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, BodyFlitType, NewBodyFlit("t", uuid.New(), 1, 1, 1).Type())
+	assert.Equal(t, BodyFlitType, NewBodyFlit("t", "AABBCCDD", 1, 1, 1).Type())
 }
 
-func TestBodyFlitPacketUUID(t *testing.T) {
+func TestBodyFlitPacketID(t *testing.T) {
 	t.Parallel()
 
-	packetUUID := uuid.New()
-	assert.Equal(t, packetUUID, NewBodyFlit("t", packetUUID, 1, 1, 1).PacketUUID())
+	packetID := "AABBCCDD"
+	assert.Equal(t, packetID, NewBodyFlit("t", packetID, 1, 1, 1).PacketID())
 }
 
 func TestBodyFlitPacketIndex(t *testing.T) {
 	t.Parallel()
 
 	packetIndex := rand.Intn(math.MaxInt)
-	assert.Equal(t, packetIndex, NewBodyFlit("t", uuid.New(), packetIndex, 1, 1).PacketIndex())
+	assert.Equal(t, packetIndex, NewBodyFlit("t", "AABBCCDD", packetIndex, 1, 1).PacketIndex())
 }
 
 func TestBodyFlitPriority(t *testing.T) {
 	t.Parallel()
 
 	priority := 1
-	assert.Equal(t, priority, NewBodyFlit("t", uuid.New(), 1, 1, 1).Priority())
+	assert.Equal(t, priority, NewBodyFlit("t", "AABBCCDD", 1, 1, 1).Priority())
 }
 
 func TestBodyFlitDataSize(t *testing.T) {
@@ -200,40 +199,40 @@ func TestBodyFlitDataSize(t *testing.T) {
 
 	dataSize := 4
 
-	flit := NewBodyFlit("t", uuid.New(), 1, 1, dataSize)
+	flit := NewBodyFlit("t", "AABBCCDD", 1, 1, dataSize)
 	assert.Equal(t, dataSize, flit.DataSize())
 }
 
-func TestTailFlitUUID(t *testing.T) {
+func TestTailFlitID(t *testing.T) {
 	t.Parallel()
 
-	flit := NewTailFlit("t", uuid.New(), 2, 1)
+	flit := NewTailFlit("t", "AABBCCDD", 2, 1)
 	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestTailFlitType(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, TailFlitType, NewTailFlit("t", uuid.New(), 2, 1).Type())
+	assert.Equal(t, TailFlitType, NewTailFlit("t", "AABBCCDD", 2, 1).Type())
 }
 
-func TestTailFlitPacketUUID(t *testing.T) {
+func TestTailFlitPacketID(t *testing.T) {
 	t.Parallel()
 
-	packetUUID := uuid.New()
-	assert.Equal(t, packetUUID, NewTailFlit("t", packetUUID, 2, 1).PacketUUID())
+	packetID := "AABBCCDD"
+	assert.Equal(t, packetID, NewTailFlit("t", packetID, 2, 1).PacketID())
 }
 
 func TestTailFlitPacketIndex(t *testing.T) {
 	t.Parallel()
 
 	packetIndex := rand.Intn(math.MaxInt)
-	assert.Equal(t, packetIndex, NewTailFlit("t", uuid.New(), packetIndex, 1).PacketIndex())
+	assert.Equal(t, packetIndex, NewTailFlit("t", "AABBCCDD", packetIndex, 1).PacketIndex())
 }
 
 func TestTailFlitPriority(t *testing.T) {
 	t.Parallel()
 
 	priority := 1
-	assert.Equal(t, priority, NewTailFlit("t", uuid.New(), 2, 1).Priority())
+	assert.Equal(t, priority, NewTailFlit("t", "AABBCCDD", 2, 1).Priority())
 }

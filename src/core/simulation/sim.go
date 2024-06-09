@@ -9,7 +9,6 @@ import (
 	"main/src/core/network"
 	"main/src/domain"
 	"main/src/traffic"
-	"main/src/traffic/packet"
 )
 
 const (
@@ -140,17 +139,9 @@ func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records,
 
 func (s *simulator) releasePackets(cycle int) error {
 	for i := 0; i < len(s.trafficFlows); i++ {
-		released, periodStartCycle := s.trafficFlows[i].ReleasePacket(cycle)
+		released, pkt, periodStartCycle := s.trafficFlows[i].ReleasePacket(cycle, s.trafficFlows[i].TrafficFlow, s.trafficFlows[i].route)
 
 		if released {
-			pkt := packet.NewPacket(
-				s.trafficFlows[i].ID(),
-				s.trafficFlows[i].Priority(),
-				s.trafficFlows[i].Deadline(),
-				s.trafficFlows[i].route,
-				s.trafficFlows[i].PacketSize(),
-			)
-
 			if netwrkIntfc, exists := s.network.NetworkInterfaceMap()[pkt.Route()[0]]; exists {
 				if err := netwrkIntfc.RoutePacket(cycle, pkt); err != nil {
 					log.Log.Error().Err(err).Msg("failed to route packet")

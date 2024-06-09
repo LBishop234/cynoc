@@ -9,7 +9,6 @@ import (
 	"main/src/domain"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/google/uuid"
 )
 
 // type PktEvent string
@@ -21,8 +20,8 @@ import (
 // )
 
 type Packet interface {
-	UUID() uuid.UUID
 	TrafficFlowID() string
+	PacketID() string
 	Priority() int
 	Deadline() int
 	Route() domain.Route
@@ -32,19 +31,19 @@ type Packet interface {
 
 type packet struct {
 	trafficFlowID string
-	uuid          uuid.UUID
+	packetID      string
 	priority      int
 	deadline      int
 	route         domain.Route
 	bodySize      int
 }
 
-func newPacketWithUUID(trafficFlowID string, uuid uuid.UUID, priority, deadline int, route domain.Route, bodySize int) *packet {
-	log.Log.Trace().Str("traffic_flow", trafficFlowID).Str("id", uuid.String()).Msg("new packet")
+func NewPacket(trafficFlowID string, packetID string, priority, deadline int, route domain.Route, bodySize int) *packet {
+	log.Log.Trace().Str("traffic_flow", trafficFlowID).Str("id", packetID).Msg("new packet")
 
 	return &packet{
 		trafficFlowID: trafficFlowID,
-		uuid:          uuid,
+		packetID:      packetID,
 		priority:      priority,
 		deadline:      deadline,
 		route:         route,
@@ -52,12 +51,8 @@ func newPacketWithUUID(trafficFlowID string, uuid uuid.UUID, priority, deadline 
 	}
 }
 
-func NewPacket(trafficFlowID string, priority, deadline int, router domain.Route, bodySize int) *packet {
-	return newPacketWithUUID(trafficFlowID, uuid.New(), priority, deadline, router, bodySize)
-}
-
-func (p *packet) UUID() uuid.UUID {
-	return p.uuid
+func (p *packet) PacketID() string {
+	return p.packetID
 }
 
 func (p *packet) TrafficFlowID() string {
@@ -83,14 +78,14 @@ func (p *packet) BodySize() int {
 func (p *packet) Flits(flitSize int) []Flit {
 	flits := make([]Flit, 1+p.bodyFlitCount(flitSize)+1)
 
-	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.UUID(), 0, p.priority, p.deadline, p.route)
+	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.PacketID(), 0, p.priority, p.deadline, p.route)
 
 	bodyFlits := p.bodyFlits(flitSize)
 	for i := 0; i < len(bodyFlits); i++ {
 		flits[i+1] = bodyFlits[i]
 	}
 
-	flits[len(flits)-1] = NewTailFlit(p.TrafficFlowID(), p.UUID(), len(flits)-1, p.priority)
+	flits[len(flits)-1] = NewTailFlit(p.TrafficFlowID(), p.PacketID(), len(flits)-1, p.priority)
 
 	return flits
 }
@@ -99,9 +94,9 @@ func (p *packet) bodyFlits(flitSize int) []BodyFlit {
 	bodyFlits := make([]BodyFlit, p.bodyFlitCount(flitSize))
 	for i := 0; i < p.bodyFlitCount(flitSize); i++ {
 		if (i+1)*flitSize < p.bodySize {
-			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.UUID(), i+1, p.priority, flitSize)
+			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketID(), i+1, p.priority, flitSize)
 		} else {
-			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.UUID(), i+1, p.priority, p.bodySize-(i*flitSize))
+			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketID(), i+1, p.priority, p.bodySize-(i*flitSize))
 		}
 	}
 
@@ -117,8 +112,8 @@ func EqualPackets(pkt1, pkt2 Packet) error {
 		return domain.ErrNilParameter
 	}
 
-	if pkt1.UUID() != pkt2.UUID() {
-		return errors.Join(domain.ErrPacketsNotEqual, fmt.Errorf("UUID: %s != %s", pkt1.UUID().String(), pkt2.UUID().String()))
+	if pkt1.PacketID() != pkt2.PacketID() {
+		return errors.Join(domain.ErrPacketsNotEqual, fmt.Errorf("ID: %s != %s", pkt1.PacketID(), pkt2.PacketID()))
 	}
 
 	if pkt1.TrafficFlowID() != pkt2.TrafficFlowID() {

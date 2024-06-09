@@ -7,8 +7,6 @@ import (
 	"main/log"
 	"main/src/domain"
 	"main/src/traffic/packet"
-
-	"github.com/google/uuid"
 )
 
 type Router interface {
@@ -38,7 +36,7 @@ type routerImpl struct {
 	// Internal Operation
 	headerFlitsProcessings       map[string]int
 	headerFlitsProcessedPerCycle map[string]bool
-	packetsNextRouter            map[uuid.UUID]domain.NodeID
+	packetsNextRouter            map[string]domain.NodeID
 }
 
 type RouterConfig struct {
@@ -67,7 +65,7 @@ func newRouter(conf RouterConfig) (*routerImpl, error) {
 
 		headerFlitsProcessings:       make(map[string]int),
 		headerFlitsProcessedPerCycle: make(map[string]bool),
-		packetsNextRouter:            make(map[uuid.UUID]domain.NodeID),
+		packetsNextRouter:            make(map[string]domain.NodeID),
 	}, nil
 }
 
@@ -163,8 +161,8 @@ func (r *routerImpl) UpdateOutputPortsCredit() error {
 func (r *routerImpl) RouteBufferedFlits(cycle int) error {
 	r.headerFlitsProcessedPerCycle = make(map[string]bool)
 
-	for b := 0; b < r.simConf.LinkBandwidth; b++ {
-		for p := 1; p <= r.simConf.MaxPriority; p++ {
+	for p := 1; p <= r.simConf.MaxPriority; p++ {
+		for b := 0; b < r.simConf.LinkBandwidth; b++ {
 			for i := 0; i < len(r.inputPorts); i++ {
 				if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
 					if err := r.arbitrateFlit(cycle, i, flit); err != nil {
@@ -184,7 +182,7 @@ func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Fl
 			ready, err := r.processHeaderFlit(headerFlit)
 			if err != nil {
 				log.Log.Error().Err(err).
-					Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
+					Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
 					Str("type", flit.Type().String()).Str("flit", flit.ID()).
 					Msg("error routing buffered flit")
 
@@ -194,7 +192,7 @@ func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Fl
 			}
 		} else {
 			log.Log.Error().Err(domain.ErrUnknownFlitType).
-				Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
+				Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
 				Str("type", flit.Type().String()).Str("flit", flit.ID()).
 				Msg("error casting header flit to packet.HeaderFlit type")
 
@@ -202,17 +200,17 @@ func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Fl
 		}
 	}
 
-	if _, exists := r.outputMap[r.packetsNextRouter[flit.PacketUUID()]]; !exists {
+	if _, exists := r.outputMap[r.packetsNextRouter[flit.PacketID()]]; !exists {
 		if flit.Type() == packet.HeaderFlitType {
 			log.Log.Error().Err(domain.ErrNoPort).
-				Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
+				Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
 				Str("type", flit.Type().String()).Str("flit", flit.ID()).
 				Msg("error routing buffered flit")
 
 			return domain.ErrNoPort
 		} else {
 			log.Log.Error().Err(domain.ErrMisorderedPacket).
-				Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
+				Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
 				Str("type", flit.Type().String()).Str("flit", flit.ID()).
 				Msg("header flit for packet not previously processed. No output port allocated for flit")
 
@@ -223,7 +221,7 @@ func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Fl
 	_, err := r.sendFlit(cycle, inputPortIndex, flit)
 	if err != nil {
 		log.Log.Error().Err(err).
-			Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
+			Str("router", r.NodeID().ID).Str("packet", flit.PacketID()).
 			Str("type", flit.Type().String()).Str("flit", flit.ID()).
 			Msg("error sending buffered flit")
 
@@ -249,7 +247,7 @@ func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
 				return false, err
 			}
 
-			r.packetsNextRouter[flit.PacketUUID()] = outPort.connection().GetDstRouter()
+			r.packetsNextRouter[flit.PacketID()] = outPort.connection().GetDstRouter()
 
 			return true, nil
 		}
@@ -258,7 +256,7 @@ func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
 }
 
 func (r *routerImpl) sendFlit(cycle int, inputPortIndex int, flit packet.Flit) (bool, error) {
-	outPort, exists := r.outputMap[r.packetsNextRouter[flit.PacketUUID()]]
+	outPort, exists := r.outputMap[r.packetsNextRouter[flit.PacketID()]]
 	if !exists {
 		return false, domain.ErrInvalidParameter
 	}

@@ -4,8 +4,6 @@ import (
 	"main/log"
 	"main/src/domain"
 	"main/src/traffic/packet"
-
-	"github.com/google/uuid"
 )
 
 type NetworkInterface interface {
@@ -31,7 +29,7 @@ type networkInterfaceImpl struct {
 	outputPort     outputPort
 
 	inputPort      inputPort
-	flitsArriving  map[uuid.UUID]packet.Reconstructor
+	flitsArriving  map[string]packet.Reconstructor
 	arrivedPackets []packet.Packet
 }
 
@@ -48,7 +46,7 @@ func newNetworkInterface(nodeID domain.NodeID, bufferSize, flitSize, maxPriority
 		flitSize:       flitSize,
 		maxPriority:    maxPriority,
 		flitsInTransit: make(map[int][]packet.Flit),
-		flitsArriving:  make(map[uuid.UUID]packet.Reconstructor),
+		flitsArriving:  make(map[string]packet.Reconstructor),
 		arrivedPackets: make([]packet.Packet, 0),
 	}, nil
 }
@@ -92,7 +90,7 @@ func (n *networkInterfaceImpl) RoutePacket(cycle int, pkt packet.Packet) error {
 
 	log.Log.Trace().
 		Int("cycle", cycle).Str("network_interface", n.NodeID().ID).
-		Str("packet", pkt.UUID().String()).
+		Str("packet", pkt.PacketID()).
 		Msg("network interface received packet")
 
 	flits := pkt.Flits(n.flitSize)
@@ -123,45 +121,52 @@ func (n *networkInterfaceImpl) HandleArrivingFlits(cycle int) error {
 		actionFlag = false
 
 		for p := 1; p <= n.maxPriority; p++ {
-			flit, exists := n.inputPort.readOutOfBuffer(p)
-			if exists {
+			for b := 0; b < n.bufferSize; b++ {
+				flit, exists := n.inputPort.readOutOfBuffer(p)
+
+				if !exists {
+					break
+				}
+
 				actionFlag = true
-			} else {
-				continue
-			}
 
-			var err error
-			if headerFlit, ok := flit.(packet.HeaderFlit); ok {
-				err = n.arrivedHeaderFlit(headerFlit)
-			} else if bodyFlit, ok := flit.(packet.BodyFlit); ok {
-				err = n.arrivedBodyFlit(bodyFlit)
-			} else if tailFlit, ok := flit.(packet.TailFlit); ok {
-				err = n.arrivedTailFlit(tailFlit)
-			} else {
-				return domain.ErrUnknownFlitType
-			}
-			if err != nil {
-				log.Log.Error().Err(err).
-					Str("network_interface", n.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-					Str("flit", flit.ID()).Str("type", flit.Type().String()).
-					Msg("error handling arrived flit")
-				return err
-			}
+				var err error
+				if headerFlit, ok := flit.(packet.HeaderFlit); ok {
+					err = n.arrivedHeaderFlit(headerFlit)
+				} else if bodyFlit, ok := flit.(packet.BodyFlit); ok {
+					err = n.arrivedBodyFlit(bodyFlit)
+				} else if tailFlit, ok := flit.(packet.TailFlit); ok {
+					err = n.arrivedTailFlit(tailFlit)
+				} else {
+					return domain.ErrUnknownFlitType
+				}
+				if err != nil {
+					log.Log.Error().Err(err).
+						Str("network_interface", n.NodeID().ID).Str("packet", flit.PacketID()).
+						Str("flit", flit.ID()).Str("type", flit.Type().String()).
+						Msg("error handling arrived flit")
+					return err
+				}
 
-			log.Log.Trace().
-				Int("cycle", cycle).Str("network_interface", n.NodeID().ID).Str("type", flit.Type().String()).
-				Str("flit", flit.ID()).Int("priority", flit.Priority()).
-				Msg("flit arrived at network interface")
+				log.Log.Trace().
+					Int("cycle", cycle).Str("network_interface", n.NodeID().ID).Str("type", flit.Type().String()).
+					Str("flit", flit.ID()).Int("priority", flit.Priority()).
+					Msg("flit arrived at network interface")
+			}
 		}
 	}
 
 	return nil
 }
 
-func (n *networkInterfaceImpl) arrivedHeaderFlit(flit packet.HeaderFlit) error {
-	n.flitsArriving[flit.PacketUUID()] = packet.NewReconstructor()
+func (n *networkInterfaceImpl) pktUID(flit packet.Flit) string {
+	return flit.TrafficFlowID() + "_" + flit.PacketID()
+}
 
-	if err := n.flitsArriving[flit.PacketUUID()].SetHeader(flit); err != nil {
+func (n *networkInterfaceImpl) arrivedHeaderFlit(flit packet.HeaderFlit) error {
+	n.flitsArriving[n.pktUID(flit)] = packet.NewReconstructor()
+
+	if err := n.flitsArriving[n.pktUID(flit)].SetHeader(flit); err != nil {
 		return err
 	}
 
@@ -169,7 +174,7 @@ func (n *networkInterfaceImpl) arrivedHeaderFlit(flit packet.HeaderFlit) error {
 }
 
 func (n *networkInterfaceImpl) arrivedBodyFlit(flit packet.BodyFlit) error {
-	reconstructor, exists := n.flitsArriving[flit.PacketUUID()]
+	reconstructor, exists := n.flitsArriving[n.pktUID(flit)]
 	if !exists {
 		return domain.ErrMisorderedPacket
 	}
@@ -182,7 +187,7 @@ func (n *networkInterfaceImpl) arrivedBodyFlit(flit packet.BodyFlit) error {
 }
 
 func (n *networkInterfaceImpl) arrivedTailFlit(flit packet.TailFlit) error {
-	reconstructor, exists := n.flitsArriving[flit.PacketUUID()]
+	reconstructor, exists := n.flitsArriving[n.pktUID(flit)]
 	if !exists {
 		return domain.ErrMisorderedPacket
 	}
@@ -197,7 +202,7 @@ func (n *networkInterfaceImpl) arrivedTailFlit(flit packet.TailFlit) error {
 	}
 
 	n.arrivedPackets = append(n.arrivedPackets, packet)
-	delete(n.flitsArriving, flit.PacketUUID())
+	delete(n.flitsArriving, n.pktUID(flit))
 
 	return nil
 }
@@ -209,7 +214,7 @@ func (n *networkInterfaceImpl) TransmitPendingPackets(cycle int) error {
 		for len(n.flitsInTransit[p]) > 0 && n.outputPort.allowedToSend(n.flitsInTransit[p][0].Priority()) {
 			if err := n.outputPort.sendFlit(cycle, n.flitsInTransit[p][0]); err != nil {
 				log.Log.Error().Err(err).
-					Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketUUID().String()).
+					Str("network_interface", n.NodeID().ID).Str("packet", n.flitsInTransit[p][0].PacketID()).
 					Str("flit", n.flitsInTransit[p][0].ID()).Str("type", n.flitsInTransit[p][0].Type().String()).
 					Msg("error sending flit")
 

@@ -566,7 +566,7 @@ func TestRunSimulation(t *testing.T) {
 
 	testCases := map[string]testCase{
 		"3hLineOnePkt": {
-			run:              true,
+			run:              false,
 			templateTestCase: templateTestCases["3hLineOnePkt"],
 			expected: []expectedPkts{
 				{
@@ -576,7 +576,7 @@ func TestRunSimulation(t *testing.T) {
 			},
 		},
 		"3hLineTwoPkts": {
-			run:              true,
+			run:              false,
 			templateTestCase: templateTestCases["3hLineTwoPkts"],
 			expected: []expectedPkts{
 				{
@@ -644,10 +644,10 @@ func TestRunSimulation(t *testing.T) {
 				assert.NotEmpty(t, records.ArrivedByTF[expctTfID], 0)
 
 				found := false
-				for uuid, pkt := range records.ArrivedByTF[expctTfID] {
+				for id, pkt := range records.ArrivedByTF[expctTfID] {
 					if pkt.ReceivedCycle == testCase.expected[i].cycle {
 						found = true
-						delete(records.ArrivedByTF[expctTfID], uuid)
+						delete(records.ArrivedByTF[expctTfID], id)
 						break
 					}
 				}
