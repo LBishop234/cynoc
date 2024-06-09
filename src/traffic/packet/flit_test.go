@@ -64,7 +64,7 @@ func TestNewBodyFlit(t *testing.T) {
 	priority := 1
 	dataSize := 4
 
-	flit := NewBodyFlit(packetUUID, packetIndex, priority, dataSize)
+	flit := NewBodyFlit("t", packetUUID, packetIndex, priority, dataSize)
 	assert.Equal(t, packetUUID, flit.packetUUID)
 	assert.Equal(t, packetIndex, flit.pktIndex)
 	assert.Equal(t, priority, flit.priority)
@@ -81,7 +81,7 @@ func TestNewTailFlit(t *testing.T) {
 	packetIndex := 2
 	priority := 1
 
-	flit := NewTailFlit(packetUUID, packetIndex, priority)
+	flit := NewTailFlit("t", packetUUID, packetIndex, priority)
 	assert.Equal(t, packetUUID, flit.packetUUID)
 	assert.Equal(t, packetIndex, flit.pktIndex)
 	assert.Equal(t, priority, flit.priority)
@@ -164,35 +164,35 @@ func TestHeaderFlitRoute(t *testing.T) {
 func TestBodyFlitUUID(t *testing.T) {
 	t.Parallel()
 
-	flit := NewBodyFlit(uuid.New(), 1, 1, 1)
+	flit := NewBodyFlit("t", uuid.New(), 1, 1, 1)
 	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestBodyFlitType(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, BodyFlitType, NewBodyFlit(uuid.New(), 1, 1, 1).Type())
+	assert.Equal(t, BodyFlitType, NewBodyFlit("t", uuid.New(), 1, 1, 1).Type())
 }
 
 func TestBodyFlitPacketUUID(t *testing.T) {
 	t.Parallel()
 
 	packetUUID := uuid.New()
-	assert.Equal(t, packetUUID, NewBodyFlit(packetUUID, 1, 1, 1).PacketUUID())
+	assert.Equal(t, packetUUID, NewBodyFlit("t", packetUUID, 1, 1, 1).PacketUUID())
 }
 
 func TestBodyFlitPacketIndex(t *testing.T) {
 	t.Parallel()
 
 	packetIndex := rand.Intn(math.MaxInt)
-	assert.Equal(t, packetIndex, NewBodyFlit(uuid.New(), packetIndex, 1, 1).PacketIndex())
+	assert.Equal(t, packetIndex, NewBodyFlit("t", uuid.New(), packetIndex, 1, 1).PacketIndex())
 }
 
 func TestBodyFlitPriority(t *testing.T) {
 	t.Parallel()
 
 	priority := 1
-	assert.Equal(t, priority, NewBodyFlit(uuid.New(), 1, 1, 1).Priority())
+	assert.Equal(t, priority, NewBodyFlit("t", uuid.New(), 1, 1, 1).Priority())
 }
 
 func TestBodyFlitDataSize(t *testing.T) {
@@ -200,40 +200,40 @@ func TestBodyFlitDataSize(t *testing.T) {
 
 	dataSize := 4
 
-	flit := NewBodyFlit(uuid.New(), 1, 1, dataSize)
+	flit := NewBodyFlit("t", uuid.New(), 1, 1, dataSize)
 	assert.Equal(t, dataSize, flit.DataSize())
 }
 
 func TestTailFlitUUID(t *testing.T) {
 	t.Parallel()
 
-	flit := NewTailFlit(uuid.New(), 2, 1)
+	flit := NewTailFlit("t", uuid.New(), 2, 1)
 	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestTailFlitType(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, TailFlitType, NewTailFlit(uuid.New(), 2, 1).Type())
+	assert.Equal(t, TailFlitType, NewTailFlit("t", uuid.New(), 2, 1).Type())
 }
 
 func TestTailFlitPacketUUID(t *testing.T) {
 	t.Parallel()
 
 	packetUUID := uuid.New()
-	assert.Equal(t, packetUUID, NewTailFlit(packetUUID, 2, 1).PacketUUID())
+	assert.Equal(t, packetUUID, NewTailFlit("t", packetUUID, 2, 1).PacketUUID())
 }
 
 func TestTailFlitPacketIndex(t *testing.T) {
 	t.Parallel()
 
 	packetIndex := rand.Intn(math.MaxInt)
-	assert.Equal(t, packetIndex, NewTailFlit(uuid.New(), packetIndex, 1).PacketIndex())
+	assert.Equal(t, packetIndex, NewTailFlit("t", uuid.New(), packetIndex, 1).PacketIndex())
 }
 
 func TestTailFlitPriority(t *testing.T) {
 	t.Parallel()
 
 	priority := 1
-	assert.Equal(t, priority, NewTailFlit(uuid.New(), 2, 1).Priority())
+	assert.Equal(t, priority, NewTailFlit("t", uuid.New(), 2, 1).Priority())
 }

@@ -90,7 +90,7 @@ func (p *packet) Flits(flitSize int) []Flit {
 		flits[i+1] = bodyFlits[i]
 	}
 
-	flits[len(flits)-1] = NewTailFlit(p.UUID(), len(flits)-1, p.priority)
+	flits[len(flits)-1] = NewTailFlit(p.TrafficFlowID(), p.UUID(), len(flits)-1, p.priority)
 
 	return flits
 }
@@ -99,9 +99,9 @@ func (p *packet) bodyFlits(flitSize int) []BodyFlit {
 	bodyFlits := make([]BodyFlit, p.bodyFlitCount(flitSize))
 	for i := 0; i < p.bodyFlitCount(flitSize); i++ {
 		if (i+1)*flitSize < p.bodySize {
-			bodyFlits[i] = NewBodyFlit(p.UUID(), i+1, p.priority, flitSize)
+			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.UUID(), i+1, p.priority, flitSize)
 		} else {
-			bodyFlits[i] = NewBodyFlit(p.UUID(), i+1, p.priority, p.bodySize-(i*flitSize))
+			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.UUID(), i+1, p.priority, p.bodySize-(i*flitSize))
 		}
 	}
 

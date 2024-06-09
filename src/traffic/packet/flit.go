@@ -23,6 +23,7 @@ func (f FlitType) String() string {
 type Flit interface {
 	ID() string
 	Type() FlitType
+	TrafficFlowID() string
 	PacketUUID() uuid.UUID
 	PacketIndex() int
 	Priority() int
@@ -52,6 +53,7 @@ type headerFlit struct {
 type BodyFlit interface {
 	ID() string
 	Type() FlitType
+	TrafficFlowID() string
 	PacketUUID() uuid.UUID
 	PacketIndex() int
 	Priority() int
@@ -59,26 +61,29 @@ type BodyFlit interface {
 }
 
 type bodyFlit struct {
-	id         string
-	packetUUID uuid.UUID
-	pktIndex   int
-	priority   int
-	dataSize   int
+	id            string
+	trafficFlowID string
+	packetUUID    uuid.UUID
+	pktIndex      int
+	priority      int
+	dataSize      int
 }
 
 type TailFlit interface {
 	ID() string
 	Type() FlitType
+	TrafficFlowID() string
 	PacketUUID() uuid.UUID
 	PacketIndex() int
 	Priority() int
 }
 
 type tailFlit struct {
-	id         string
-	packetUUID uuid.UUID
-	pktIndex   int
-	priority   int
+	id            string
+	trafficFlowID string
+	packetUUID    uuid.UUID
+	pktIndex      int
+	priority      int
 }
 
 func NewHeaderFlit(trafficFlowID string, packetUUID uuid.UUID, pktIndex int, priority, deadline int, route domain.Route) *headerFlit {
@@ -89,8 +94,8 @@ func NewHeaderFlit(trafficFlowID string, packetUUID uuid.UUID, pktIndex int, pri
 		Msg("new header flit")
 
 	return &headerFlit{
-		trafficFlowID: trafficFlowID,
 		id:            id,
+		trafficFlowID: trafficFlowID,
 		packetUUID:    packetUUID,
 		pktIndex:      pktIndex,
 		priority:      priority,
@@ -99,7 +104,7 @@ func NewHeaderFlit(trafficFlowID string, packetUUID uuid.UUID, pktIndex int, pri
 	}
 }
 
-func NewBodyFlit(packetUUID uuid.UUID, pktIndex int, priority, dataSize int) *bodyFlit {
+func NewBodyFlit(trafficFlowID string, packetUUID uuid.UUID, pktIndex int, priority, dataSize int) *bodyFlit {
 	id := fmt.Sprintf("%s-%d", packetUUID.String(), pktIndex)
 
 	log.Log.Trace().
@@ -107,15 +112,16 @@ func NewBodyFlit(packetUUID uuid.UUID, pktIndex int, priority, dataSize int) *bo
 		Msg("new body flit")
 
 	return &bodyFlit{
-		id:         id,
-		packetUUID: packetUUID,
-		pktIndex:   pktIndex,
-		priority:   priority,
-		dataSize:   dataSize,
+		id:            id,
+		trafficFlowID: trafficFlowID,
+		packetUUID:    packetUUID,
+		pktIndex:      pktIndex,
+		priority:      priority,
+		dataSize:      dataSize,
 	}
 }
 
-func NewTailFlit(packetUUID uuid.UUID, pktIndex int, priority int) *tailFlit {
+func NewTailFlit(trafficFlowID string, packetUUID uuid.UUID, pktIndex int, priority int) *tailFlit {
 	id := fmt.Sprintf("%s-%d", packetUUID.String(), pktIndex)
 
 	log.Log.Trace().
@@ -123,10 +129,11 @@ func NewTailFlit(packetUUID uuid.UUID, pktIndex int, priority int) *tailFlit {
 		Msg("new tail flit")
 
 	return &tailFlit{
-		id:         id,
-		packetUUID: packetUUID,
-		pktIndex:   pktIndex,
-		priority:   priority,
+		id:            id,
+		trafficFlowID: trafficFlowID,
+		packetUUID:    packetUUID,
+		pktIndex:      pktIndex,
+		priority:      priority,
 	}
 }
 
@@ -138,16 +145,16 @@ func (f *headerFlit) Type() FlitType {
 	return HeaderFlitType
 }
 
-func (f *headerFlit) PacketIndex() int {
-	return f.pktIndex
-}
-
 func (f *headerFlit) TrafficFlowID() string {
 	return f.trafficFlowID
 }
 
 func (f *headerFlit) PacketUUID() uuid.UUID {
 	return f.packetUUID
+}
+
+func (f *headerFlit) PacketIndex() int {
+	return f.pktIndex
 }
 
 func (f *headerFlit) Priority() int {
@@ -170,12 +177,16 @@ func (f *bodyFlit) Type() FlitType {
 	return BodyFlitType
 }
 
-func (f *bodyFlit) PacketIndex() int {
-	return f.pktIndex
+func (f *bodyFlit) TrafficFlowID() string {
+	return f.trafficFlowID
 }
 
 func (f *bodyFlit) PacketUUID() uuid.UUID {
 	return f.packetUUID
+}
+
+func (f *bodyFlit) PacketIndex() int {
+	return f.pktIndex
 }
 
 func (f *bodyFlit) Priority() int {
@@ -194,12 +205,16 @@ func (f *tailFlit) Type() FlitType {
 	return TailFlitType
 }
 
-func (f *tailFlit) PacketIndex() int {
-	return f.pktIndex
+func (f *tailFlit) TrafficFlowID() string {
+	return f.trafficFlowID
 }
 
 func (f *tailFlit) PacketUUID() uuid.UUID {
 	return f.packetUUID
+}
+
+func (f *tailFlit) PacketIndex() int {
+	return f.pktIndex
 }
 
 func (f *tailFlit) Priority() int {

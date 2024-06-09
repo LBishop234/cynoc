@@ -282,7 +282,7 @@ func TestOutputPortAllowedToSend(t *testing.T) {
 		for i := 0; i < linkBandwidth; i++ {
 			assert.True(t, port.allowedToSend(priority))
 			port.credits[priority]--
-			port.conn.flitChannel() <- packet.NewTailFlit(uuid.New(), 2, priority)
+			port.conn.flitChannel() <- packet.NewTailFlit("t", uuid.New(), 2, priority)
 		}
 	})
 
@@ -306,7 +306,7 @@ func TestOutputPortAllowedToSend(t *testing.T) {
 		port.credits[priority] = linkBandwidth + 1
 
 		for i := 0; i < linkBandwidth; i++ {
-			port.conn.flitChannel() <- packet.NewTailFlit(uuid.New(), 2, priority)
+			port.conn.flitChannel() <- packet.NewTailFlit("t", uuid.New(), 2, priority)
 		}
 
 		assert.False(t, port.allowedToSend(priority))
@@ -327,7 +327,7 @@ func TestOutputPortSendFlit(t *testing.T) {
 		}
 
 		for i := 0; i < priority; i++ {
-			flit := packet.NewTailFlit(uuid.New(), 2, i)
+			flit := packet.NewTailFlit("t", uuid.New(), 2, i)
 
 			err := port.sendFlit(flit)
 			require.NoError(t, err)
@@ -344,7 +344,7 @@ func TestOutputPortSendFlit(t *testing.T) {
 
 		port.credits[priority] = 0
 
-		err := port.sendFlit(packet.NewTailFlit(uuid.New(), 2, priority))
+		err := port.sendFlit(packet.NewTailFlit("t", uuid.New(), 2, priority))
 		require.ErrorIs(t, err, domain.ErrPortNoCredit)
 		assert.Empty(t, port.conn.flitChannel())
 	})

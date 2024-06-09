@@ -110,10 +110,10 @@ func TestPacketFlits(t *testing.T) {
 			flitSize:      1,
 			expected: []Flit{
 				NewHeaderFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 2, 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 3, 1, 1),
-				NewTailFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 4, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 2, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 3, 1, 1),
+				NewTailFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 4, 1),
 			},
 		},
 		{
@@ -127,9 +127,9 @@ func TestPacketFlits(t *testing.T) {
 			flitSize:      3,
 			expected: []Flit{
 				NewHeaderFlit("t", uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 0, 1, 100, domain.Route{domain.NodeID{ID: "n3", Pos: domain.NewPosition(1, 1)}, domain.NodeID{ID: "n4", Pos: domain.NewPosition(1, 2)}}),
-				NewBodyFlit(uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 1, 3, 1),
-				NewBodyFlit(uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 2, 2, 1),
-				NewTailFlit(uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 3, 1),
+				NewBodyFlit("t", uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 1, 3, 1),
+				NewBodyFlit("t", uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 2, 2, 1),
+				NewTailFlit("t", uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 3, 1),
 			},
 		},
 		{
@@ -143,7 +143,7 @@ func TestPacketFlits(t *testing.T) {
 			flitSize:      1,
 			expected: []Flit{
 				NewHeaderFlit("t", uuid.MustParse("e45c2547-0d59-4586-b87f-fcacdf507983"), 0, 1, 100, domain.Route{domain.NodeID{ID: "n5", Pos: domain.NewPosition(2, 2)}, domain.NodeID{ID: "n6", Pos: domain.NewPosition(2, 3)}}),
-				NewTailFlit(uuid.MustParse("e45c2547-0d59-4586-b87f-fcacdf507983"), 1, 1),
+				NewTailFlit("t", uuid.MustParse("e45c2547-0d59-4586-b87f-fcacdf507983"), 1, 1),
 			},
 		},
 		{
@@ -157,10 +157,10 @@ func TestPacketFlits(t *testing.T) {
 			flitSize:      1,
 			expected: []Flit{
 				NewHeaderFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 0, 5, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 5, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 2, 5, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 3, 5, 1),
-				NewTailFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 4, 5),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 5, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 2, 5, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 3, 5, 1),
+				NewTailFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 4, 5),
 			},
 		},
 		{
@@ -174,10 +174,10 @@ func TestPacketFlits(t *testing.T) {
 			flitSize:      1,
 			expected: []Flit{
 				NewHeaderFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 0, 1, 500, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 2, 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 3, 1, 1),
-				NewTailFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 4, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 2, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 3, 1, 1),
+				NewTailFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 4, 1),
 			},
 		},
 	}
@@ -213,9 +213,9 @@ func TestPacketBodyFlits(t *testing.T) {
 			bodySize: 3,
 			flitSize: 1,
 			expected: []BodyFlit{
-				NewBodyFlit(uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 1, 1, 1),
-				NewBodyFlit(uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 2, 1, 1),
-				NewBodyFlit(uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 3, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 1, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 2, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 3, 1, 1),
 			},
 		},
 		{
@@ -223,10 +223,10 @@ func TestPacketBodyFlits(t *testing.T) {
 			bodySize: 7,
 			flitSize: 2,
 			expected: []BodyFlit{
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 1, 2, 1),
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 2, 2, 1),
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 3, 2, 1),
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 4, 1, 1),
+				NewBodyFlit("t", uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 1, 2, 1),
+				NewBodyFlit("t", uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 2, 2, 1),
+				NewBodyFlit("t", uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 3, 2, 1),
+				NewBodyFlit("t", uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 4, 1, 1),
 			},
 		},
 		{
@@ -234,8 +234,8 @@ func TestPacketBodyFlits(t *testing.T) {
 			bodySize: 4,
 			flitSize: 2,
 			expected: []BodyFlit{
-				NewBodyFlit(uuid.MustParse("64687f40-6a02-43d4-8c34-5131b3e26f9e"), 1, 2, 1),
-				NewBodyFlit(uuid.MustParse("64687f40-6a02-43d4-8c34-5131b3e26f9e"), 2, 2, 1),
+				NewBodyFlit("t", uuid.MustParse("64687f40-6a02-43d4-8c34-5131b3e26f9e"), 1, 2, 1),
+				NewBodyFlit("t", uuid.MustParse("64687f40-6a02-43d4-8c34-5131b3e26f9e"), 2, 2, 1),
 			},
 		},
 		{

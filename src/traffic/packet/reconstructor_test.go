@@ -73,7 +73,7 @@ func TestReconstructorAddBody(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		reconstructor := NewReconstructor()
-		bodyFlit := NewBodyFlit(uuid.New(), 1, 2, 1)
+		bodyFlit := NewBodyFlit("t", uuid.New(), 1, 2, 1)
 
 		err := reconstructor.AddBody(bodyFlit)
 		require.NoError(t, err)
@@ -93,7 +93,7 @@ func TestReconstructorSetTail(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		reconstructor := NewReconstructor()
-		tailFlit := NewTailFlit(uuid.New(), 2, 1)
+		tailFlit := NewTailFlit("t", uuid.New(), 2, 1)
 
 		err := reconstructor.SetTail(tailFlit)
 		require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestReconstructorSetTail(t *testing.T) {
 
 	t.Run("InvalidAlreadySet", func(t *testing.T) {
 		reconstructor := NewReconstructor()
-		tailFlit := NewTailFlit(uuid.New(), 2, 1)
+		tailFlit := NewTailFlit("t", uuid.New(), 2, 1)
 
 		err := reconstructor.SetTail(tailFlit)
 		require.NoError(t, err)
@@ -162,7 +162,7 @@ func TestReconstructorReconstruct(t *testing.T) {
 	t.Run("HeaderUnset", func(t *testing.T) {
 		reconstructor := NewReconstructor()
 
-		reconstructor.SetTail(NewTailFlit(uuid.New(), 2, 1))
+		reconstructor.SetTail(NewTailFlit("t", uuid.New(), 2, 1))
 
 		pkt, err := reconstructor.Reconstruct()
 		require.ErrorIs(t, domain.ErrFlitUnset, err)
