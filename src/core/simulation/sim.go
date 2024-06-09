@@ -112,13 +112,13 @@ func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records,
 				return 0, nil, err
 			}
 
-			if err := s.network.Cycle(); err != nil {
+			if err := s.network.Cycle(c); err != nil {
 				log.Log.Error().Err(err).Msg("error cycling network")
 				return 0, nil, err
 			}
 
 			for i := 0; i < len(s.network.NetworkInterfaces()); i++ {
-				pkts := s.network.NetworkInterfaces()[i].PopArrivedPackets()
+				pkts := s.network.NetworkInterfaces()[i].PopArrivedPackets(c)
 				for i := 0; i < len(pkts); i++ {
 					s.rcrds.recordArrivedPacket(c, pkts[i])
 				}
@@ -152,7 +152,7 @@ func (s *simulator) releasePackets(cycle int) error {
 			)
 
 			if netwrkIntfc, exists := s.network.NetworkInterfaceMap()[pkt.Route()[0]]; exists {
-				if err := netwrkIntfc.RoutePacket(pkt); err != nil {
+				if err := netwrkIntfc.RoutePacket(cycle, pkt); err != nil {
 					log.Log.Error().Err(err).Msg("failed to route packet")
 					return err
 				}

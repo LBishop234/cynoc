@@ -19,8 +19,8 @@ type Router interface {
 
 	UpdateOutputMap()
 	UpdateOutputPortsCredit() error
-	ReadFromInputPorts() error
-	RouteBufferedFlits() error
+	ReadFromInputPorts(cycle int) error
+	RouteBufferedFlits(cycle int) error
 }
 
 type routerImpl struct {
@@ -160,14 +160,14 @@ func (r *routerImpl) UpdateOutputPortsCredit() error {
 	return nil
 }
 
-func (r *routerImpl) RouteBufferedFlits() error {
+func (r *routerImpl) RouteBufferedFlits(cycle int) error {
 	r.headerFlitsProcessedPerCycle = make(map[string]bool)
 
 	for b := 0; b < r.simConf.LinkBandwidth; b++ {
 		for p := 1; p <= r.simConf.MaxPriority; p++ {
 			for i := 0; i < len(r.inputPorts); i++ {
 				if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
-					if err := r.arbitrateFlit(i, flit); err != nil {
+					if err := r.arbitrateFlit(cycle, i, flit); err != nil {
 						return err
 					}
 				}
@@ -178,7 +178,7 @@ func (r *routerImpl) RouteBufferedFlits() error {
 	return nil
 }
 
-func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
+func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Flit) error {
 	if flit.Type() == packet.HeaderFlitType {
 		if headerFlit, ok := flit.(packet.HeaderFlit); ok {
 			ready, err := r.processHeaderFlit(headerFlit)
@@ -220,7 +220,7 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 		}
 	}
 
-	sent, err := r.sendFlit(inputPortIndex, flit)
+	_, err := r.sendFlit(cycle, inputPortIndex, flit)
 	if err != nil {
 		log.Log.Error().Err(err).
 			Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
@@ -228,14 +228,6 @@ func (r *routerImpl) arbitrateFlit(inputPortIndex int, flit packet.Flit) error {
 			Msg("error sending buffered flit")
 
 		return err
-	}
-
-	if sent {
-		log.Log.Trace().
-			Str("router", r.NodeID().ID).Str("packet", flit.PacketUUID().String()).
-			Str("type", flit.Type().String()).Str("flit", flit.ID()).
-			Int("priority", flit.Priority()).
-			Msg("routed buffered flit")
 	}
 
 	return nil
@@ -265,7 +257,7 @@ func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
 	return false, nil
 }
 
-func (r *routerImpl) sendFlit(inputPortIndex int, flit packet.Flit) (bool, error) {
+func (r *routerImpl) sendFlit(cycle int, inputPortIndex int, flit packet.Flit) (bool, error) {
 	outPort, exists := r.outputMap[r.packetsNextRouter[flit.PacketUUID()]]
 	if !exists {
 		return false, domain.ErrInvalidParameter
@@ -277,9 +269,15 @@ func (r *routerImpl) sendFlit(inputPortIndex int, flit packet.Flit) (bool, error
 			return false, domain.ErrInvalidParameter
 		}
 
-		if err := outPort.sendFlit(flit); err != nil {
+		if err := outPort.sendFlit(cycle, flit); err != nil {
 			return false, err
 		}
+
+		log.Log.Trace().
+			Int("cycle", cycle).Str("router", r.NodeID().ID).
+			Str("type", flit.Type().String()).Str("flit", flit.ID()).
+			Int("priority", flit.Priority()).
+			Msg("routed and sent buffered flit")
 
 		return true, nil
 	} else {
@@ -287,9 +285,9 @@ func (r *routerImpl) sendFlit(inputPortIndex int, flit packet.Flit) (bool, error
 	}
 }
 
-func (r *routerImpl) ReadFromInputPorts() error {
+func (r *routerImpl) ReadFromInputPorts(cycle int) error {
 	for i := 0; i < len(r.inputPorts); i++ {
-		err := r.inputPorts[i].readIntoBuffer()
+		err := r.inputPorts[i].readIntoBuffer(cycle)
 		if err != nil {
 			return err
 		}

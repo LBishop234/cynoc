@@ -145,7 +145,7 @@ func TestNetworkInterfaceRoutePacket(t *testing.T) {
 
 		pkt := packet.NewPacket("t", 1, 100, route, 4)
 
-		err = netIntfc.RoutePacket(pkt)
+		err = netIntfc.RoutePacket(0, pkt)
 		require.NoError(t, err)
 
 		for i := 0; i < len(pkt.Flits(flitSize)); i++ {
@@ -158,7 +158,7 @@ func TestNetworkInterfaceRoutePacket(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 8, 1)
 		require.NoError(t, err)
 
-		err = netIntfc.RoutePacket(nil)
+		err = netIntfc.RoutePacket(0, nil)
 		require.ErrorIs(t, err, domain.ErrNilParameter)
 	})
 }
@@ -181,7 +181,7 @@ func TestNetworkInterfacePopArrivedPackets(t *testing.T) {
 		}
 		netIntfc.arrivedPackets = append(netIntfc.arrivedPackets, pkts...)
 
-		gotPkts := netIntfc.PopArrivedPackets()
+		gotPkts := netIntfc.PopArrivedPackets(0)
 		assert.Equal(t, pkts, gotPkts)
 		assert.Empty(t, netIntfc.arrivedPackets)
 	})
@@ -220,7 +220,7 @@ func TestNetworkInterfaceHandleArrivingFlits(t *testing.T) {
 			for x := 0; x < linkBandwidth; x++ {
 				inConn.flitChannel() <- flits[i]
 
-				err = netIntfc.HandleArrivingFlits()
+				err = netIntfc.HandleArrivingFlits(0)
 				require.NoError(t, err)
 
 				<-inConn.creditChannel(flits[i].Priority())
@@ -356,7 +356,7 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 		err = netIntfc.SetOutputPort(conn)
 		require.NoError(t, err)
 
-		err = netIntfc.TransmitPendingPackets()
+		err = netIntfc.TransmitPendingPackets(0)
 		require.NoError(t, err)
 	})
 
@@ -384,10 +384,10 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 
 		pkt := packet.NewPacket("t", 1, 100, route, 4)
 
-		err = netIntfc.RoutePacket(pkt)
+		err = netIntfc.RoutePacket(0, pkt)
 		require.NoError(t, err)
 
-		err = netIntfc.TransmitPendingPackets()
+		err = netIntfc.TransmitPendingPackets(0)
 		require.NoError(t, err)
 
 		gotFlit := <-conn.flitChan
@@ -419,10 +419,10 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 
 		pkt := packet.NewPacket("t", 1, 100, route, 4)
 
-		err = netIntfc.RoutePacket(pkt)
+		err = netIntfc.RoutePacket(0, pkt)
 		require.NoError(t, err)
 
-		err = netIntfc.TransmitPendingPackets()
+		err = netIntfc.TransmitPendingPackets(0)
 		require.NoError(t, err)
 
 		require.Len(t, conn.flitChan, linkBandwidth)

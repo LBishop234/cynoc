@@ -353,12 +353,13 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		var flitSize int = 1
+		var cycle int = 0
 
 		testRouterPair := newTestRouterPair(t, 1, flitSize, 1, 1, 1)
 
 		pkt := packet.NewPacket("t", 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, 10)
 
-		err := testRouterPair.niA.RoutePacket(pkt)
+		err := testRouterPair.niA.RoutePacket(0, pkt)
 		require.NoError(t, err)
 
 		flits := pkt.Flits(flitSize)
@@ -366,13 +367,13 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 			err = testRouterPair.rA.UpdateOutputPortsCredit()
 			require.NoError(t, err)
 
-			err = testRouterPair.niA.TransmitPendingPackets()
+			err = testRouterPair.niA.TransmitPendingPackets(cycle)
 			require.NoError(t, err)
 
-			err = testRouterPair.rA.ReadFromInputPorts()
+			err = testRouterPair.rA.ReadFromInputPorts(cycle)
 			require.NoError(t, err)
 
-			err = testRouterPair.rA.RouteBufferedFlits()
+			err = testRouterPair.rA.RouteBufferedFlits(cycle)
 			require.NoError(t, err)
 
 			gotFlit := <-testRouterPair.AtoB.flitChannel()
@@ -393,7 +394,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
 
-		err := testRouterPair.rB.ReadFromInputPorts()
+		err := testRouterPair.rB.ReadFromInputPorts(0)
 		require.NoError(t, err)
 
 		gotFlit, exists := testRouterPair.rB.inputPorts[1].peakBuffer(flit.Priority())
@@ -407,12 +408,12 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 		flit := packet.NewHeaderFlit("t", uuid.New(), 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()})
 		testRouterPair.AtoB.flitChannel() <- flit
 
-		err := testRouterPair.rB.ReadFromInputPorts()
+		err := testRouterPair.rB.ReadFromInputPorts(0)
 		require.NoError(t, err)
 
 		testRouterPair.AtoB.flitChannel() <- flit
 
-		err = testRouterPair.rB.ReadFromInputPorts()
+		err = testRouterPair.rB.ReadFromInputPorts(1)
 		require.Error(t, err)
 	})
 }

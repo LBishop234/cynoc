@@ -19,7 +19,7 @@ type Network interface {
 
 	Topology() *topology.Topology
 
-	Cycle() error
+	Cycle(cycle int) error
 }
 
 type networkImpl struct {
@@ -192,21 +192,21 @@ func (n *networkImpl) RoutersIDMap() map[string]components.Router {
 	return n.routerIDMap
 }
 
-func (n *networkImpl) Cycle() error {
+func (n *networkImpl) Cycle(cycle int) error {
 	for i := 0; i < len(n.netwrkIntfcs); i++ {
-		if err := n.netwrkIntfcs[i].TransmitPendingPackets(); err != nil {
+		if err := n.netwrkIntfcs[i].TransmitPendingPackets(cycle); err != nil {
 			log.Log.Error().Err(err).Str("id", n.netwrkIntfcs[i].NodeID().ID).Msg("error transmitting network interface's pending packets")
 			return err
 		}
 	}
 
-	if err := n.cycleRouters(); err != nil {
+	if err := n.cycleRouters(cycle); err != nil {
 		log.Log.Error().Err(err).Msg("error cycling routers")
 		return err
 	}
 
 	for i := 0; i < len(n.netwrkIntfcs); i++ {
-		if err := n.netwrkIntfcs[i].HandleArrivingFlits(); err != nil {
+		if err := n.netwrkIntfcs[i].HandleArrivingFlits(cycle); err != nil {
 			log.Log.Error().Err(err).Str("id", n.netwrkIntfcs[i].NodeID().ID).Msg("error handling network interface's arriving flits")
 			return err
 		}
@@ -219,7 +219,7 @@ func (n *networkImpl) Topology() *topology.Topology {
 	return n.top
 }
 
-func (n *networkImpl) cycleRouters() error {
+func (n *networkImpl) cycleRouters(cycle int) error {
 	for i := 0; i < len(n.routers); i++ {
 		n.routers[i].UpdateOutputMap()
 	}
@@ -232,19 +232,18 @@ func (n *networkImpl) cycleRouters() error {
 	}
 
 	for i := 0; i < len(n.routers); i++ {
-		if err := n.routers[i].RouteBufferedFlits(); err != nil {
+		if err := n.routers[i].RouteBufferedFlits(cycle); err != nil {
 			log.Log.Error().Err(err).Str("id", n.routers[i].NodeID().ID).Msg("error routing buffered flits")
 			return err
 		}
 	}
 
 	for i := 0; i < len(n.routers); i++ {
-		if err := n.routers[i].ReadFromInputPorts(); err != nil {
+		if err := n.routers[i].ReadFromInputPorts(cycle); err != nil {
 			log.Log.Error().Err(err).Str("id", n.routers[i].NodeID().ID).Msg("error reading from router input ports")
 			return err
 		}
 	}
 
-	log.Log.Trace().Msg("performed network cycle for network routers")
 	return nil
 }

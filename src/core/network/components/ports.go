@@ -8,7 +8,7 @@ import (
 
 type inputPort interface {
 	connection() Connection
-	readIntoBuffer() error
+	readIntoBuffer(cycle int) error
 	peakBuffer(priority int) (packet.Flit, bool)
 	readOutOfBuffer(priority int) (packet.Flit, bool)
 }
@@ -16,7 +16,7 @@ type inputPort interface {
 type outputPort interface {
 	connection() Connection
 	allowedToSend(priority int) bool
-	sendFlit(flit packet.Flit) error
+	sendFlit(cycle int, flit packet.Flit) error
 	updateCredits()
 }
 
@@ -67,11 +67,18 @@ func (i *inputPortImpl) connection() Connection {
 	return i.conn
 }
 
-func (i *inputPortImpl) readIntoBuffer() (err error) {
+func (i *inputPortImpl) readIntoBuffer(cycle int) (err error) {
 	for len(i.conn.flitChannel()) > 0 {
-		if err = i.buff.addFlit(<-i.conn.flitChannel()); err != nil {
+		flit := <-i.conn.flitChannel()
+
+		if err = i.buff.addFlit(flit); err != nil {
 			return err
 		}
+
+		log.Log.Trace().
+			Int("cycle", -1).Str("flit", flit.ID()).
+			Str("type", flit.Type().String()).Int("priority", flit.Priority()).
+			Msg("flit read into buffer")
 	}
 	return nil
 }
@@ -96,7 +103,7 @@ func (o *outputPortImpl) allowedToSend(priority int) bool {
 	return o.credits[priority] > 0 && len(o.conn.flitChannel()) < o.conn.flitBandwidth()
 }
 
-func (o *outputPortImpl) sendFlit(flit packet.Flit) error {
+func (o *outputPortImpl) sendFlit(cycle int, flit packet.Flit) error {
 	if o.allowedToSend(flit.Priority()) {
 		o.credits[flit.Priority()]--
 		o.conn.flitChannel() <- flit
