@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"main/log"
 	"main/src/core/analysis"
 	"main/src/core/network"
 	"main/src/core/results"
@@ -23,13 +22,13 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 		logger,
 	)
 	if err != nil {
-		log.Log.Error().Err(err).Msg("error reading topology file")
+		logger.Error().Err(err).Msg("error reading topology file")
 		return nil, err
 	}
 
 	trafficFlows, err := traffic.TrafficFlows(conf, trafficConf)
 	if err != nil {
-		log.Log.Fatal().Err(err).Msg("error constructing traffic flows")
+		logger.Fatal().Err(err).Msg("error constructing traffic flows")
 	}
 
 	var wg sync.WaitGroup
@@ -43,7 +42,7 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 		go func() {
 			defer wg.Done()
 
-			log.Log.Info().Msg("Running analysis")
+			logger.Info().Msg("Running analysis")
 
 			analysisResults, err := analysis.Analysis(
 				ctx,
@@ -52,7 +51,7 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 				trafficConf,
 			)
 			if err != nil {
-				log.Log.Error().Err(err).Msg("error running analysis")
+				logger.Error().Err(err).Msg("error running analysis")
 				analysisErrChan <- err
 				cancelFunc()
 				return
@@ -61,10 +60,10 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 			analysisResultsChan <- analysisResults
 
 			if !analysisResults.AnalysesSchedulable() {
-				log.Log.Warn().Msg("Analysis indicates the network is not schedulable")
+				logger.Warn().Msg("Analysis indicates the network is not schedulable")
 			}
 
-			log.Log.Info().Msg("Finished running analysis")
+			logger.Info().Msg("Finished running analysis")
 		}()
 	}
 
@@ -74,10 +73,11 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 		trafficFlows,
 		conf.RoutingAlgorithm,
 		conf.CycleLimit,
+		logger,
 	)
 	if err != nil {
 		cancelFunc()
-		log.Log.Error().Err(err).Msg("error running simulation")
+		logger.Error().Err(err).Msg("error running simulation")
 		return nil, err
 	}
 
@@ -91,7 +91,7 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 		resultsSet, err = results.NewResults(simResults, trafficConf)
 	}
 	if err != nil {
-		log.Log.Error().Err(err).Msg("error constructing results")
+		logger.Error().Err(err).Msg("error constructing results")
 		return nil, err
 	}
 

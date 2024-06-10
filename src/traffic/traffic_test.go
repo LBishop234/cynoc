@@ -1,10 +1,12 @@
 package traffic
 
 import (
+	"io"
 	"testing"
 
 	"main/src/domain"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -265,16 +267,16 @@ func TestTrafficFlowRleasePacket(t *testing.T) {
 
 		var cycle int = 0
 
-		released, _, periodCycle := trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{})
+		released, _, periodCycle := trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{}, zerolog.New(io.Discard))
 		assert.True(t, released)
 		assert.Equal(t, cycle, periodCycle)
 
 		cycle = 1
-		released, _, _ = trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{})
+		released, _, _ = trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{}, zerolog.New(io.Discard))
 		assert.False(t, released)
 
 		cycle = 75
-		released, _, periodCycle = trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{})
+		released, _, periodCycle = trafficFlow.ReleasePacket(cycle, trafficFlow, domain.Route{}, zerolog.New(io.Discard))
 		assert.True(t, released)
 		assert.Equal(t, cycle, periodCycle)
 	})

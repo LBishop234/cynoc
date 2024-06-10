@@ -5,10 +5,11 @@ import (
 	"math"
 	"time"
 
-	"main/log"
 	"main/src/core/network"
 	"main/src/domain"
 	"main/src/traffic"
+
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -23,6 +24,8 @@ type simulator struct {
 	cycleLimit   int
 
 	rcrds *Records
+
+	logger zerolog.Logger
 }
 
 type trafficFlowRoute struct {
@@ -30,14 +33,14 @@ type trafficFlowRoute struct {
 	route domain.Route
 }
 
-func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int) (*simulator, error) {
+func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int, logger zerolog.Logger) (*simulator, error) {
 	simulator := &simulator{
 		network:      network,
 		routingAlg:   routingAlg,
 		cycleLimit:   cycleLimit,
 		trafficFlows: make([]trafficFlowRoute, len(trafficFlows)),
 
-		rcrds: newRecords(),
+		rcrds: newRecords(logger),
 	}
 
 	for i := 0; i < len(trafficFlows); i++ {
@@ -51,11 +54,11 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, r
 				network.NetworkInterfacesIDMap()[trafficFlows[i].Dst()].NodeID(),
 			)
 		default:
-			log.Log.Error().Err(domain.ErrUnknownRoutingAlgorithm).Str("routing_algorithm", string(routingAlg)).Msg("routing algorithm not supported")
+			logger.Error().Err(domain.ErrUnknownRoutingAlgorithm).Str("routing_algorithm", string(routingAlg)).Msg("routing algorithm not supported")
 			return nil, domain.ErrUnknownRoutingAlgorithm
 		}
 		if err != nil {
-			log.Log.Error().Err(err).Msg("error calculating router")
+			logger.Error().Err(err).Msg("error calculating router")
 			return nil, err
 		}
 
@@ -68,20 +71,20 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, r
 	return simulator, nil
 }
 
-func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int) (domain.FullResults, error) {
+func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int, logger zerolog.Logger) (domain.FullResults, error) {
 	select {
 	case <-ctx.Done():
 		return domain.FullResults{}, ctx.Err()
 	default:
-		simulator, err := newSimulator(network, trafficFlows, routingAlg, cycleLimit)
+		simulator, err := newSimulator(network, trafficFlows, routingAlg, cycleLimit, logger)
 		if err != nil {
-			log.Log.Error().Err(nil).Msg("error creating simulator")
+			logger.Error().Err(nil).Msg("error creating simulator")
 			return domain.FullResults{}, err
 		}
 
 		simDuration, rcrds, err := simulator.runSimulation(ctx)
 		if err != nil {
-			log.Log.Error().Err(err).Msg("error running simulation")
+			logger.Error().Err(err).Msg("error running simulation")
 			return domain.FullResults{}, err
 		}
 
@@ -95,7 +98,7 @@ func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records,
 		logProgressInterval = maxProgressInterval
 	}
 
-	log.Log.Info().Msg("starting simulation")
+	s.logger.Info().Msg("starting simulation")
 
 	start := time.Now()
 
@@ -104,15 +107,15 @@ func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records,
 		case <-ctx.Done():
 			return 0, nil, ctx.Err()
 		default:
-			log.Log.Trace().Int("cycle", c).Msg("starting cycle")
+			s.logger.Trace().Int("cycle", c).Msg("starting cycle")
 
 			if err := s.releasePackets(c); err != nil {
-				log.Log.Error().Err(err).Msg("error releasing packets")
+				s.logger.Error().Err(err).Msg("error releasing packets")
 				return 0, nil, err
 			}
 
 			if err := s.network.Cycle(c); err != nil {
-				log.Log.Error().Err(err).Msg("error cycling network")
+				s.logger.Error().Err(err).Msg("error cycling network")
 				return 0, nil, err
 			}
 
@@ -124,33 +127,33 @@ func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records,
 			}
 
 			if c > 0 && c%logProgressInterval == 0 {
-				log.Log.Info().Int("cycle", c).Int("limit", s.cycleLimit).Msg("simulation progress")
+				s.logger.Info().Int("cycle", c).Int("limit", s.cycleLimit).Msg("simulation progress")
 			}
 
-			log.Log.Trace().Int("cycle", c).Msg("cycle completed")
+			s.logger.Trace().Int("cycle", c).Msg("cycle completed")
 		}
 	}
 
 	simDuration := time.Since(start)
 
-	log.Log.Info().Dur("duration_ms", simDuration).Msg("simulation complete")
+	s.logger.Info().Dur("duration_ms", simDuration).Msg("simulation complete")
 	return simDuration, s.rcrds, nil
 }
 
 func (s *simulator) releasePackets(cycle int) error {
 	for i := 0; i < len(s.trafficFlows); i++ {
-		released, pkt, periodStartCycle := s.trafficFlows[i].ReleasePacket(cycle, s.trafficFlows[i].TrafficFlow, s.trafficFlows[i].route)
+		released, pkt, periodStartCycle := s.trafficFlows[i].ReleasePacket(cycle, s.trafficFlows[i].TrafficFlow, s.trafficFlows[i].route, s.logger)
 
 		if released {
 			if netwrkIntfc, exists := s.network.NetworkInterfaceMap()[pkt.Route()[0]]; exists {
 				if err := netwrkIntfc.RoutePacket(cycle, pkt); err != nil {
-					log.Log.Error().Err(err).Msg("failed to route packet")
+					s.logger.Error().Err(err).Msg("failed to route packet")
 					return err
 				}
 
 				s.rcrds.recordTransmittedPacket(periodStartCycle, cycle, pkt)
 			} else {
-				log.Log.Error().Err(domain.ErrMissingNetworkInterface).Str("network_interface", pkt.Route()[0].Pos.Prettify()).Msg("network interface not found")
+				s.logger.Error().Err(domain.ErrMissingNetworkInterface).Str("network_interface", pkt.Route()[0].Pos.Prettify()).Msg("network interface not found")
 				return domain.ErrMissingNetworkInterface
 			}
 		}

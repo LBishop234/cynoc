@@ -3,7 +3,6 @@ package traffic
 import (
 	"encoding/hex"
 	"fmt"
-	"io"
 	"math/rand"
 	"path/filepath"
 
@@ -25,7 +24,7 @@ type TrafficFlow interface {
 	Jitter() int
 	PacketSize() int
 	ValidateAgainstConfig(conf domain.SimConfig) error
-	ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route) (bool, packet.Packet, int)
+	ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int)
 }
 
 type trafficFlowImpl struct {
@@ -185,7 +184,7 @@ func (t *trafficFlowImpl) ValidateAgainstConfig(conf domain.SimConfig) error {
 	return nil
 }
 
-func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route) (bool, packet.Packet, int) {
+func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int) {
 	if cycle%t.releasePeriod == 0 {
 		t.currentPeriod = cycle
 		t.currentJitter = rand.Intn(t.jitter + 1)
@@ -199,7 +198,7 @@ func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, rout
 			trafficFlow.Deadline(),
 			route,
 			trafficFlow.PacketSize(),
-			zerolog.New(io.Discard),
+			logger,
 		)
 
 		t.packetCount++

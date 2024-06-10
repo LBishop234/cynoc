@@ -3,13 +3,16 @@ package simulation
 import (
 	"math"
 
-	"main/log"
 	"main/src/traffic/packet"
+
+	"github.com/rs/zerolog"
 )
 
 type Records struct {
 	TransmittedByTF map[string]map[string]transmittedPacket
 	ArrivedByTF     map[string]map[string]arrivedPacket
+
+	logger zerolog.Logger
 }
 
 type transmittedPacket struct {
@@ -23,10 +26,12 @@ type arrivedPacket struct {
 	ReceivedCycle float64
 }
 
-func newRecords() *Records {
+func newRecords(logger zerolog.Logger) *Records {
 	return &Records{
 		TransmittedByTF: make(map[string]map[string]transmittedPacket),
 		ArrivedByTF:     make(map[string]map[string]arrivedPacket),
+
+		logger: logger,
 	}
 }
 
@@ -40,7 +45,7 @@ func (r *Records) recordTransmittedPacket(generationCycle, transmissionCycle int
 		TransmissionCycle: float64(transmissionCycle),
 		Packet:            pkt,
 	}
-	log.Log.Trace().Str("packet", pkt.PacketIndex()).Msg("recording transmitted packet")
+	r.logger.Trace().Str("packet", pkt.PacketIndex()).Msg("recording transmitted packet")
 }
 
 func (r *Records) recordArrivedPacket(cycle int, pkt packet.Packet) {
@@ -50,7 +55,7 @@ func (r *Records) recordArrivedPacket(cycle int, pkt packet.Packet) {
 
 	if outstandingPkt, exists := r.TransmittedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()]; exists {
 		if err := packet.EqualPackets(outstandingPkt.Packet, pkt); err != nil {
-			log.Log.Error().Err(err).Str("packet", pkt.PacketIndex()).Msg("packet did not match outstanding packet")
+			r.logger.Error().Err(err).Str("packet", pkt.PacketIndex()).Msg("packet did not match outstanding packet")
 		}
 
 		r.ArrivedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()] = arrivedPacket{
@@ -60,9 +65,9 @@ func (r *Records) recordArrivedPacket(cycle int, pkt packet.Packet) {
 
 		delete(r.TransmittedByTF[pkt.TrafficFlowID()], pkt.PacketIndex())
 
-		log.Log.Trace().Str("packet", pkt.PacketIndex()).Msg("recording arrived packet")
+		r.logger.Trace().Str("packet", pkt.PacketIndex()).Msg("recording arrived packet")
 	} else {
-		log.Log.Error().Str("packet", pkt.PacketIndex()).Msg("no matching transmitted packet found")
+		r.logger.Error().Str("packet", pkt.PacketIndex()).Msg("no matching transmitted packet found")
 	}
 }
 

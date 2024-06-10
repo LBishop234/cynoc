@@ -119,7 +119,8 @@ func NewHeaderFlit(trafficFlowID string, packetIndex string, flitIndex int, prio
 	id := newFlitID(trafficFlowID, packetIndex, flitIndex)
 	packetID := newPacketID(trafficFlowID, packetIndex)
 
-	logger.Trace().Str("flit", id).Msg("new header flit")
+	logger = logger.With().Str("flit", id).Logger()
+	logger.Trace().Msg("new header flit")
 
 	return &headerFlit{
 		id:            id,
@@ -137,7 +138,8 @@ func NewBodyFlit(trafficFlowID string, packetIndex string, flitIndex int, priori
 	id := newFlitID(trafficFlowID, packetIndex, flitIndex)
 	packetID := newPacketID(trafficFlowID, packetIndex)
 
-	logger.Trace().Str("flit", id).Msg("new header flit")
+	logger = logger.With().Str("flit", id).Logger()
+	logger.Trace().Msg("new header flit")
 
 	return &bodyFlit{
 		id:            id,
@@ -154,7 +156,8 @@ func NewTailFlit(trafficFlowID string, packetIndex string, flitIndex int, priori
 	id := newFlitID(trafficFlowID, packetIndex, flitIndex)
 	packetID := newPacketID(trafficFlowID, packetIndex)
 
-	logger.Trace().Str("flit", id).Msg("new header flit")
+	logger = logger.With().Str("flit", id).Logger()
+	logger.Trace().Msg("new header flit")
 
 	return &tailFlit{
 		id:            id,

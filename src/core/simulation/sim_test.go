@@ -545,7 +545,7 @@ func BenchmarkNewSimulator(b *testing.B) {
 			b.ResetTimer()
 
 			for i := 0; i < b.N; i++ {
-				_, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
+				_, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
 				require.NoError(b, err)
 			}
 		})
@@ -633,7 +633,7 @@ func TestRunSimulation(t *testing.T) {
 				trafficFlows[i] = tf
 			}
 
-			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
+			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
 			require.NoError(t, err)
 
 			_, records, err := simulator.runSimulation(context.Background())
@@ -699,7 +699,7 @@ func BenchmarkRunSimulation(b *testing.B) {
 				trafficFlows[i] = tf
 			}
 
-			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
+			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
 			require.NoError(b, err)
 
 			b.ReportAllocs()
