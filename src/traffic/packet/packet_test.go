@@ -2,12 +2,13 @@ package packet
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"testing"
 
 	"main/src/domain"
 
-	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,22 +21,22 @@ func TestNewPacket(t *testing.T) {
 	route := domain.Route{src, dst}
 	bodySize := 4
 
-	packet := NewPacket("t", 1, 100, route, bodySize)
+	packet := NewPacket("t", "AA", 1, 100, route, bodySize, zerolog.New(io.Discard))
 	assert.Equal(t, route, packet.route)
 	assert.Equal(t, bodySize, packet.bodySize)
 
 	assert.Implements(t, (*Packet)(nil), packet)
 }
 
-func TestPacketUUID(t *testing.T) {
+func TestPacketID(t *testing.T) {
 	t.Parallel()
 
 	src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 	dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 	route := domain.Route{src, dst}
 
-	packet := NewPacket("t", 1, 100, route, 4)
-	assert.Equal(t, packet.uuid, packet.UUID())
+	packet := NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
+	assert.Equal(t, packet.packetIndex, packet.PacketIndex())
 }
 
 func TestPacketTrafficFlowID(t *testing.T) {
@@ -46,7 +47,7 @@ func TestPacketTrafficFlowID(t *testing.T) {
 	route := domain.Route{src, dst}
 	trafficFlowID := "t"
 
-	packet := NewPacket(trafficFlowID, 1, 100, route, 4)
+	packet := NewPacket(trafficFlowID, "AA", 1, 100, route, 4, zerolog.New(io.Discard))
 	assert.Equal(t, trafficFlowID, packet.TrafficFlowID())
 }
 
@@ -58,7 +59,7 @@ func TestPacketPriority(t *testing.T) {
 	route := domain.Route{src, dst}
 	priority := 1
 
-	packet := NewPacket("t", priority, 100, route, 4)
+	packet := NewPacket("t", "AA", priority, 100, route, 4, zerolog.New(io.Discard))
 	assert.Equal(t, priority, packet.Priority())
 }
 
@@ -69,7 +70,7 @@ func TestPacketRoute(t *testing.T) {
 	dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 	route := domain.Route{src, dst}
 
-	packet := NewPacket("t", 1, 100, route, 4)
+	packet := NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
 	assert.Equal(t, route, packet.Route())
 }
 
@@ -81,7 +82,7 @@ func TestPacketBodySize(t *testing.T) {
 	route := domain.Route{src, dst}
 	bodySize := 4
 
-	packet := NewPacket("t", 1, 100, route, bodySize)
+	packet := NewPacket("t", "AA", 1, 100, route, bodySize, zerolog.New(io.Discard))
 	assert.Equal(t, bodySize, packet.BodySize())
 }
 
@@ -90,7 +91,7 @@ func TestPacketFlits(t *testing.T) {
 
 	testCases := []struct {
 		trafficFlowID string
-		uuid          uuid.UUID
+		id            string
 		priority      int
 		deadline      int
 		src           domain.NodeID
@@ -101,7 +102,7 @@ func TestPacketFlits(t *testing.T) {
 	}{
 		{
 			trafficFlowID: "t",
-			uuid:          uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"),
+			id:            "AA",
 			priority:      1,
 			deadline:      100,
 			src:           domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)},
@@ -109,16 +110,16 @@ func TestPacketFlits(t *testing.T) {
 			bodySize:      3,
 			flitSize:      1,
 			expected: []Flit{
-				NewHeaderFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1),
-				NewTailFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1),
+				NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "AA", 1, 1, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "AA", 2, 1, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "AA", 3, 1, 1, zerolog.New(io.Discard)),
+				NewTailFlit("t", "AA", 4, 1, zerolog.New(io.Discard)),
 			},
 		},
 		{
 			trafficFlowID: "t",
-			uuid:          uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"),
+			id:            "BB",
 			priority:      1,
 			deadline:      100,
 			src:           domain.NodeID{ID: "n3", Pos: domain.NewPosition(1, 1)},
@@ -126,15 +127,15 @@ func TestPacketFlits(t *testing.T) {
 			bodySize:      5,
 			flitSize:      3,
 			expected: []Flit{
-				NewHeaderFlit("t", uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 1, 100, domain.Route{domain.NodeID{ID: "n3", Pos: domain.NewPosition(1, 1)}, domain.NodeID{ID: "n4", Pos: domain.NewPosition(1, 2)}}),
-				NewBodyFlit(uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 3, 1),
-				NewBodyFlit(uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 2, 1),
-				NewTailFlit(uuid.MustParse("25ce3554-f19b-4d7c-8153-cee9023fb291"), 1),
+				NewHeaderFlit("t", "BB", 0, 1, 100, domain.Route{domain.NodeID{ID: "n3", Pos: domain.NewPosition(1, 1)}, domain.NodeID{ID: "n4", Pos: domain.NewPosition(1, 2)}}, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "BB", 1, 3, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "BB", 2, 2, 1, zerolog.New(io.Discard)),
+				NewTailFlit("t", "BB", 3, 1, zerolog.New(io.Discard)),
 			},
 		},
 		{
 			trafficFlowID: "t",
-			uuid:          uuid.MustParse("e45c2547-0d59-4586-b87f-fcacdf507983"),
+			id:            "CC",
 			priority:      1,
 			deadline:      100,
 			src:           domain.NodeID{ID: "n5", Pos: domain.NewPosition(2, 2)},
@@ -142,13 +143,13 @@ func TestPacketFlits(t *testing.T) {
 			bodySize:      0,
 			flitSize:      1,
 			expected: []Flit{
-				NewHeaderFlit("t", uuid.MustParse("e45c2547-0d59-4586-b87f-fcacdf507983"), 1, 100, domain.Route{domain.NodeID{ID: "n5", Pos: domain.NewPosition(2, 2)}, domain.NodeID{ID: "n6", Pos: domain.NewPosition(2, 3)}}),
-				NewTailFlit(uuid.MustParse("e45c2547-0d59-4586-b87f-fcacdf507983"), 1),
+				NewHeaderFlit("t", "CC", 0, 1, 100, domain.Route{domain.NodeID{ID: "n5", Pos: domain.NewPosition(2, 2)}, domain.NodeID{ID: "n6", Pos: domain.NewPosition(2, 3)}}, zerolog.New(io.Discard)),
+				NewTailFlit("t", "CC", 1, 1, zerolog.New(io.Discard)),
 			},
 		},
 		{
 			trafficFlowID: "t",
-			uuid:          uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"),
+			id:            "DD",
 			priority:      5,
 			deadline:      100,
 			src:           domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)},
@@ -156,16 +157,16 @@ func TestPacketFlits(t *testing.T) {
 			bodySize:      3,
 			flitSize:      1,
 			expected: []Flit{
-				NewHeaderFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 5, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 5, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 5, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 5, 1),
-				NewTailFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 5),
+				NewHeaderFlit("t", "DD", 0, 5, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "DD", 1, 5, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "DD", 2, 5, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "DD", 3, 5, 1, zerolog.New(io.Discard)),
+				NewTailFlit("t", "DD", 4, 5, zerolog.New(io.Discard)),
 			},
 		},
 		{
 			trafficFlowID: "t",
-			uuid:          uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"),
+			id:            "EE",
 			priority:      1,
 			deadline:      500,
 			src:           domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)},
@@ -173,11 +174,11 @@ func TestPacketFlits(t *testing.T) {
 			bodySize:      3,
 			flitSize:      1,
 			expected: []Flit{
-				NewHeaderFlit("t", uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 500, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1),
-				NewBodyFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1, 1),
-				NewTailFlit(uuid.MustParse("87a6823b-28e6-4148-91e1-371924a7e20b"), 1),
+				NewHeaderFlit("t", "EE", 0, 1, 500, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "EE", 1, 1, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "EE", 2, 1, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "EE", 3, 1, 1, zerolog.New(io.Discard)),
+				NewTailFlit("t", "EE", 4, 1, zerolog.New(io.Discard)),
 			},
 		},
 	}
@@ -187,13 +188,13 @@ func TestPacketFlits(t *testing.T) {
 		testCase := testCases[index]
 
 		t.Run(fmt.Sprintf("TestCase-%d", index), func(t *testing.T) {
-			packet := newPacketWithUUID(testCase.trafficFlowID, testCase.uuid, testCase.priority, testCase.deadline, domain.Route{testCase.src, testCase.dst}, testCase.bodySize)
+			packet := NewPacket(testCase.trafficFlowID, testCase.id, testCase.priority, testCase.deadline, domain.Route{testCase.src, testCase.dst}, testCase.bodySize, zerolog.New(io.Discard))
 
 			gotFlits := packet.Flits(testCase.flitSize)
 			assert.Equal(t, len(testCase.expected), len(gotFlits))
 			for i := 0; i < len(gotFlits); i++ {
 				assert.Equal(t, testCase.expected[i].Type(), gotFlits[i].Type())
-				assert.Equal(t, testCase.expected[i].PacketUUID(), gotFlits[i].PacketUUID())
+				assert.Equal(t, testCase.expected[i].PacketIndex(), gotFlits[i].PacketIndex())
 			}
 		})
 	}
@@ -203,39 +204,39 @@ func TestPacketBodyFlits(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		uuid     uuid.UUID
+		id       string
 		bodySize int
 		flitSize int
 		expected []BodyFlit
 	}{
 		{
-			uuid:     uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"),
+			id:       "AA",
 			bodySize: 3,
 			flitSize: 1,
 			expected: []BodyFlit{
-				NewBodyFlit(uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 1, 1),
-				NewBodyFlit(uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 1, 1),
-				NewBodyFlit(uuid.MustParse("26612df6-b7ea-4315-8445-73e02a8bb19a"), 1, 1),
+				NewBodyFlit("t", "AA", 1, 1, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "AA", 2, 1, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "AA", 3, 1, 1, zerolog.New(io.Discard)),
 			},
 		},
 		{
-			uuid:     uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"),
+			id:       "BB",
 			bodySize: 7,
 			flitSize: 2,
 			expected: []BodyFlit{
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 2, 1),
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 2, 1),
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 2, 1),
-				NewBodyFlit(uuid.MustParse("ed8d87c1-e1e0-4189-a658-e3017e9d1ebe"), 1, 1),
+				NewBodyFlit("t", "BB", 1, 2, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "BB", 2, 2, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "BB", 3, 2, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "BB", 4, 1, 1, zerolog.New(io.Discard)),
 			},
 		},
 		{
-			uuid:     uuid.MustParse("64687f40-6a02-43d4-8c34-5131b3e26f9e"),
+			id:       "CC",
 			bodySize: 4,
 			flitSize: 2,
 			expected: []BodyFlit{
-				NewBodyFlit(uuid.MustParse("64687f40-6a02-43d4-8c34-5131b3e26f9e"), 2, 1),
-				NewBodyFlit(uuid.MustParse("64687f40-6a02-43d4-8c34-5131b3e26f9e"), 2, 1),
+				NewBodyFlit("t", "CC", 1, 2, 1, zerolog.New(io.Discard)),
+				NewBodyFlit("t", "CC", 2, 2, 1, zerolog.New(io.Discard)),
 			},
 		},
 		{
@@ -254,7 +255,7 @@ func TestPacketBodyFlits(t *testing.T) {
 			dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 			route := domain.Route{src, dst}
 
-			packet := NewPacket("t", 1, 100, route, testCase.bodySize)
+			packet := NewPacket("t", testCase.id, 1, 100, route, testCase.bodySize, zerolog.New(io.Discard))
 			assert.Equal(t, len(testCase.expected), len(packet.bodyFlits(testCase.flitSize)))
 		})
 	}
@@ -283,7 +284,7 @@ func TestPacketBodyFlitCount(t *testing.T) {
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		route := domain.Route{src, dst}
 
-		packet := NewPacket("t", 1, 100, route, bodySize)
+		packet := NewPacket("t", "AA", 1, 100, route, bodySize, zerolog.New(io.Discard))
 
 		for flitSize, flitCount := range testCases {
 			t.Run(fmt.Sprintf("FlitSize-%d", flitSize), func(t *testing.T) {
@@ -298,7 +299,7 @@ func TestEqualPackets(t *testing.T) {
 
 	t.Run("Equal", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktUUID := uuid.New()
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -306,13 +307,13 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, route, data)
-		pkt2 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, route, data)
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
 
 		require.NoError(t, EqualPackets(pkt1, pkt2))
 	})
 
-	t.Run("UUIDNotEqual", func(t *testing.T) {
+	t.Run("IDNotEqual", func(t *testing.T) {
 		trafficFlowID := "t"
 		priority := 1
 		deadline := 100
@@ -321,13 +322,14 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := newPacketWithUUID(trafficFlowID, uuid.New(), priority, deadline, route, data)
-		pkt2 := newPacketWithUUID(trafficFlowID, uuid.New(), priority, deadline, route, data)
+		pkt1 := NewPacket(trafficFlowID, "AA", priority, deadline, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, "BB", priority, deadline, route, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("TrafficFlowIDNotEqual", func(t *testing.T) {
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -335,13 +337,14 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := newPacketWithUUID("t1", uuid.New(), priority, deadline, route, data)
-		pkt2 := newPacketWithUUID("t2", uuid.New(), priority, deadline, route, data)
+		pkt1 := NewPacket("t1", packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket("t2", packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("PriorityNotEqual", func(t *testing.T) {
+		packetIndex := "AA"
 		trafficFlowID := "t"
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -349,13 +352,14 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := newPacketWithUUID(trafficFlowID, uuid.New(), 1, deadline, route, data)
-		pkt2 := newPacketWithUUID(trafficFlowID, uuid.New(), 2, deadline, route, data)
+		pkt1 := NewPacket(trafficFlowID, packetIndex, 1, deadline, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, 2, deadline, route, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("DeadlineNotEqual", func(t *testing.T) {
+		packetIndex := "AA"
 		trafficFlowID := "t"
 		priority := 1
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -363,53 +367,53 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := newPacketWithUUID(trafficFlowID, uuid.New(), priority, 1, route, data)
-		pkt2 := newPacketWithUUID(trafficFlowID, uuid.New(), priority, 2, route, data)
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, 1, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, 2, route, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("RouteNotEqualLen", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktUUID := uuid.New()
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		data := 4
 
-		pkt1 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, domain.Route{src, dst}, data)
-		pkt2 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, domain.Route{}, data)
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{}, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("RouteNotEqualContent", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktUUID := uuid.New()
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		data := 4
 
-		pkt1 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, domain.Route{src, dst}, data)
-		pkt2 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, domain.Route{dst, src}, data)
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{dst, src}, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("BodySizeNotEqual", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktUUID := uuid.New()
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		route := domain.Route{src, dst}
 
-		pkt1 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, route, 4)
-		pkt2 := newPacketWithUUID(trafficFlowID, pktUUID, priority, deadline, route, 11)
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, 4, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, 11, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
@@ -420,7 +424,7 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 
 		require.ErrorIs(t, EqualPackets(nil, nil), domain.ErrNilParameter)
-		require.ErrorIs(t, EqualPackets(nil, newPacketWithUUID("t", uuid.New(), 1, 100, route, 4)), domain.ErrNilParameter)
-		require.ErrorIs(t, EqualPackets(newPacketWithUUID("t", uuid.New(), 1, 100, route, 4), nil), domain.ErrNilParameter)
+		require.ErrorIs(t, EqualPackets(nil, NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))), domain.ErrNilParameter)
+		require.ErrorIs(t, EqualPackets(NewPacket("t", "BB", 1, 100, route, 4, zerolog.New(io.Discard)), nil), domain.ErrNilParameter)
 	})
 }

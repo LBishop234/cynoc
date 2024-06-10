@@ -1,13 +1,17 @@
 package traffic
 
 import (
+	"encoding/hex"
 	"math/rand"
 	"path/filepath"
+	"strconv"
 
 	"main/log"
 	"main/src/domain"
+	"main/src/traffic/packet"
 
 	csvtag "github.com/artonge/go-csv-tag/v2"
+	"github.com/rs/zerolog"
 )
 
 type TrafficFlow interface {
@@ -20,7 +24,7 @@ type TrafficFlow interface {
 	Jitter() int
 	PacketSize() int
 	ValidateAgainstConfig(conf domain.SimConfig) error
-	ReleasePacket(cycle int) (bool, int)
+	ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int)
 }
 
 type trafficFlowImpl struct {
@@ -37,6 +41,8 @@ type trafficFlowImpl struct {
 
 	currentPeriod int
 	currentJitter int
+
+	packetCount int
 }
 
 func LoadTrafficFlowConfig(fPath string) ([]domain.TrafficFlowConfig, error) {
@@ -178,15 +184,27 @@ func (t *trafficFlowImpl) ValidateAgainstConfig(conf domain.SimConfig) error {
 	return nil
 }
 
-func (t *trafficFlowImpl) ReleasePacket(cycle int) (bool, int) {
+func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int) {
 	if cycle%t.releasePeriod == 0 {
 		t.currentPeriod = cycle
 		t.currentJitter = rand.Intn(t.jitter + 1)
 	}
 
 	if cycle == t.currentPeriod+t.currentJitter {
-		return true, t.currentPeriod
+		pkt := packet.NewPacket(
+			trafficFlow.ID(),
+			hex.EncodeToString([]byte(strconv.Itoa(t.packetCount))),
+			trafficFlow.Priority(),
+			trafficFlow.Deadline(),
+			route,
+			trafficFlow.PacketSize(),
+			logger,
+		)
+
+		t.packetCount++
+
+		return true, pkt, t.currentPeriod
 	} else {
-		return false, t.currentPeriod
+		return false, nil, t.currentPeriod
 	}
 }

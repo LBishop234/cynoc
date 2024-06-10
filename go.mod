@@ -5,7 +5,6 @@ go 1.22.2
 require (
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/artonge/go-csv-tag/v2 v2.4.0
-	github.com/google/uuid v1.4.0
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
 )

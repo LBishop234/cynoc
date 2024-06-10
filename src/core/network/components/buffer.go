@@ -1,9 +1,10 @@
 package components
 
 import (
-	"main/log"
 	"main/src/domain"
 	"main/src/traffic/packet"
+
+	"github.com/rs/zerolog"
 )
 
 type buffer interface {
@@ -18,25 +19,26 @@ type bufferImpl struct {
 	bufferCap int
 	vChanCap  int
 	flits     map[int][]packet.Flit
+	logger    zerolog.Logger
 }
 
-func newBuffer(capacity, maxPriority int) (*bufferImpl, error) {
+func newBuffer(capacity, maxPriority int, logger zerolog.Logger) (*bufferImpl, error) {
 	if err := validBufferSize(capacity, maxPriority); err != nil {
-		log.Log.Error().Err(err).Msg("invalid buffer size")
+		logger.Error().Err(err).Msg("invalid buffer size")
 		return nil, err
 	}
 
 	vChanCap, err := bufferVChanCapacity(capacity, maxPriority)
 	if err != nil {
-		log.Log.Error().Err(err).Msg("invalid virtual channel size")
+		logger.Error().Err(err).Msg("invalid virtual channel size")
 		return nil, err
 	}
 
-	log.Log.Trace().Msg("new buffer")
 	return &bufferImpl{
 		bufferCap: capacity,
 		vChanCap:  vChanCap,
 		flits:     make(map[int][]packet.Flit),
+		logger:    logger.With().Logger(),
 	}, nil
 }
 

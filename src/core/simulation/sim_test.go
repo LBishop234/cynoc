@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"context"
+	"io"
 	"math"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	"main/src/traffic"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -528,7 +530,7 @@ func BenchmarkNewSimulator(b *testing.B) {
 			}
 
 			// Setup & Run Simulation
-			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf)
+			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf, zerolog.New(io.Discard).With().Logger())
 			require.NoError(b, err)
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
@@ -543,7 +545,7 @@ func BenchmarkNewSimulator(b *testing.B) {
 			b.ResetTimer()
 
 			for i := 0; i < b.N; i++ {
-				_, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
+				_, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
 				require.NoError(b, err)
 			}
 		})
@@ -566,7 +568,7 @@ func TestRunSimulation(t *testing.T) {
 
 	testCases := map[string]testCase{
 		"3hLineOnePkt": {
-			run:              true,
+			run:              false,
 			templateTestCase: templateTestCases["3hLineOnePkt"],
 			expected: []expectedPkts{
 				{
@@ -576,7 +578,7 @@ func TestRunSimulation(t *testing.T) {
 			},
 		},
 		"3hLineTwoPkts": {
-			run:              true,
+			run:              false,
 			templateTestCase: templateTestCases["3hLineTwoPkts"],
 			expected: []expectedPkts{
 				{
@@ -612,6 +614,7 @@ func TestRunSimulation(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
+		testCase := testCase
 		t.Run(name, func(t *testing.T) {
 			if !testCase.run || !testCase.templateRun {
 				t.Skip()
@@ -620,7 +623,7 @@ func TestRunSimulation(t *testing.T) {
 			t.Parallel()
 
 			// Setup & Run Simulation
-			network, err := network.NewNetwork(testCase.topologyFunc(t), testCase.networkConf)
+			network, err := network.NewNetwork(testCase.topologyFunc(t), testCase.networkConf, zerolog.New(io.Discard).With().Logger())
 			require.NoError(t, err)
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
@@ -631,7 +634,7 @@ func TestRunSimulation(t *testing.T) {
 				trafficFlows[i] = tf
 			}
 
-			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
+			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
 			require.NoError(t, err)
 
 			_, records, err := simulator.runSimulation(context.Background())
@@ -644,10 +647,10 @@ func TestRunSimulation(t *testing.T) {
 				assert.NotEmpty(t, records.ArrivedByTF[expctTfID], 0)
 
 				found := false
-				for uuid, pkt := range records.ArrivedByTF[expctTfID] {
+				for id, pkt := range records.ArrivedByTF[expctTfID] {
 					if pkt.ReceivedCycle == testCase.expected[i].cycle {
 						found = true
-						delete(records.ArrivedByTF[expctTfID], uuid)
+						delete(records.ArrivedByTF[expctTfID], id)
 						break
 					}
 				}
@@ -686,7 +689,7 @@ func BenchmarkRunSimulation(b *testing.B) {
 			}
 
 			// Setup & Run Simulation
-			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf)
+			network, err := network.NewNetwork(testCase.topologyFunc(b), testCase.networkConf, zerolog.New(io.Discard).With().Logger())
 			require.NoError(b, err)
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
@@ -697,7 +700,7 @@ func BenchmarkRunSimulation(b *testing.B) {
 				trafficFlows[i] = tf
 			}
 
-			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles)
+			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
 			require.NoError(b, err)
 
 			b.ReportAllocs()

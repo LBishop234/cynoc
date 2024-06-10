@@ -3,15 +3,16 @@ package simulation
 import (
 	"math"
 
-	"main/log"
 	"main/src/traffic/packet"
 
-	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
 
 type Records struct {
-	TransmittedByTF map[string]map[uuid.UUID]transmittedPacket
-	ArrivedByTF     map[string]map[uuid.UUID]arrivedPacket
+	TransmittedByTF map[string]map[string]transmittedPacket
+	ArrivedByTF     map[string]map[string]arrivedPacket
+
+	logger zerolog.Logger
 }
 
 type transmittedPacket struct {
@@ -25,46 +26,48 @@ type arrivedPacket struct {
 	ReceivedCycle float64
 }
 
-func newRecords() *Records {
+func newRecords(logger zerolog.Logger) *Records {
 	return &Records{
-		TransmittedByTF: make(map[string]map[uuid.UUID]transmittedPacket),
-		ArrivedByTF:     make(map[string]map[uuid.UUID]arrivedPacket),
+		TransmittedByTF: make(map[string]map[string]transmittedPacket),
+		ArrivedByTF:     make(map[string]map[string]arrivedPacket),
+
+		logger: logger,
 	}
 }
 
 func (r *Records) recordTransmittedPacket(generationCycle, transmissionCycle int, pkt packet.Packet) {
 	if _, exists := r.TransmittedByTF[pkt.TrafficFlowID()]; !exists {
-		r.TransmittedByTF[pkt.TrafficFlowID()] = make(map[uuid.UUID]transmittedPacket)
+		r.TransmittedByTF[pkt.TrafficFlowID()] = make(map[string]transmittedPacket)
 	}
 
-	r.TransmittedByTF[pkt.TrafficFlowID()][pkt.UUID()] = transmittedPacket{
+	r.TransmittedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()] = transmittedPacket{
 		GenerationCycle:   float64(generationCycle),
 		TransmissionCycle: float64(transmissionCycle),
 		Packet:            pkt,
 	}
-	log.Log.Trace().Str("packet", pkt.UUID().String()).Msg("recording transmitted packet")
+	r.logger.Trace().Str("packet", pkt.PacketIndex()).Msg("recording transmitted packet")
 }
 
 func (r *Records) recordArrivedPacket(cycle int, pkt packet.Packet) {
 	if _, exists := r.ArrivedByTF[pkt.TrafficFlowID()]; !exists {
-		r.ArrivedByTF[pkt.TrafficFlowID()] = make(map[uuid.UUID]arrivedPacket)
+		r.ArrivedByTF[pkt.TrafficFlowID()] = make(map[string]arrivedPacket)
 	}
 
-	if outstandingPkt, exists := r.TransmittedByTF[pkt.TrafficFlowID()][pkt.UUID()]; exists {
+	if outstandingPkt, exists := r.TransmittedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()]; exists {
 		if err := packet.EqualPackets(outstandingPkt.Packet, pkt); err != nil {
-			log.Log.Error().Err(err).Str("packet", pkt.UUID().String()).Msg("packet did not match outstanding packet")
+			r.logger.Error().Err(err).Str("packet", pkt.PacketIndex()).Msg("packet did not match outstanding packet")
 		}
 
-		r.ArrivedByTF[pkt.TrafficFlowID()][pkt.UUID()] = arrivedPacket{
+		r.ArrivedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()] = arrivedPacket{
 			transmittedPacket: outstandingPkt,
 			ReceivedCycle:     float64(cycle),
 		}
 
-		delete(r.TransmittedByTF[pkt.TrafficFlowID()], pkt.UUID())
+		delete(r.TransmittedByTF[pkt.TrafficFlowID()], pkt.PacketIndex())
 
-		log.Log.Trace().Str("packet", pkt.UUID().String()).Msg("recording arrived packet")
+		r.logger.Trace().Str("packet", pkt.PacketIndex()).Msg("recording arrived packet")
 	} else {
-		log.Log.Error().Str("packet", pkt.UUID().String()).Msg("no matching transmitted packet found")
+		r.logger.Error().Str("packet", pkt.PacketIndex()).Msg("no matching transmitted packet found")
 	}
 }
 
@@ -126,8 +129,8 @@ func (r *Records) meanLatency() float64 {
 	var totalLatency float64
 
 	for tfID := range r.ArrivedByTF {
-		for uuid := range r.ArrivedByTF[tfID] {
-			totalLatency += arrivedPacketLatency(r.ArrivedByTF[tfID][uuid])
+		for id := range r.ArrivedByTF[tfID] {
+			totalLatency += arrivedPacketLatency(r.ArrivedByTF[tfID][id])
 		}
 	}
 
@@ -137,8 +140,8 @@ func (r *Records) meanLatency() float64 {
 func (r *Records) meanLatencyByTF(tfID string) float64 {
 	var totalLatency float64
 
-	for uuid := range r.ArrivedByTF[tfID] {
-		totalLatency += arrivedPacketLatency(r.ArrivedByTF[tfID][uuid])
+	for id := range r.ArrivedByTF[tfID] {
+		totalLatency += arrivedPacketLatency(r.ArrivedByTF[tfID][id])
 	}
 
 	return totalLatency / float64(r.noArrivedByTF(tfID))
@@ -160,8 +163,8 @@ func (r *Records) bestLatency() int {
 func (r *Records) bestLatencyByTF(tfID string) int {
 	var bestLatency int = math.MaxInt
 
-	for uuid := range r.ArrivedByTF[tfID] {
-		latency := int(arrivedPacketLatency(r.ArrivedByTF[tfID][uuid]))
+	for id := range r.ArrivedByTF[tfID] {
+		latency := int(arrivedPacketLatency(r.ArrivedByTF[tfID][id]))
 		if latency < bestLatency {
 			bestLatency = latency
 		}
@@ -186,8 +189,8 @@ func (r *Records) worstLatency() int {
 func (r *Records) worstLatencyByTF(tfID string) int {
 	var worstLatency int = math.MinInt
 
-	for uuid := range r.ArrivedByTF[tfID] {
-		latency := int(arrivedPacketLatency(r.ArrivedByTF[tfID][uuid]))
+	for id := range r.ArrivedByTF[tfID] {
+		latency := int(arrivedPacketLatency(r.ArrivedByTF[tfID][id]))
 		if latency > worstLatency {
 			worstLatency = latency
 		}

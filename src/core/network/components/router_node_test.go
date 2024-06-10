@@ -1,10 +1,12 @@
 package components
 
 import (
+	"io"
 	"testing"
 
 	"main/src/domain"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +30,7 @@ func TestNewRouterNode(t *testing.T) {
 			},
 		}
 
-		routerNode, err := NewRouterNode(conf)
+		routerNode, err := NewRouterNode(conf, zerolog.New(io.Discard).With().Logger())
 		require.NoError(t, err)
 		assert.Equal(t, conf.NodeID, routerNode.NodeID())
 		assert.NotNil(t, routerNode.Router)
@@ -51,7 +53,7 @@ func TestNewRouterNode(t *testing.T) {
 			},
 		}
 
-		_, err := NewRouterNode(conf)
+		_, err := NewRouterNode(conf, zerolog.New(io.Discard).With().Logger())
 		require.Error(t, err)
 	})
 

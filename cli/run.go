@@ -47,7 +47,7 @@ func NewApp() *cli.App {
 			log.Log.Fatal().Err(err).Msg("error reading traffic flows file")
 		}
 
-		resultsSet, err := core.Run(conf, top, trafficFlowConfigs, analysisArgs.Analysis)
+		resultsSet, err := core.Run(conf, top, trafficFlowConfigs, analysisArgs.Analysis, log.Log)
 		if err != nil {
 			log.Log.Fatal().Err(err).Msg("error running simulator")
 		}

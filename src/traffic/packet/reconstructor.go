@@ -1,12 +1,14 @@
 package packet
 
 import (
-	"main/log"
+	"io"
+
 	"main/src/domain"
+
+	"github.com/rs/zerolog"
 )
 
 type Reconstructor interface {
-	SetHeader(headerFlit HeaderFlit) error
 	AddBody(bodyFlit BodyFlit) error
 	SetTail(tailFlit TailFlit) error
 
@@ -17,27 +19,25 @@ type reconstructor struct {
 	headerFlit HeaderFlit
 	bodyFlits  []BodyFlit
 	tailFlit   TailFlit
+
+	logger zerolog.Logger
 }
 
-func NewReconstructor() *reconstructor {
-	log.Log.Trace().Msg("new packet reconstructor")
-
-	return &reconstructor{
-		bodyFlits: make([]BodyFlit, 0),
-	}
-}
-
-func (r *reconstructor) SetHeader(headerFlit HeaderFlit) error {
+func NewReconstructor(headerFlit HeaderFlit, logger zerolog.Logger) (*reconstructor, error) {
 	if headerFlit == nil {
-		return domain.ErrNilParameter
+		return nil, domain.ErrNilParameter
 	}
 
-	if r.headerFlit != nil {
-		return domain.ErrFlitAlreadySet
+	r := &reconstructor{
+		bodyFlits: make([]BodyFlit, 0),
+		logger:    logger.With().Str("packet", headerFlit.PacketID()).Logger(),
 	}
+	r.logger.Trace().Msg("new packet reconstructor")
 
 	r.headerFlit = headerFlit
-	return nil
+	r.logger.Trace().Str("flit", headerFlit.ID()).Str("type", headerFlit.Type().String()).Msg("set header flit")
+
+	return r, nil
 }
 
 func (r *reconstructor) AddBody(bodyFlit BodyFlit) error {
@@ -46,6 +46,8 @@ func (r *reconstructor) AddBody(bodyFlit BodyFlit) error {
 	}
 
 	r.bodyFlits = append(r.bodyFlits, bodyFlit)
+	r.logger.Trace().Str("flit", bodyFlit.ID()).Str("type", bodyFlit.Type().String()).Msg("added body flit")
+
 	return nil
 }
 
@@ -59,6 +61,8 @@ func (r *reconstructor) SetTail(tailFlit TailFlit) error {
 	}
 
 	r.tailFlit = tailFlit
+	r.logger.Trace().Str("flit", tailFlit.ID()).Str("type", tailFlit.Type().String()).Msg("set tail flit")
+
 	return nil
 }
 
@@ -72,12 +76,17 @@ func (r *reconstructor) Reconstruct() (Packet, error) {
 		bodySize += r.bodyFlits[i].DataSize()
 	}
 
-	return newPacketWithUUID(
+	pkt := NewPacket(
 		r.headerFlit.TrafficFlowID(),
-		r.headerFlit.PacketUUID(),
+		r.headerFlit.PacketIndex(),
 		r.headerFlit.Priority(),
 		r.headerFlit.Deadline(),
 		r.headerFlit.Route(),
 		bodySize,
-	), nil
+		// Reconstructed packets should only be used for records purposes, so the logger can be discarded.
+		zerolog.New(io.Discard),
+	)
+
+	r.logger.Trace().Str("packet", pkt.ID()).Msg("reconstructed packet")
+	return pkt, nil
 }
