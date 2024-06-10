@@ -36,7 +36,7 @@ func TestPacketID(t *testing.T) {
 	route := domain.Route{src, dst}
 
 	packet := NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
-	assert.Equal(t, packet.packetID, packet.PacketID())
+	assert.Equal(t, packet.packetIndex, packet.PacketIndex())
 }
 
 func TestPacketTrafficFlowID(t *testing.T) {
@@ -194,7 +194,7 @@ func TestPacketFlits(t *testing.T) {
 			assert.Equal(t, len(testCase.expected), len(gotFlits))
 			for i := 0; i < len(gotFlits); i++ {
 				assert.Equal(t, testCase.expected[i].Type(), gotFlits[i].Type())
-				assert.Equal(t, testCase.expected[i].PacketID(), gotFlits[i].PacketID())
+				assert.Equal(t, testCase.expected[i].PacketIndex(), gotFlits[i].PacketIndex())
 			}
 		})
 	}
@@ -299,7 +299,7 @@ func TestEqualPackets(t *testing.T) {
 
 	t.Run("Equal", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktID := "AA"
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -307,8 +307,8 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := NewPacket(trafficFlowID, pktID, priority, deadline, route, data, zerolog.New(io.Discard))
-		pkt2 := NewPacket(trafficFlowID, pktID, priority, deadline, route, data, zerolog.New(io.Discard))
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
 
 		require.NoError(t, EqualPackets(pkt1, pkt2))
 	})
@@ -329,7 +329,7 @@ func TestEqualPackets(t *testing.T) {
 	})
 
 	t.Run("TrafficFlowIDNotEqual", func(t *testing.T) {
-		pktID := "AA"
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -337,14 +337,14 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := NewPacket("t1", pktID, priority, deadline, route, data, zerolog.New(io.Discard))
-		pkt2 := NewPacket("t2", pktID, priority, deadline, route, data, zerolog.New(io.Discard))
+		pkt1 := NewPacket("t1", packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket("t2", packetIndex, priority, deadline, route, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("PriorityNotEqual", func(t *testing.T) {
-		pktID := "AA"
+		packetIndex := "AA"
 		trafficFlowID := "t"
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -352,14 +352,14 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := NewPacket(trafficFlowID, pktID, 1, deadline, route, data, zerolog.New(io.Discard))
-		pkt2 := NewPacket(trafficFlowID, pktID, 2, deadline, route, data, zerolog.New(io.Discard))
+		pkt1 := NewPacket(trafficFlowID, packetIndex, 1, deadline, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, 2, deadline, route, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("DeadlineNotEqual", func(t *testing.T) {
-		pktID := "AA"
+		packetIndex := "AA"
 		trafficFlowID := "t"
 		priority := 1
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
@@ -367,53 +367,53 @@ func TestEqualPackets(t *testing.T) {
 		route := domain.Route{src, dst}
 		data := 4
 
-		pkt1 := NewPacket(trafficFlowID, pktID, priority, 1, route, data, zerolog.New(io.Discard))
-		pkt2 := NewPacket(trafficFlowID, pktID, priority, 2, route, data, zerolog.New(io.Discard))
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, 1, route, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, 2, route, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("RouteNotEqualLen", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktID := "AA"
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		data := 4
 
-		pkt1 := NewPacket(trafficFlowID, pktID, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
-		pkt2 := NewPacket(trafficFlowID, pktID, priority, deadline, domain.Route{}, data, zerolog.New(io.Discard))
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{}, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("RouteNotEqualContent", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktID := "AA"
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		data := 4
 
-		pkt1 := NewPacket(trafficFlowID, pktID, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
-		pkt2 := NewPacket(trafficFlowID, pktID, priority, deadline, domain.Route{dst, src}, data, zerolog.New(io.Discard))
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{dst, src}, data, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})
 
 	t.Run("BodySizeNotEqual", func(t *testing.T) {
 		trafficFlowID := "t"
-		pktID := "AA"
+		packetIndex := "AA"
 		priority := 1
 		deadline := 100
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		route := domain.Route{src, dst}
 
-		pkt1 := NewPacket(trafficFlowID, pktID, priority, deadline, route, 4, zerolog.New(io.Discard))
-		pkt2 := NewPacket(trafficFlowID, pktID, priority, deadline, route, 11, zerolog.New(io.Discard))
+		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, 4, zerolog.New(io.Discard))
+		pkt2 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, 11, zerolog.New(io.Discard))
 
 		require.ErrorIs(t, EqualPackets(pkt1, pkt2), domain.ErrPacketsNotEqual)
 	})

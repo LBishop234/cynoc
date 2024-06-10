@@ -79,7 +79,7 @@ func (r *reconstructor) Reconstruct() (Packet, error) {
 
 	return NewPacket(
 		r.headerFlit.TrafficFlowID(),
-		r.headerFlit.PacketID(),
+		r.headerFlit.PacketIndex(),
 		r.headerFlit.Priority(),
 		r.headerFlit.Deadline(),
 		r.headerFlit.Route(),

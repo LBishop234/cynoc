@@ -396,7 +396,7 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 			require.NoError(t, err)
 
 			gotFlit := <-testRouterPair.AtoB.flitChannel()
-			assert.Equal(t, pkt.Flits(flitSize)[i].PacketID(), gotFlit.PacketID())
+			assert.Equal(t, pkt.Flits(flitSize)[i].PacketIndex(), gotFlit.PacketIndex())
 			assert.Equal(t, pkt.Flits(flitSize)[i].Type(), gotFlit.Type())
 
 			testRouterPair.AtoB.creditChannel(flits[i].Priority()) <- 1

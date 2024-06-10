@@ -35,12 +35,12 @@ func (r *Records) recordTransmittedPacket(generationCycle, transmissionCycle int
 		r.TransmittedByTF[pkt.TrafficFlowID()] = make(map[string]transmittedPacket)
 	}
 
-	r.TransmittedByTF[pkt.TrafficFlowID()][pkt.PacketID()] = transmittedPacket{
+	r.TransmittedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()] = transmittedPacket{
 		GenerationCycle:   float64(generationCycle),
 		TransmissionCycle: float64(transmissionCycle),
 		Packet:            pkt,
 	}
-	log.Log.Trace().Str("packet", pkt.PacketID()).Msg("recording transmitted packet")
+	log.Log.Trace().Str("packet", pkt.PacketIndex()).Msg("recording transmitted packet")
 }
 
 func (r *Records) recordArrivedPacket(cycle int, pkt packet.Packet) {
@@ -48,21 +48,21 @@ func (r *Records) recordArrivedPacket(cycle int, pkt packet.Packet) {
 		r.ArrivedByTF[pkt.TrafficFlowID()] = make(map[string]arrivedPacket)
 	}
 
-	if outstandingPkt, exists := r.TransmittedByTF[pkt.TrafficFlowID()][pkt.PacketID()]; exists {
+	if outstandingPkt, exists := r.TransmittedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()]; exists {
 		if err := packet.EqualPackets(outstandingPkt.Packet, pkt); err != nil {
-			log.Log.Error().Err(err).Str("packet", pkt.PacketID()).Msg("packet did not match outstanding packet")
+			log.Log.Error().Err(err).Str("packet", pkt.PacketIndex()).Msg("packet did not match outstanding packet")
 		}
 
-		r.ArrivedByTF[pkt.TrafficFlowID()][pkt.PacketID()] = arrivedPacket{
+		r.ArrivedByTF[pkt.TrafficFlowID()][pkt.PacketIndex()] = arrivedPacket{
 			transmittedPacket: outstandingPkt,
 			ReceivedCycle:     float64(cycle),
 		}
 
-		delete(r.TransmittedByTF[pkt.TrafficFlowID()], pkt.PacketID())
+		delete(r.TransmittedByTF[pkt.TrafficFlowID()], pkt.PacketIndex())
 
-		log.Log.Trace().Str("packet", pkt.PacketID()).Msg("recording arrived packet")
+		log.Log.Trace().Str("packet", pkt.PacketIndex()).Msg("recording arrived packet")
 	} else {
-		log.Log.Error().Str("packet", pkt.PacketID()).Msg("no matching transmitted packet found")
+		log.Log.Error().Str("packet", pkt.PacketIndex()).Msg("no matching transmitted packet found")
 	}
 }
 
