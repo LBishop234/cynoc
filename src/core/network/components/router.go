@@ -202,7 +202,7 @@ func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Fl
 		}
 	}
 
-	if _, exists := r.outputMap[r.packetsNextRouter[flit.PacketIndex()]]; !exists {
+	if _, exists := r.outputMap[r.packetsNextRouter[flit.PacketID()]]; !exists {
 		if flit.Type() == packet.HeaderFlitType {
 			logger.Error().Err(domain.ErrNoPort).Msg("error routing buffered flit")
 			return domain.ErrNoPort
@@ -237,7 +237,7 @@ func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
 				return false, err
 			}
 
-			r.packetsNextRouter[flit.PacketIndex()] = outPort.connection().GetDstRouter()
+			r.packetsNextRouter[flit.PacketID()] = outPort.connection().GetDstRouter()
 
 			return true, nil
 		}
@@ -246,7 +246,7 @@ func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
 }
 
 func (r *routerImpl) sendFlit(cycle int, inputPortIndex int, flit packet.Flit) (bool, error) {
-	outPort, exists := r.outputMap[r.packetsNextRouter[flit.PacketIndex()]]
+	outPort, exists := r.outputMap[r.packetsNextRouter[flit.PacketID()]]
 	if !exists {
 		return false, domain.ErrInvalidParameter
 	}
