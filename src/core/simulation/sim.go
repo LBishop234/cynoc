@@ -41,6 +41,8 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, r
 		trafficFlows: make([]trafficFlowRoute, len(trafficFlows)),
 
 		rcrds: newRecords(logger),
+
+		logger: logger,
 	}
 
 	for i := 0; i < len(trafficFlows); i++ {
