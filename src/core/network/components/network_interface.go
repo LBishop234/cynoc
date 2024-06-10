@@ -165,12 +165,18 @@ func (n *networkInterfaceImpl) HandleArrivingFlits(cycle int) error {
 }
 
 func (n *networkInterfaceImpl) arrivedHeaderFlit(flit packet.HeaderFlit) error {
-	n.flitsArriving[flit.PacketID()] = packet.NewReconstructor(n.logger)
+	_, exists := n.flitsArriving[flit.PacketID()]
+	if exists {
+		return domain.ErrMisorderedPacket
+	}
 
-	if err := n.flitsArriving[flit.PacketID()].SetHeader(flit); err != nil {
+	reconstructor, err := packet.NewReconstructor(flit, n.logger)
+	if err != nil {
+		n.logger.Error().Err(err).Str("packet", flit.PacketID()).Msg("error creating reconstructor")
 		return err
 	}
 
+	n.flitsArriving[flit.PacketID()] = reconstructor
 	return nil
 }
 

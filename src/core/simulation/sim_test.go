@@ -614,6 +614,7 @@ func TestRunSimulation(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
+		testCase := testCase
 		t.Run(name, func(t *testing.T) {
 			if !testCase.run || !testCase.templateRun {
 				t.Skip()
