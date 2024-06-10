@@ -2,6 +2,7 @@ package packet
 
 import (
 	"io"
+
 	"main/src/domain"
 
 	"github.com/rs/zerolog"

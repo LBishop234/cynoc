@@ -13,8 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var dummyHeaderFlit = packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{}, zerolog.New(io.Discard))
-
 func TestNewNetworkInterface(t *testing.T) {
 	t.Parallel()
 

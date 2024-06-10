@@ -2,9 +2,9 @@ package traffic
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/rand"
 	"path/filepath"
+	"strconv"
 
 	"main/log"
 	"main/src/domain"
@@ -193,7 +193,7 @@ func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, rout
 	if cycle == t.currentPeriod+t.currentJitter {
 		pkt := packet.NewPacket(
 			trafficFlow.ID(),
-			hex.EncodeToString([]byte(fmt.Sprint(t.packetCount))),
+			hex.EncodeToString([]byte(strconv.Itoa(t.packetCount))),
 			trafficFlow.Priority(),
 			trafficFlow.Deadline(),
 			route,

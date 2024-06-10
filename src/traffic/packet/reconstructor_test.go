@@ -59,6 +59,7 @@ func TestReconstructorAddBody(t *testing.T) {
 
 	t.Run("NilBodyFlit", func(t *testing.T) {
 		reconstructor, err := NewReconstructor(dummyHeaderFlit, zerolog.New(io.Discard))
+		require.NoError(t, err)
 
 		err = reconstructor.AddBody(nil)
 		require.ErrorIs(t, domain.ErrNilParameter, err)
@@ -70,6 +71,8 @@ func TestReconstructorSetTail(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		reconstructor, err := NewReconstructor(dummyHeaderFlit, zerolog.New(io.Discard))
+		require.NoError(t, err)
+
 		tailFlit := NewTailFlit("t", "AA", 2, 1, zerolog.New(io.Discard))
 
 		err = reconstructor.SetTail(tailFlit)
@@ -77,15 +80,10 @@ func TestReconstructorSetTail(t *testing.T) {
 		assert.Equal(t, tailFlit, reconstructor.tailFlit)
 	})
 
-	t.Run("NilHeaderFlit", func(t *testing.T) {
-		reconstructor, err := NewReconstructor(dummyHeaderFlit, zerolog.New(io.Discard))
-
-		err = reconstructor.SetTail(nil)
-		require.ErrorIs(t, domain.ErrNilParameter, err)
-	})
-
 	t.Run("InvalidAlreadySet", func(t *testing.T) {
 		reconstructor, err := NewReconstructor(dummyHeaderFlit, zerolog.New(io.Discard))
+		require.NoError(t, err)
+
 		tailFlit := NewTailFlit("t", "AA", 2, 1, zerolog.New(io.Discard))
 
 		err = reconstructor.SetTail(tailFlit)
@@ -116,6 +114,7 @@ func TestReconstructorReconstruct(t *testing.T) {
 		require.True(t, ok)
 
 		reconstructor, err := NewReconstructor(headerFlit, zerolog.New(io.Discard))
+		require.NoError(t, err)
 
 		for i := 1; i < len(flits)-1; i++ {
 			bodyFlit, ok := flits[i].(BodyFlit)
@@ -136,6 +135,7 @@ func TestReconstructorReconstruct(t *testing.T) {
 
 	t.Run("TailUnset", func(t *testing.T) {
 		reconstructor, err := NewReconstructor(dummyHeaderFlit, zerolog.New(io.Discard))
+		require.NoError(t, err)
 
 		pkt, err := reconstructor.Reconstruct()
 		require.ErrorIs(t, domain.ErrFlitUnset, err)

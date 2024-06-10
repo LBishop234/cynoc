@@ -62,3 +62,5 @@ linters-settings:
     simple: true
     range-loops: true
     for-loops: true
+  goconst:
+    ignore-tests: true
