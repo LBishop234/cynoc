@@ -144,7 +144,7 @@ func TestNetworkInterfaceRoutePacket(t *testing.T) {
 		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		var route domain.Route = domain.Route{src, dst}
 
-		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4)
+		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
 
 		err = netIntfc.RoutePacket(0, pkt)
 		require.NoError(t, err)
@@ -176,9 +176,9 @@ func TestNetworkInterfacePopArrivedPackets(t *testing.T) {
 		var route domain.Route = domain.Route{src, dst}
 
 		pkts := []packet.Packet{
-			packet.NewPacket("t", "AA", 1, 100, route, 4),
-			packet.NewPacket("t", "AA", 1, 100, route, 4),
-			packet.NewPacket("t", "AA", 1, 100, route, 4),
+			packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard)),
+			packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard)),
+			packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard)),
 		}
 		netIntfc.arrivedPackets = append(netIntfc.arrivedPackets, pkts...)
 
@@ -204,7 +204,7 @@ func TestNetworkInterfaceHandleArrivingFlits(t *testing.T) {
 		netIntfc, err := newNetworkInterface(src, bufferSize, flitSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4)
+		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
 		flits := pkt.Flits(flitSize)
 
 		inConn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
@@ -239,7 +239,7 @@ func TestNetworkInterfaceArrivedHeaderFlit(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		headerFlit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}})
+		headerFlit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
 
 		err = netIntfc.arrivedHeaderFlit(headerFlit)
 		require.NoError(t, err)
@@ -261,9 +261,9 @@ func TestNetworkInterfaceArrivedBodyFlit(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		bodyFlit := packet.NewBodyFlit("t", pktID, 1, 4, 1)
+		bodyFlit := packet.NewBodyFlit("t", pktID, 1, 4, 1, zerolog.New(io.Discard))
 
-		netIntfc.flitsArriving[netIntfc.pktUID(bodyFlit)] = packet.NewReconstructor()
+		netIntfc.flitsArriving[netIntfc.pktUID(bodyFlit)] = packet.NewReconstructor(zerolog.New(io.Discard))
 
 		err = netIntfc.arrivedBodyFlit(bodyFlit)
 		require.NoError(t, err)
@@ -290,16 +290,16 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		headerFlit := packet.NewHeaderFlit(trafficFlowID, pktID, 0, priority, deadline, route)
-		netIntfc.flitsArriving[netIntfc.pktUID(headerFlit)] = packet.NewReconstructor()
+		headerFlit := packet.NewHeaderFlit(trafficFlowID, pktID, 0, priority, deadline, route, zerolog.New(io.Discard))
+		netIntfc.flitsArriving[netIntfc.pktUID(headerFlit)] = packet.NewReconstructor(zerolog.New(io.Discard))
 		err = netIntfc.flitsArriving[netIntfc.pktUID(headerFlit)].SetHeader(headerFlit)
 		require.NoError(t, err)
 
-		bodyFlit := packet.NewBodyFlit(trafficFlowID, pktID, 1, bodySize, priority)
+		bodyFlit := packet.NewBodyFlit(trafficFlowID, pktID, 1, bodySize, priority, zerolog.New(io.Discard))
 		err = netIntfc.flitsArriving[netIntfc.pktUID(bodyFlit)].AddBody(bodyFlit)
 		require.NoError(t, err)
 
-		tailFlit := packet.NewTailFlit(trafficFlowID, pktID, 2, priority)
+		tailFlit := packet.NewTailFlit(trafficFlowID, pktID, 2, priority, zerolog.New(io.Discard))
 		err = netIntfc.arrivedTailFlit(tailFlit)
 		require.NoError(t, err)
 
@@ -319,10 +319,10 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		netIntfc.flitsArriving[pktID] = packet.NewReconstructor()
-		netIntfc.flitsArriving[pktID].SetTail(packet.NewTailFlit("t", pktID, 2, 1))
+		netIntfc.flitsArriving[pktID] = packet.NewReconstructor(zerolog.New(io.Discard))
+		netIntfc.flitsArriving[pktID].SetTail(packet.NewTailFlit("t", pktID, 2, 1, zerolog.New(io.Discard)))
 
-		tailFlit := packet.NewTailFlit("t", pktID, 2, 1)
+		tailFlit := packet.NewTailFlit("t", pktID, 2, 1, zerolog.New(io.Discard))
 		err = netIntfc.arrivedTailFlit(tailFlit)
 		require.Error(t, err)
 	})
@@ -333,9 +333,9 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		netIntfc.flitsArriving[pktID] = packet.NewReconstructor()
+		netIntfc.flitsArriving[pktID] = packet.NewReconstructor(zerolog.New(io.Discard))
 
-		tailFlit := packet.NewTailFlit("t", pktID, 2, 1)
+		tailFlit := packet.NewTailFlit("t", pktID, 2, 1, zerolog.New(io.Discard))
 		err = netIntfc.arrivedTailFlit(tailFlit)
 		require.Error(t, err)
 	})
@@ -383,7 +383,7 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 		err = netIntfc.SetOutputPort(conn)
 		require.NoError(t, err)
 
-		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4)
+		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
 
 		err = netIntfc.RoutePacket(0, pkt)
 		require.NoError(t, err)
@@ -418,7 +418,7 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 		err = netIntfc.SetOutputPort(conn)
 		require.NoError(t, err)
 
-		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4)
+		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
 
 		err = netIntfc.RoutePacket(0, pkt)
 		require.NoError(t, err)

@@ -3,6 +3,7 @@ package traffic
 import (
 	"encoding/hex"
 	"fmt"
+	"io"
 	"math/rand"
 	"path/filepath"
 
@@ -11,6 +12,7 @@ import (
 	"main/src/traffic/packet"
 
 	csvtag "github.com/artonge/go-csv-tag/v2"
+	"github.com/rs/zerolog"
 )
 
 type TrafficFlow interface {
@@ -197,6 +199,7 @@ func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, rout
 			trafficFlow.Deadline(),
 			route,
 			trafficFlow.PacketSize(),
+			zerolog.New(io.Discard),
 		)
 
 		t.packetCount++

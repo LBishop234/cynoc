@@ -1,8 +1,10 @@
 package packet
 
 import (
-	"main/log"
+	"io"
 	"main/src/domain"
+
+	"github.com/rs/zerolog"
 )
 
 type Reconstructor interface {
@@ -17,13 +19,16 @@ type reconstructor struct {
 	headerFlit HeaderFlit
 	bodyFlits  []BodyFlit
 	tailFlit   TailFlit
+
+	logger zerolog.Logger
 }
 
-func NewReconstructor() *reconstructor {
-	log.Log.Trace().Msg("new packet reconstructor")
+func NewReconstructor(logger zerolog.Logger) *reconstructor {
+	logger.Trace().Msg("new packet reconstructor")
 
 	return &reconstructor{
 		bodyFlits: make([]BodyFlit, 0),
+		logger:    logger,
 	}
 }
 
@@ -79,5 +84,6 @@ func (r *reconstructor) Reconstruct() (Packet, error) {
 		r.headerFlit.Deadline(),
 		r.headerFlit.Route(),
 		bodySize,
+		zerolog.New(io.Discard),
 	), nil
 }

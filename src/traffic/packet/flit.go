@@ -2,8 +2,9 @@ package packet
 
 import (
 	"fmt"
-	"main/log"
 	"main/src/domain"
+
+	"github.com/rs/zerolog"
 )
 
 type FlitType string
@@ -60,6 +61,7 @@ type headerFlit struct {
 	priority      int
 	deadline      int
 	route         domain.Route
+	logger        zerolog.Logger
 }
 
 type BodyFlit interface {
@@ -80,6 +82,7 @@ type bodyFlit struct {
 	packetIndex   int
 	priority      int
 	dataSize      int
+	logger        zerolog.Logger
 }
 
 type TailFlit interface {
@@ -98,16 +101,17 @@ type tailFlit struct {
 	packetID      string
 	packetIndex   int
 	priority      int
+	logger        zerolog.Logger
 }
 
 func id(trafficFlowID string, packetID string, packetIndex int) string {
 	return fmt.Sprintf("%s_%s_%d", trafficFlowID, packetID, packetIndex)
 }
 
-func NewHeaderFlit(trafficFlowID string, packetID string, packetIndex int, priority, deadline int, route domain.Route) *headerFlit {
+func NewHeaderFlit(trafficFlowID string, packetID string, packetIndex int, priority, deadline int, route domain.Route, logger zerolog.Logger) *headerFlit {
 	id := id(trafficFlowID, packetID, packetIndex)
 
-	log.Log.Trace().Str("flit", id).Msg("new header flit")
+	logger.Trace().Str("flit", id).Msg("new header flit")
 
 	return &headerFlit{
 		id:            id,
@@ -120,10 +124,10 @@ func NewHeaderFlit(trafficFlowID string, packetID string, packetIndex int, prior
 	}
 }
 
-func NewBodyFlit(trafficFlowID string, packetID string, packetIndex int, priority, dataSize int) *bodyFlit {
+func NewBodyFlit(trafficFlowID string, packetID string, packetIndex int, priority, dataSize int, logger zerolog.Logger) *bodyFlit {
 	id := id(trafficFlowID, packetID, packetIndex)
 
-	log.Log.Trace().Str("flit", id).Msg("new header flit")
+	logger.Trace().Str("flit", id).Msg("new header flit")
 
 	return &bodyFlit{
 		id:            id,
@@ -135,10 +139,10 @@ func NewBodyFlit(trafficFlowID string, packetID string, packetIndex int, priorit
 	}
 }
 
-func NewTailFlit(trafficFlowID string, packetID string, packetIndex int, priority int) *tailFlit {
+func NewTailFlit(trafficFlowID string, packetID string, packetIndex int, priority int, logger zerolog.Logger) *tailFlit {
 	id := id(trafficFlowID, packetID, packetIndex)
 
-	log.Log.Trace().Str("flit", id).Msg("new header flit")
+	logger.Trace().Str("flit", id).Msg("new header flit")
 
 	return &tailFlit{
 		id:            id,
@@ -182,7 +186,7 @@ func (f *headerFlit) Route() domain.Route {
 }
 
 func (f *headerFlit) RecordEvent(cycle int, event FlitEvent, location string) {
-	recordEvent(f, cycle, event, location)
+	recordEvent(&f.logger, f, cycle, event, location)
 }
 
 func (f *bodyFlit) ID() string {
@@ -214,7 +218,7 @@ func (f *bodyFlit) DataSize() int {
 }
 
 func (f *bodyFlit) RecordEvent(cycle int, event FlitEvent, location string) {
-	recordEvent(f, cycle, event, location)
+	recordEvent(&f.logger, f, cycle, event, location)
 }
 
 func (f *tailFlit) ID() string {
@@ -242,9 +246,9 @@ func (f *tailFlit) Priority() int {
 }
 
 func (f *tailFlit) RecordEvent(cycle int, event FlitEvent, location string) {
-	recordEvent(f, cycle, event, location)
+	recordEvent(&f.logger, f, cycle, event, location)
 }
 
-func recordEvent(f Flit, cycle int, event FlitEvent, location string) {
-	log.Log.Trace().Int("cycle", cycle).Str("flit", f.ID()).Str("event", event.String()).Str("location", location).Msgf("%s at %s", event.String(), location)
+func recordEvent(logger *zerolog.Logger, f Flit, cycle int, event FlitEvent, location string) {
+	logger.Trace().Int("cycle", cycle).Str("flit", f.ID()).Str("event", event.String()).Str("location", location).Msgf("%s at %s", event.String(), location)
 }

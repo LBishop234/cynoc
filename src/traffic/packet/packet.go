@@ -3,12 +3,13 @@ package packet
 import (
 	"errors"
 	"fmt"
+	"io"
 	"math"
 
-	"main/log"
 	"main/src/domain"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/rs/zerolog"
 )
 
 // type PktEvent string
@@ -36,10 +37,12 @@ type packet struct {
 	deadline      int
 	route         domain.Route
 	bodySize      int
+
+	logger zerolog.Logger
 }
 
-func NewPacket(trafficFlowID string, packetID string, priority, deadline int, route domain.Route, bodySize int) *packet {
-	log.Log.Trace().Str("traffic_flow", trafficFlowID).Str("id", packetID).Msg("new packet")
+func NewPacket(trafficFlowID string, packetID string, priority, deadline int, route domain.Route, bodySize int, logger zerolog.Logger) *packet {
+	logger.Trace().Str("traffic_flow", trafficFlowID).Str("id", packetID).Msg("new packet")
 
 	return &packet{
 		trafficFlowID: trafficFlowID,
@@ -48,6 +51,7 @@ func NewPacket(trafficFlowID string, packetID string, priority, deadline int, ro
 		deadline:      deadline,
 		route:         route,
 		bodySize:      bodySize,
+		logger:        logger,
 	}
 }
 
@@ -78,14 +82,14 @@ func (p *packet) BodySize() int {
 func (p *packet) Flits(flitSize int) []Flit {
 	flits := make([]Flit, 1+p.bodyFlitCount(flitSize)+1)
 
-	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.PacketID(), 0, p.priority, p.deadline, p.route)
+	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.PacketID(), 0, p.priority, p.deadline, p.route, p.logger)
 
 	bodyFlits := p.bodyFlits(flitSize)
 	for i := 0; i < len(bodyFlits); i++ {
 		flits[i+1] = bodyFlits[i]
 	}
 
-	flits[len(flits)-1] = NewTailFlit(p.TrafficFlowID(), p.PacketID(), len(flits)-1, p.priority)
+	flits[len(flits)-1] = NewTailFlit(p.TrafficFlowID(), p.PacketID(), len(flits)-1, p.priority, p.logger)
 
 	return flits
 }
@@ -94,9 +98,9 @@ func (p *packet) bodyFlits(flitSize int) []BodyFlit {
 	bodyFlits := make([]BodyFlit, p.bodyFlitCount(flitSize))
 	for i := 0; i < p.bodyFlitCount(flitSize); i++ {
 		if (i+1)*flitSize < p.bodySize {
-			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketID(), i+1, p.priority, flitSize)
+			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketID(), i+1, p.priority, flitSize, zerolog.New(io.Discard))
 		} else {
-			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketID(), i+1, p.priority, p.bodySize-(i*flitSize))
+			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketID(), i+1, p.priority, p.bodySize-(i*flitSize), zerolog.New(io.Discard))
 		}
 	}
 

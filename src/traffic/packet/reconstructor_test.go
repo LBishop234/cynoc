@@ -1,10 +1,12 @@
 package packet
 
 import (
+	"io"
 	"testing"
 
 	"main/src/domain"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -13,12 +15,12 @@ func TestNewReconstructor(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ImplementsInterface", func(t *testing.T) {
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 		assert.Implements(t, (*Reconstructor)(nil), reconstructor)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 		assert.NotNil(t, reconstructor)
 		assert.Nil(t, reconstructor.headerFlit)
 		assert.Empty(t, reconstructor.bodyFlits)
@@ -34,9 +36,9 @@ func TestReconstructorSetHeader(t *testing.T) {
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		route := domain.Route{src, dst}
 
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
-		headerFlit := NewHeaderFlit("t", "AA", 0, 1, 100, route)
+		headerFlit := NewHeaderFlit("t", "AA", 0, 1, 100, route, zerolog.New(io.Discard))
 
 		err := reconstructor.SetHeader(headerFlit)
 		require.NoError(t, err)
@@ -44,7 +46,7 @@ func TestReconstructorSetHeader(t *testing.T) {
 	})
 
 	t.Run("NilHeaderFlit", func(t *testing.T) {
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
 		err := reconstructor.SetHeader(nil)
 		require.ErrorIs(t, domain.ErrNilParameter, err)
@@ -55,9 +57,9 @@ func TestReconstructorSetHeader(t *testing.T) {
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		route := domain.Route{src, dst}
 
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
-		headerFlit := NewHeaderFlit("t", "AA", 0, 1, 100, route)
+		headerFlit := NewHeaderFlit("t", "AA", 0, 1, 100, route, zerolog.New(io.Discard))
 
 		err := reconstructor.SetHeader(headerFlit)
 		require.NoError(t, err)
@@ -71,8 +73,8 @@ func TestReconstructorAddBody(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		reconstructor := NewReconstructor()
-		bodyFlit := NewBodyFlit("t", "AA", 1, 2, 1)
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
+		bodyFlit := NewBodyFlit("t", "AA", 1, 2, 1, zerolog.New(io.Discard))
 
 		err := reconstructor.AddBody(bodyFlit)
 		require.NoError(t, err)
@@ -80,7 +82,7 @@ func TestReconstructorAddBody(t *testing.T) {
 	})
 
 	t.Run("NilHeaderFlit", func(t *testing.T) {
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
 		err := reconstructor.AddBody(nil)
 		require.ErrorIs(t, domain.ErrNilParameter, err)
@@ -91,8 +93,8 @@ func TestReconstructorSetTail(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		reconstructor := NewReconstructor()
-		tailFlit := NewTailFlit("t", "AA", 2, 1)
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
+		tailFlit := NewTailFlit("t", "AA", 2, 1, zerolog.New(io.Discard))
 
 		err := reconstructor.SetTail(tailFlit)
 		require.NoError(t, err)
@@ -100,15 +102,15 @@ func TestReconstructorSetTail(t *testing.T) {
 	})
 
 	t.Run("NilHeaderFlit", func(t *testing.T) {
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
 		err := reconstructor.SetTail(nil)
 		require.ErrorIs(t, domain.ErrNilParameter, err)
 	})
 
 	t.Run("InvalidAlreadySet", func(t *testing.T) {
-		reconstructor := NewReconstructor()
-		tailFlit := NewTailFlit("t", "AA", 2, 1)
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
+		tailFlit := NewTailFlit("t", "AA", 2, 1, zerolog.New(io.Discard))
 
 		err := reconstructor.SetTail(tailFlit)
 		require.NoError(t, err)
@@ -131,10 +133,10 @@ func TestReconstructorReconstruct(t *testing.T) {
 		route := domain.Route{src, dst}
 		var bodySize int = 4
 
-		packet := NewPacket(trafficFlowID, packetID, priority, deadline, route, bodySize)
+		packet := NewPacket(trafficFlowID, packetID, priority, deadline, route, bodySize, zerolog.New(io.Discard))
 		flits := packet.Flits(1)
 
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
 		headerFlit, ok := flits[0].(HeaderFlit)
 		require.True(t, ok)
@@ -159,9 +161,9 @@ func TestReconstructorReconstruct(t *testing.T) {
 	})
 
 	t.Run("HeaderUnset", func(t *testing.T) {
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
-		reconstructor.SetTail(NewTailFlit("t", "AA", 2, 1))
+		reconstructor.SetTail(NewTailFlit("t", "AA", 2, 1, zerolog.New(io.Discard)))
 
 		pkt, err := reconstructor.Reconstruct()
 		require.ErrorIs(t, domain.ErrFlitUnset, err)
@@ -169,13 +171,13 @@ func TestReconstructorReconstruct(t *testing.T) {
 	})
 
 	t.Run("TailUnset", func(t *testing.T) {
-		reconstructor := NewReconstructor()
+		reconstructor := NewReconstructor(zerolog.New(io.Discard))
 
 		src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		route := domain.Route{src, dst}
 
-		reconstructor.SetHeader(NewHeaderFlit("t", "AA", 0, 1, 100, route))
+		reconstructor.SetHeader(NewHeaderFlit("t", "AA", 0, 1, 100, route, zerolog.New(io.Discard)))
 
 		pkt, err := reconstructor.Reconstruct()
 		require.ErrorIs(t, domain.ErrFlitUnset, err)

@@ -170,7 +170,7 @@ func (n *networkInterfaceImpl) pktUID(flit packet.Flit) string {
 }
 
 func (n *networkInterfaceImpl) arrivedHeaderFlit(flit packet.HeaderFlit) error {
-	n.flitsArriving[n.pktUID(flit)] = packet.NewReconstructor()
+	n.flitsArriving[n.pktUID(flit)] = packet.NewReconstructor(n.logger)
 
 	if err := n.flitsArriving[n.pktUID(flit)].SetHeader(flit); err != nil {
 		return err
