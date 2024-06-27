@@ -55,14 +55,13 @@ func (r *simResults) prettifyTfTable() (str string) {
 	table := simpletable.New()
 	table.Header = &simpletable.Header{
 		Cells: []*simpletable.Cell{
-			{Align: simpletable.AlignLeft, Text: "Traffic Flow"},
-			{Align: simpletable.AlignLeft, Text: "Packets Routed"},
-			{Align: simpletable.AlignLeft, Text: "Packets Arrived"},
-			{Align: simpletable.AlignLeft, Text: "Packets Exceeded Deadline"},
-			{Align: simpletable.AlignLeft, Text: "Best Latency"},
-			{Align: simpletable.AlignLeft, Text: "Mean Latency"},
-			{Align: simpletable.AlignLeft, Text: "Worst Latency"},
-			{Align: simpletable.AlignLeft, Text: "Deadline"},
+			{Align: simpletable.AlignLeft, Text: "T_i"},
+			{Align: simpletable.AlignLeft, Text: "No. pkts"},
+			{Align: simpletable.AlignLeft, Text: "No. > D_i"},
+			{Align: simpletable.AlignLeft, Text: "max"},
+			{Align: simpletable.AlignLeft, Text: "mean"},
+			{Align: simpletable.AlignLeft, Text: "min"},
+			{Align: simpletable.AlignLeft, Text: "D_i"},
 		},
 	}
 
@@ -80,7 +79,6 @@ func (r *simResults) prettifyTfRow(tf tfSim) []*simpletable.Cell {
 	row := []*simpletable.Cell{
 		{Align: simpletable.AlignLeft, Text: tf.ID},
 		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.PacketsRouted)},
-		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.PacketsArrived)},
 		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.PacketsExceededDeadline)},
 		{Align: simpletable.AlignLeft, Text: cleanBestLatency(tf.BestLatency)},
 		{Align: simpletable.AlignLeft, Text: cleanMeanLatency(tf.MeanLatency)},
@@ -96,7 +94,6 @@ func (r *simResults) OutputCSV(path string) error {
 		{
 			"Traffic Flow",
 			"Packets Routed",
-			"Packets Arrived",
 			"Packets Exceeded Deadline",
 			"Packets Lost",
 			"Best Latency",
@@ -111,7 +108,6 @@ func (r *simResults) OutputCSV(path string) error {
 		data = append(data, []string{
 			r.trafficFlows[i].ID,
 			strconv.Itoa(r.trafficFlows[i].PacketsRouted),
-			strconv.Itoa(r.trafficFlows[i].PacketsArrived),
 			strconv.Itoa(r.trafficFlows[i].PacketsExceededDeadline),
 			strconv.Itoa(r.trafficFlows[i].PacketsLost),
 			cleanBestLatency(r.trafficFlows[i].BestLatency),

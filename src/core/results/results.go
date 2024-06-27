@@ -18,11 +18,9 @@ func (r *localSimResults) prettify() (str string) {
 	str += "==================\n"
 	str += fmt.Sprintf("Cycles: %d\n", r.Cycles)
 	str += fmt.Sprintf("Duration (ms): %d\n\n", r.Duration.Milliseconds())
-	// str += fmt.Sprintf("Duration (s): %.2f\n\n", float64(r.Duration.Milliseconds())/1000)
 	str += fmt.Sprintf("Packets Routed: %d\n", r.PacketsRouted)
-	str += fmt.Sprintf("Packets Arrived: %d\n", r.PacketsArrived)
 	str += fmt.Sprintf("Packets Exceeded Deadline: %d\n", r.PacketsExceededDeadline)
-	str += fmt.Sprintf("Packets Lost: %d\n", r.PacketsRouted-r.PacketsArrived)
+	// str += fmt.Sprintf("Packets Exceeded Shi & Burns: %d\n", r.)
 	str += "\n"
 	return str
 }
