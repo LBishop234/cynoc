@@ -80,9 +80,9 @@ func (r *simResults) prettifyTfRow(tf tfSim) []*simpletable.Cell {
 		{Align: simpletable.AlignLeft, Text: tf.ID},
 		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.PacketsRouted)},
 		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.PacketsExceededDeadline)},
-		{Align: simpletable.AlignLeft, Text: cleanBestLatency(tf.BestLatency)},
-		{Align: simpletable.AlignLeft, Text: cleanMeanLatency(tf.MeanLatency)},
-		{Align: simpletable.AlignLeft, Text: cleanWorstLatency(tf.WorstLatency)},
+		{Align: simpletable.AlignLeft, Text: cleanInt(tf.BestLatency)},
+		{Align: simpletable.AlignLeft, Text: cleanFloat(tf.MeanLatency)},
+		{Align: simpletable.AlignLeft, Text: cleanInt(tf.WorstLatency)},
 		{Align: simpletable.AlignLeft, Text: strconv.Itoa(tf.Deadline)},
 	}
 
@@ -110,9 +110,9 @@ func (r *simResults) OutputCSV(path string) error {
 			strconv.Itoa(r.trafficFlows[i].PacketsRouted),
 			strconv.Itoa(r.trafficFlows[i].PacketsExceededDeadline),
 			strconv.Itoa(r.trafficFlows[i].PacketsLost),
-			cleanBestLatency(r.trafficFlows[i].BestLatency),
-			cleanMeanLatency(r.trafficFlows[i].MeanLatency),
-			cleanWorstLatency(r.trafficFlows[i].WorstLatency),
+			cleanInt(r.trafficFlows[i].BestLatency),
+			cleanFloat(r.trafficFlows[i].MeanLatency),
+			cleanInt(r.trafficFlows[i].WorstLatency),
 			strconv.Itoa(r.trafficFlows[i].Deadline),
 			strconv.FormatBool(r.trafficFlows[i].Schedulable()),
 		})

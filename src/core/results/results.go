@@ -37,25 +37,18 @@ type tfSimAnalysis struct {
 	AnalysisHolds bool
 }
 
-func cleanBestLatency(val int) string {
+func cleanInt(val int) string {
 	if val == math.MaxInt {
 		return "-"
 	}
 	return strconv.Itoa(val)
 }
 
-func cleanMeanLatency(val float64) string {
+func cleanFloat(val float64) string {
 	if math.IsNaN(val) || val == 0 {
 		return "-"
 	}
 	return strconv.FormatFloat(val, 'f', 2, 64)
-}
-
-func cleanWorstLatency(val int) string {
-	if val == math.MinInt {
-		return "-"
-	}
-	return strconv.Itoa(val)
 }
 
 func writeCSV(path string, data [][]string) error {
