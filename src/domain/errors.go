@@ -32,4 +32,6 @@ var (
 	ErrFlitUnset      = errors.New("header or tail flit not set")
 
 	ErrMissingTrafficFlow = errors.New("missing traffic flow")
+
+	ErrInvalidRoute = errors.New("invalid route")
 )

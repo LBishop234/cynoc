@@ -68,10 +68,7 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, c
 		var route domain.Route
 		var err error
 
-		route, err = network.Topology().XYRoute(
-			network.NetworkInterfacesIDMap()[trafficFlows[i].Src()].NodeID(),
-			network.NetworkInterfacesIDMap()[trafficFlows[i].Dst()].NodeID(),
-		)
+		route, err = network.Topology().Route(trafficFlows[i].Route())
 		if err != nil {
 			logger.Error().Err(err).Msg("error calculating router")
 			return nil, err

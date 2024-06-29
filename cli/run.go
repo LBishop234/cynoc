@@ -49,7 +49,7 @@ func NewApp() *cli.App {
 
 		resultsSet, err := core.Run(conf, top, trafficFlowConfigs, analysisArgs.Analysis, log.Log)
 		if err != nil {
-			log.Log.Fatal().Err(err).Msg("error running simulator")
+			log.Log.Fatal().Err(err).Msg("error running simulation")
 		}
 
 		if err := output(cliCtx, resultsSet); err != nil {

@@ -29,17 +29,12 @@ func ConstructTrafficFlowAndRoutes(top *topology.Topology, trafficFlows map[stri
 }
 
 func NewTrafficFlowAndRoute(top *topology.Topology, trafficFlow domain.TrafficFlowConfig) (TrafficFlowAndRoute, error) {
-	src, exists := top.Node(trafficFlow.Src)
-	if !exists {
-		return TrafficFlowAndRoute{}, domain.ErrInvalidTopology
+	strRoute, err := trafficFlow.RouteArray()
+	if err != nil {
+		return TrafficFlowAndRoute{}, err
 	}
 
-	dst, exists := top.Node(trafficFlow.Dst)
-	if !exists {
-		return TrafficFlowAndRoute{}, domain.ErrInvalidTopology
-	}
-
-	route, err := top.XYRoute(src.NodeID(), dst.NodeID())
+	route, err := top.Route(strRoute)
 	if err != nil {
 		return TrafficFlowAndRoute{}, err
 	}
