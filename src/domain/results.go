@@ -31,3 +31,27 @@ type StatSet struct {
 func (s *StatSet) Schedulable() bool {
 	return s.PacketsExceededDeadline == 0
 }
+
+type AnalysisResults map[string]TrafficFlowAnalysisSet
+
+func (r AnalysisResults) AnalysesSchedulable() bool {
+	for _, tf := range r {
+		if !tf.AnalysisSchedulable() {
+			return false
+		}
+	}
+
+	return true
+}
+
+type TrafficFlowAnalysisSet struct {
+	TrafficFlowConfig
+	Basic                     int
+	ShiAndBurns               int
+	DirectInterferenceCount   int
+	IndirectInterferenceCount int
+}
+
+func (a TrafficFlowAnalysisSet) AnalysisSchedulable() bool {
+	return (a.Jitter + a.ShiAndBurns) < a.Deadline
+}

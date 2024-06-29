@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 
-	"main/src/core/analysis"
 	"main/src/domain"
 )
 
@@ -33,7 +32,7 @@ type tfSim struct {
 
 type tfSimAnalysis struct {
 	tfSim
-	analysis.TrafficFlowAnalysisSet
+	domain.TrafficFlowAnalysisSet
 	AnalysisHolds bool
 }
 

@@ -3,7 +3,6 @@ package results
 import (
 	"strconv"
 
-	"main/src/core/analysis"
 	"main/src/domain"
 
 	"github.com/alexeyco/simpletable"
@@ -14,7 +13,7 @@ type simAnalysisResults struct {
 	trafficFlows []tfSimAnalysis
 }
 
-func NewResultsWithAnalysis(sim domain.SimResults, analyses analysis.AnalysisResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
+func NewResultsWithAnalysis(sim domain.SimResults, analyses domain.AnalysisResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
 	var results simAnalysisResults
 
 	results.simResults = localSimResults(sim.SimHeadlineResults)

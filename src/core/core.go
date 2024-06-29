@@ -32,7 +32,7 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 	}
 
 	var wg sync.WaitGroup
-	analysisResultsChan := make(chan analysis.AnalysisResults, 1)
+	analysisResultsChan := make(chan domain.AnalysisResults, 1)
 	analysisErrChan := make(chan error, 1)
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
@@ -84,7 +84,7 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 	var resultsSet domain.Results
 	if runAnalysisFlag {
 		wg.Wait()
-		var analysisResults analysis.AnalysisResults = <-analysisResultsChan
+		var analysisResults domain.AnalysisResults = <-analysisResultsChan
 
 		resultsSet, err = results.NewResultsWithAnalysis(simResults, analysisResults, trafficConf)
 	} else {
