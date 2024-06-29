@@ -33,6 +33,27 @@ type trafficFlowRoute struct {
 	route domain.Route
 }
 
+func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int, logger zerolog.Logger) (domain.SimResults, error) {
+	select {
+	case <-ctx.Done():
+		return domain.SimResults{}, ctx.Err()
+	default:
+		simulator, err := newSimulator(network, trafficFlows, routingAlg, cycleLimit, logger)
+		if err != nil {
+			logger.Error().Err(nil).Msg("error creating simulator")
+			return domain.SimResults{}, err
+		}
+
+		simDuration, rcrds, err := simulator.runSimulation(ctx)
+		if err != nil {
+			logger.Error().Err(err).Msg("error running simulation")
+			return domain.SimResults{}, err
+		}
+
+		return simResults(cycleLimit, simDuration, rcrds, trafficFlows), nil
+	}
+}
+
 func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int, logger zerolog.Logger) (*simulator, error) {
 	simulator := &simulator{
 		network:      network,
@@ -71,27 +92,6 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, r
 	}
 
 	return simulator, nil
-}
-
-func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int, logger zerolog.Logger) (domain.FullResults, error) {
-	select {
-	case <-ctx.Done():
-		return domain.FullResults{}, ctx.Err()
-	default:
-		simulator, err := newSimulator(network, trafficFlows, routingAlg, cycleLimit, logger)
-		if err != nil {
-			logger.Error().Err(nil).Msg("error creating simulator")
-			return domain.FullResults{}, err
-		}
-
-		simDuration, rcrds, err := simulator.runSimulation(ctx)
-		if err != nil {
-			logger.Error().Err(err).Msg("error running simulation")
-			return domain.FullResults{}, err
-		}
-
-		return results(cycleLimit, simDuration, rcrds, trafficFlows), nil
-	}
 }
 
 func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records, error) {

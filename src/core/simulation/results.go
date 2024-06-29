@@ -7,9 +7,9 @@ import (
 	"main/src/traffic"
 )
 
-func results(cycles int, dur time.Duration, rcrds *Records, trafficFlows []traffic.TrafficFlow) domain.FullResults {
-	results := domain.FullResults{
-		SimResults: domain.SimResults{
+func simResults(cycles int, dur time.Duration, rcrds *Records, trafficFlows []traffic.TrafficFlow) domain.SimResults {
+	results := domain.SimResults{
+		SimHeadlineResults: domain.SimHeadlineResults{
 			Cycles:   cycles,
 			Duration: dur,
 			StatSet: domain.StatSet{
@@ -22,26 +22,20 @@ func results(cycles int, dur time.Duration, rcrds *Records, trafficFlows []traff
 				WorstLatency:            rcrds.worstLatency(),
 			},
 		},
-		TFStats: make(map[string]domain.TrafficFlowStatSet, len(trafficFlows)),
+		TFStats: make(map[string]domain.StatSet, len(trafficFlows)),
 	}
 
 	for i := 0; i < len(trafficFlows); i++ {
-		results.TFStats[trafficFlows[i].ID()] = newTFStatSet(rcrds, trafficFlows[i].ID())
+		results.TFStats[trafficFlows[i].ID()] = domain.StatSet{
+			PacketsRouted:           rcrds.noTransmittedByTF(trafficFlows[i].ID()),
+			PacketsArrived:          rcrds.noArrivedByTF(trafficFlows[i].ID()),
+			PacketsLost:             rcrds.noLostByTF(trafficFlows[i].ID()),
+			PacketsExceededDeadline: rcrds.noExceededDeadlineByTF(trafficFlows[i].ID()),
+			BestLatency:             rcrds.bestLatencyByTF(trafficFlows[i].ID()),
+			MeanLatency:             rcrds.meanLatencyByTF(trafficFlows[i].ID()),
+			WorstLatency:            rcrds.worstLatencyByTF(trafficFlows[i].ID()),
+		}
 	}
 
 	return results
-}
-
-func newTFStatSet(rcrds *Records, tfID string) domain.TrafficFlowStatSet {
-	return domain.TrafficFlowStatSet{
-		StatSet: domain.StatSet{
-			PacketsRouted:           rcrds.noTransmittedByTF(tfID),
-			PacketsArrived:          rcrds.noArrivedByTF(tfID),
-			PacketsLost:             rcrds.noLostByTF(tfID),
-			PacketsExceededDeadline: rcrds.noExceededDeadlineByTF(tfID),
-			BestLatency:             rcrds.bestLatencyByTF(tfID),
-			MeanLatency:             rcrds.meanLatencyByTF(tfID),
-			WorstLatency:            rcrds.worstLatencyByTF(tfID),
-		},
-	}
 }
