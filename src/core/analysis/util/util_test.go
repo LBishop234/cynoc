@@ -20,9 +20,8 @@ func TestNewTrafficFlowAndRoute(t *testing.T) {
 	top := topology.ThreeByThreeMesh(t)
 
 	tf1 := domain.TrafficFlowConfig{
-		ID:  "tf1",
-		Src: "n3",
-		Dst: "n5",
+		ID:    "tf1",
+		Route: "[n3,n4,n5]",
 	}
 
 	expectedRoute := domain.Route{

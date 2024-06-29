@@ -23,11 +23,10 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					ID:         "t1",
 					Priority:   1,
 					Deadline:   100,
-					Src:        "n3",
-					Dst:        "n1",
 					Period:     500,
 					Jitter:     26,
 					PacketSize: 20,
+					Route:      "[n3,n2,n1]",
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n3"].NodeID(),
@@ -40,11 +39,10 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					ID:         "t2",
 					Priority:   2,
 					Deadline:   107,
-					Src:        "n8",
-					Dst:        "n12",
 					Period:     407,
 					Jitter:     33,
 					PacketSize: 97,
+					Route:      "[n8,n12]",
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n8"].NodeID(),
@@ -56,11 +54,10 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					ID:         "t3",
 					Priority:   3,
 					Deadline:   95,
-					Src:        "n2",
-					Dst:        "n12",
 					Period:     628,
 					Jitter:     14,
 					PacketSize: 36,
+					Route:      "[n2,n1,n0,n4,n8,n12]",
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n2"].NodeID(),
@@ -76,11 +73,10 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					ID:         "t4",
 					Priority:   4,
 					Deadline:   124,
-					Src:        "n8",
-					Dst:        "n12",
 					Period:     1506,
 					Jitter:     8,
 					PacketSize: 58,
+					Route:      "[n8,n12]",
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n8"].NodeID(),
@@ -92,11 +88,10 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					ID:         "t5",
 					Priority:   5,
 					Deadline:   189,
-					Src:        "n1",
-					Dst:        "n8",
 					Period:     689,
 					Jitter:     27,
 					PacketSize: 124,
+					Route:      "[n1,n0,n4,n8]",
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n1"].NodeID(),
@@ -127,13 +122,12 @@ func TestShiBurns(t *testing.T) {
 	}{
 		XiongEtAl: {
 			simConf: domain.SimConfig{
-				CycleLimit:       2000,
-				RoutingAlgorithm: domain.XYRouting,
-				MaxPriority:      5,
-				BufferSize:       25,
-				FlitSize:         1,
-				ProcessingDelay:  6,
-				LinkBandwidth:    1,
+				CycleLimit:      2000,
+				MaxPriority:     5,
+				BufferSize:      25,
+				FlitSize:        1,
+				ProcessingDelay: 6,
+				LinkBandwidth:   1,
 			},
 			tfs: map[string]tfStruct{
 				"t1": {
@@ -212,12 +206,11 @@ func BenchmarkShiBurns(b *testing.B) {
 	}{
 		XiongEtAl: {
 			simConf: domain.SimConfig{
-				CycleLimit:       2000,
-				RoutingAlgorithm: domain.XYRouting,
-				MaxPriority:      5,
-				BufferSize:       25,
-				FlitSize:         1,
-				ProcessingDelay:  6,
+				CycleLimit:      2000,
+				MaxPriority:     5,
+				BufferSize:      25,
+				FlitSize:        1,
+				ProcessingDelay: 6,
 			},
 			tfs: tfAndRoutes[XiongEtAl],
 		},

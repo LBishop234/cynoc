@@ -21,12 +21,11 @@ func TestNewRouterNode(t *testing.T) {
 				Pos: domain.NewPosition(1, 1),
 			},
 			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       16,
-				FlitSize:         8,
-				MaxPriority:      4,
-				ProcessingDelay:  5,
-				LinkBandwidth:    1,
+				BufferSize:      16,
+				FlitSize:        8,
+				MaxPriority:     4,
+				ProcessingDelay: 5,
+				LinkBandwidth:   1,
 			},
 		}
 
@@ -44,12 +43,11 @@ func TestNewRouterNode(t *testing.T) {
 				Pos: domain.NewPosition(1, 1),
 			},
 			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       -1,
-				FlitSize:         8,
-				MaxPriority:      3,
-				ProcessingDelay:  5,
-				LinkBandwidth:    1,
+				BufferSize:      -1,
+				FlitSize:        8,
+				MaxPriority:     3,
+				ProcessingDelay: 5,
+				LinkBandwidth:   1,
 			},
 		}
 

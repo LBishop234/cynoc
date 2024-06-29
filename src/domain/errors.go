@@ -12,8 +12,6 @@ var (
 	ErrNilParameter     = errors.New("nil parameter passed to function")
 	ErrInvalidParameter = errors.New("invalid parameter passed to function")
 
-	ErrUnknownRoutingAlgorithm = errors.New("unknown routing algorithm")
-
 	ErrBufferNoCapacity = errors.New("buffer has reached capacity")
 
 	ErrPortNoCredit = errors.New("port has no credit available for flit")
@@ -34,4 +32,6 @@ var (
 	ErrFlitUnset      = errors.New("header or tail flit not set")
 
 	ErrMissingTrafficFlow = errors.New("missing traffic flow")
+
+	ErrInvalidRoute = errors.New("invalid route")
 )

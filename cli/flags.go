@@ -123,12 +123,11 @@ func ConfigFilesArgs(app *cli.App) *ConfigFiles {
 }
 
 const (
-	overrideCyclesFlag           = "cycle_limit"
-	overideMaxPriorityFlag       = "max_priority"
-	overrideRoutingAlgorithmFlag = "routing_algorithm"
-	overrideBufferSizeFlag       = "buffer_size"
-	overrideFlitSizeFlag         = "flit_size"
-	processingDelayFlag          = "processing_delay"
+	overrideCyclesFlag     = "cycle_limit"
+	overideMaxPriorityFlag = "max_priority"
+	overrideBufferSizeFlag = "buffer_size"
+	overrideFlitSizeFlag   = "flit_size"
+	processingDelayFlag    = "processing_delay"
 )
 
 func ConfigOverridesArgs(app *cli.App) {
@@ -148,13 +147,6 @@ func ConfigOverridesArgs(app *cli.App) {
 			Name:        overideMaxPriorityFlag,
 			Aliases:     []string{"mp"},
 			Usage:       fmt.Sprintf(usageBaseStr, overideMaxPriorityFlag),
-			Category:    category,
-			DefaultText: "no-op when unset",
-		},
-		&cli.StringFlag{
-			Name:        overrideRoutingAlgorithmFlag,
-			Aliases:     []string{"ra"},
-			Usage:       fmt.Sprintf(usageBaseStr, overrideRoutingAlgorithmFlag),
 			Category:    category,
 			DefaultText: "no-op when unset",
 		},
@@ -188,9 +180,6 @@ func ApplyConfigOverrides(ctx *cli.Context, conf domain.SimConfig) domain.SimCon
 	}
 	if ctx.IsSet(overideMaxPriorityFlag) {
 		conf.MaxPriority = ctx.Int(overideMaxPriorityFlag)
-	}
-	if ctx.IsSet(overrideRoutingAlgorithmFlag) {
-		conf.RoutingAlgorithm = domain.RoutingAlgorithm(ctx.String(overrideRoutingAlgorithmFlag))
 	}
 	if ctx.IsSet(overrideBufferSizeFlag) {
 		conf.BufferSize = ctx.Int(overrideBufferSizeFlag)

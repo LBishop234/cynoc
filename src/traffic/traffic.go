@@ -16,13 +16,12 @@ import (
 
 type TrafficFlow interface {
 	ID() string
-	Src() string
-	Dst() string
 	Priority() int
 	ReleasePeriod() int
 	Deadline() int
 	Jitter() int
 	PacketSize() int
+	Route() []string
 	ValidateAgainstConfig(conf domain.SimConfig) error
 	ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int)
 }
@@ -30,14 +29,12 @@ type TrafficFlow interface {
 type trafficFlowImpl struct {
 	id string
 
-	src string
-	dst string
-
 	priority      int
 	releasePeriod int
 	deadline      int
 	jitter        int
 	packetSize    int
+	route         []string
 
 	currentPeriod int
 	currentJitter int
@@ -90,14 +87,6 @@ func TrafficFlows(conf domain.SimConfig, tfConfs []domain.TrafficFlowConfig) ([]
 }
 
 func NewTrafficFlow(conf domain.TrafficFlowConfig) (*trafficFlowImpl, error) {
-	if conf.Src == "" {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Str("src", conf.Src).Msg("TrafficFlow source router is undefined")
-		return nil, domain.ErrInvalidConfig
-	}
-	if conf.Dst == "" {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Str("dst", conf.Dst).Msg("TrafficFlow destination router is undefined")
-		return nil, domain.ErrInvalidConfig
-	}
 	if conf.Priority < 1 {
 		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("priority", conf.Priority).Msg("Invalid TrafficFlow priority")
 		return nil, domain.ErrInvalidConfig
@@ -124,34 +113,26 @@ func NewTrafficFlow(conf domain.TrafficFlowConfig) (*trafficFlowImpl, error) {
 		return nil, domain.ErrInvalidConfig
 	}
 
-	if conf.Src == conf.Dst {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Str("src", conf.Src).Str("dst", conf.Dst).Msg("TrafficFlow source and destination routers are the same")
-		return nil, domain.ErrInvalidConfig
+	route, err := conf.RouteArray()
+	if err != nil {
+		log.Log.Error().Err(err).Str("id", conf.ID).Str("route", conf.Route).Msg("Invalid TrafficFlow route")
+		return nil, err
 	}
 
 	log.Log.Trace().Str("id", conf.ID).Msg("new traffic flow")
 	return &trafficFlowImpl{
 		id:            conf.ID,
-		src:           conf.Src,
-		dst:           conf.Dst,
 		priority:      conf.Priority,
 		releasePeriod: conf.Period,
 		deadline:      conf.Deadline,
 		jitter:        conf.Jitter,
 		packetSize:    conf.PacketSize,
+		route:         route,
 	}, nil
 }
 
 func (t *trafficFlowImpl) ID() string {
 	return t.id
-}
-
-func (t *trafficFlowImpl) Src() string {
-	return t.src
-}
-
-func (t *trafficFlowImpl) Dst() string {
-	return t.dst
 }
 
 func (t *trafficFlowImpl) Priority() int {
@@ -172,6 +153,10 @@ func (t *trafficFlowImpl) Jitter() int {
 
 func (t *trafficFlowImpl) PacketSize() int {
 	return t.packetSize
+}
+
+func (t *trafficFlowImpl) Route() []string {
+	return t.route
 }
 
 func (t *trafficFlowImpl) ValidateAgainstConfig(conf domain.SimConfig) error {

@@ -287,8 +287,16 @@ func (r *routerImpl) routeFlit(flit packet.HeaderFlit) (outputPort, error) {
 	for i := 0; i < len(route); i++ {
 		if route[i] == r.NodeID() {
 			if i == len(route)-1 {
+				if _, exists := r.outputMap[route[i]]; !exists {
+					return nil, domain.ErrNoPort
+				}
+
 				return r.outputMap[route[i]], nil
 			} else {
+				if _, exists := r.outputMap[route[i+1]]; !exists {
+					return nil, domain.ErrNoPort
+				}
+
 				return r.outputMap[route[i+1]], nil
 			}
 		}

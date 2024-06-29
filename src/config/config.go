@@ -13,14 +13,13 @@ import (
 )
 
 var (
-	ErrInvalidConfig           = errors.New("invalid config")
-	ErrInvalidCycleLimit       = errors.New("invalid cycle limit")
-	ErrInvalidRoutingAlgorithm = errors.New("invalid routing algorithm")
-	ErrInvalidMaxPriority      = errors.New("invalid max priority")
-	ErrInvalidFlitSize         = errors.New("invalid flit size")
-	ErrInvalidBufferSize       = errors.New("invalid buffer size")
-	ErrInvalidProcessingDelay  = errors.New("invalid processing delay")
-	ErrInvalidLinkBandwidth    = errors.New("invalid link bandwidth")
+	ErrInvalidConfig          = errors.New("invalid config")
+	ErrInvalidCycleLimit      = errors.New("invalid cycle limit")
+	ErrInvalidMaxPriority     = errors.New("invalid max priority")
+	ErrInvalidFlitSize        = errors.New("invalid flit size")
+	ErrInvalidBufferSize      = errors.New("invalid buffer size")
+	ErrInvalidProcessingDelay = errors.New("invalid processing delay")
+	ErrInvalidLinkBandwidth   = errors.New("invalid link bandwidth")
 )
 
 func ReadConfig(fPath string) (domain.SimConfig, error) {
@@ -52,19 +51,6 @@ func validate(conf domain.SimConfig) error {
 	if conf.CycleLimit < 1 {
 		err := errors.Join(ErrInvalidConfig, ErrInvalidCycleLimit)
 		log.Log.Error().Err(err).Int("cycle_limit", conf.CycleLimit).Msg("cycle limit must be greater than 0")
-		return err
-	}
-
-	flag := false
-	for _, alg := range domain.RoutingAlgorithms() {
-		if conf.RoutingAlgorithm == alg {
-			flag = true
-			break
-		}
-	}
-	if !flag {
-		err := errors.Join(ErrInvalidConfig, ErrInvalidRoutingAlgorithm)
-		log.Log.Error().Err(err).Str("routing_algorithm", string(conf.RoutingAlgorithm)).Msg("invalid routing algorithm")
 		return err
 	}
 

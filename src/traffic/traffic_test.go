@@ -16,13 +16,12 @@ func TestNewTrafficFlow(t *testing.T) {
 
 	t.Run("ImplementsInterface", func(t *testing.T) {
 		trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-			Src:        "n1",
-			Dst:        "n2",
 			Priority:   1,
 			Period:     75,
 			Deadline:   50,
 			Jitter:     10,
 			PacketSize: 32,
+			Route:      "[n1,n2,n3]",
 		})
 		require.NoError(t, err)
 		assert.Implements(t, (*TrafficFlow)(nil), trafficFlow)
@@ -31,20 +30,17 @@ func TestNewTrafficFlow(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		config := domain.TrafficFlowConfig{
 			ID:         "t1",
-			Src:        "n1",
-			Dst:        "n2",
 			Priority:   5,
 			Period:     4,
 			Deadline:   3,
 			Jitter:     2,
 			PacketSize: 1,
+			Route:      "[n1,n2,n3]",
 		}
 
 		trafficFlow, err := NewTrafficFlow(config)
 		require.NoError(t, err)
 		assert.Equal(t, config.ID, trafficFlow.id)
-		assert.Equal(t, config.Src, trafficFlow.src)
-		assert.Equal(t, config.Dst, trafficFlow.dst)
 		assert.Equal(t, config.Priority, trafficFlow.priority)
 		assert.Equal(t, config.Period, trafficFlow.releasePeriod)
 		assert.Equal(t, config.Deadline, trafficFlow.deadline)
@@ -60,52 +56,15 @@ func TestTrafficFlowID(t *testing.T) {
 
 	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
 		ID:         id,
-		Src:        "n1",
-		Dst:        "n2",
 		Priority:   1,
 		Period:     75,
 		Deadline:   50,
 		Jitter:     10,
 		PacketSize: 32,
+		Route:      "[n1,n2,n3]",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, id, trafficFlow.ID())
-}
-
-func TestTrafficFlowSrc(t *testing.T) {
-	t.Parallel()
-
-	src := "n1"
-
-	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-		Src:        src,
-		Dst:        "n2",
-		Priority:   1,
-		Period:     75,
-		Deadline:   50,
-		Jitter:     10,
-		PacketSize: 32,
-	})
-	require.NoError(t, err)
-	assert.Equal(t, src, trafficFlow.Src())
-}
-
-func TestTrafficFlowDst(t *testing.T) {
-	t.Parallel()
-
-	dst := "n2"
-
-	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-		Src:        "n1",
-		Dst:        dst,
-		Priority:   1,
-		Period:     75,
-		Deadline:   50,
-		Jitter:     10,
-		PacketSize: 32,
-	})
-	require.NoError(t, err)
-	assert.Equal(t, dst, trafficFlow.Dst())
 }
 
 func TestTrafficFlowPriority(t *testing.T) {
@@ -114,13 +73,12 @@ func TestTrafficFlowPriority(t *testing.T) {
 	priority := 1
 
 	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-		Src:        "n1",
-		Dst:        "n2",
 		Priority:   priority,
 		Period:     75,
 		Deadline:   50,
 		Jitter:     10,
 		PacketSize: 32,
+		Route:      "[n1,n2,n3]",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, priority, trafficFlow.Priority())
@@ -132,13 +90,12 @@ func TestTrafficFlowReleasePeriod(t *testing.T) {
 	releasePeriod := 100
 
 	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-		Src:        "n1",
-		Dst:        "n2",
 		Priority:   1,
 		Period:     releasePeriod,
 		Deadline:   50,
 		Jitter:     10,
 		PacketSize: 32,
+		Route:      "[n1,n2,n3]",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, releasePeriod, trafficFlow.ReleasePeriod())
@@ -150,13 +107,12 @@ func TestTrafficFlowDeadline(t *testing.T) {
 	deadline := 50
 
 	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-		Src:        "n1",
-		Dst:        "n2",
 		Priority:   1,
 		Period:     75,
 		Deadline:   deadline,
 		Jitter:     10,
 		PacketSize: 32,
+		Route:      "[n1,n2,n3]",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, deadline, trafficFlow.Deadline())
@@ -168,13 +124,12 @@ func TestTrafficFlowJitter(t *testing.T) {
 	jitter := 1
 
 	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-		Src:        "n1",
-		Dst:        "n2",
 		Priority:   1,
 		Period:     75,
 		Deadline:   50,
 		Jitter:     jitter,
 		PacketSize: 32,
+		Route:      "[n1,n2,n3]",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, jitter, trafficFlow.Jitter())
@@ -186,16 +141,33 @@ func TestTrafficFlowPacketSize(t *testing.T) {
 	packetSize := 1
 
 	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-		Src:        "n1",
-		Dst:        "n2",
 		Priority:   1,
 		Period:     75,
 		Deadline:   50,
 		Jitter:     10,
 		PacketSize: packetSize,
+		Route:      "[n1,n2,n3]",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, packetSize, trafficFlow.PacketSize())
+}
+
+func TestTrafficFlowRoute(t *testing.T) {
+	t.Parallel()
+
+	routeStr := "[n1,n2,n3]"
+	route := []string{"n1", "n2", "n3"}
+
+	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
+		Priority:   1,
+		Period:     75,
+		Deadline:   50,
+		Jitter:     10,
+		PacketSize: 32,
+		Route:      routeStr,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, route, trafficFlow.Route())
 }
 
 func TestValidateAgainstConfig(t *testing.T) {
@@ -204,13 +176,12 @@ func TestValidateAgainstConfig(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		tfConf := domain.TrafficFlowConfig{
 			ID:         "t1",
-			Src:        "n1",
-			Dst:        "n2",
 			Priority:   5,
 			Period:     4,
 			Deadline:   3,
 			Jitter:     2,
 			PacketSize: 1,
+			Route:      "[n1,n2,n3]",
 		}
 		trafficFlow, err := NewTrafficFlow(tfConf)
 		require.NoError(t, err)
@@ -227,13 +198,12 @@ func TestValidateAgainstConfig(t *testing.T) {
 		var priority int = 3
 
 		tfConf := domain.TrafficFlowConfig{
-			Src:        "n1",
-			Dst:        "n2",
 			Priority:   priority,
 			Period:     75,
 			Deadline:   50,
 			Jitter:     10,
 			PacketSize: 32,
+			Route:      "[n1,n2,n3]",
 		}
 		trafficFlow, err := NewTrafficFlow(tfConf)
 		require.NoError(t, err)
@@ -255,13 +225,12 @@ func TestTrafficFlowRleasePacket(t *testing.T) {
 		const jitter = 0
 
 		trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
-			Src:        "n1",
-			Dst:        "n2",
 			Priority:   1,
 			Period:     releasePeriod,
 			Deadline:   50,
 			Jitter:     jitter,
 			PacketSize: 32,
+			Route:      "[n1,n2,n3]",
 		})
 		require.NoError(t, err)
 

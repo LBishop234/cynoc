@@ -79,6 +79,24 @@ func (t *Topology) Edge(id string) (*Edge, bool) {
 	return edge, ok
 }
 
+func (t *Topology) Route(nodes []string) (domain.Route, error) {
+	if len(nodes) < 2 {
+		return nil, domain.ErrInvalidRoute
+	}
+
+	route := make(domain.Route, len(nodes))
+	for i := 0; i < len(nodes); i++ {
+		nodeID, exists := t.Node(nodes[i])
+		if !exists {
+			return nil, domain.ErrInvalidRoute
+		}
+
+		route[i] = nodeID.NodeID()
+	}
+
+	return route, nil
+}
+
 func NewNode(id string, pos domain.Position) (*Node, error) {
 	log.Log.Trace().Str("id", id).Msg("new node")
 

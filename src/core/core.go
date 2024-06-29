@@ -71,7 +71,6 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 		ctx,
 		network,
 		trafficFlows,
-		conf.RoutingAlgorithm,
 		conf.CycleLimit,
 		logger,
 	)
