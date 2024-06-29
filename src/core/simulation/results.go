@@ -22,7 +22,7 @@ func results(cycles int, dur time.Duration, rcrds *Records, trafficFlows []traff
 				WorstLatency:            rcrds.worstLatency(),
 			},
 		},
-		TFStats: make(map[string]domain.TrafficFlowStatSet, len(trafficFlows)),
+		TFStats: make(map[string]domain.StatSet, len(trafficFlows)),
 	}
 
 	for i := 0; i < len(trafficFlows); i++ {
@@ -32,16 +32,14 @@ func results(cycles int, dur time.Duration, rcrds *Records, trafficFlows []traff
 	return results
 }
 
-func newTFStatSet(rcrds *Records, tfID string) domain.TrafficFlowStatSet {
-	return domain.TrafficFlowStatSet{
-		StatSet: domain.StatSet{
-			PacketsRouted:           rcrds.noTransmittedByTF(tfID),
-			PacketsArrived:          rcrds.noArrivedByTF(tfID),
-			PacketsLost:             rcrds.noLostByTF(tfID),
-			PacketsExceededDeadline: rcrds.noExceededDeadlineByTF(tfID),
-			BestLatency:             rcrds.bestLatencyByTF(tfID),
-			MeanLatency:             rcrds.meanLatencyByTF(tfID),
-			WorstLatency:            rcrds.worstLatencyByTF(tfID),
-		},
+func newTFStatSet(rcrds *Records, tfID string) domain.StatSet {
+	return domain.StatSet{
+		PacketsRouted:           rcrds.noTransmittedByTF(tfID),
+		PacketsArrived:          rcrds.noArrivedByTF(tfID),
+		PacketsLost:             rcrds.noLostByTF(tfID),
+		PacketsExceededDeadline: rcrds.noExceededDeadlineByTF(tfID),
+		BestLatency:             rcrds.bestLatencyByTF(tfID),
+		MeanLatency:             rcrds.meanLatencyByTF(tfID),
+		WorstLatency:            rcrds.worstLatencyByTF(tfID),
 	}
 }

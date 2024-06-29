@@ -28,7 +28,7 @@ func (r *localSimResults) prettify() (str string) {
 type tfSim struct {
 	ID       string
 	Deadline int
-	domain.TrafficFlowStatSet
+	domain.StatSet
 }
 
 type tfSimAnalysis struct {

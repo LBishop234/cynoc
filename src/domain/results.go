@@ -9,16 +9,12 @@ type Results interface {
 
 type FullResults struct {
 	SimResults SimResults
-	TFStats    map[string]TrafficFlowStatSet
+	TFStats    map[string]StatSet
 }
 
 type SimResults struct {
 	Cycles   int
 	Duration time.Duration
-	StatSet
-}
-
-type TrafficFlowStatSet struct {
 	StatSet
 }
 
@@ -32,6 +28,6 @@ type StatSet struct {
 	WorstLatency            int     `csv:"WorstLatency"`
 }
 
-func (s *TrafficFlowStatSet) Schedulable() bool {
+func (s *StatSet) Schedulable() bool {
 	return s.PacketsExceededDeadline == 0
 }

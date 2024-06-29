@@ -38,9 +38,9 @@ func NewResultsWithAnalysis(sim domain.FullResults, analyses analysis.AnalysisRe
 
 		results.trafficFlows = append(results.trafficFlows, tfSimAnalysis{
 			tfSim: tfSim{
-				ID:                 tfOrder[i].ID,
-				Deadline:           tfOrder[i].Deadline,
-				TrafficFlowStatSet: tfSimStats,
+				ID:       tfOrder[i].ID,
+				Deadline: tfOrder[i].Deadline,
+				StatSet:  tfSimStats,
 			},
 			TrafficFlowAnalysisSet: tfAnalysis,
 			AnalysisHolds:          analysisHolds,

@@ -25,9 +25,9 @@ func NewResults(sim domain.FullResults, tfOrder []domain.TrafficFlowConfig) (dom
 		}
 
 		results.trafficFlows = append(results.trafficFlows, tfSim{
-			ID:                 tfOrder[i].ID,
-			Deadline:           tfOrder[i].Deadline,
-			TrafficFlowStatSet: tfStats,
+			ID:       tfOrder[i].ID,
+			Deadline: tfOrder[i].Deadline,
+			StatSet:  tfStats,
 		})
 	}
 
