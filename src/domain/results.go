@@ -2,11 +2,6 @@ package domain
 
 import "time"
 
-type Results interface {
-	Prettify() (string, error)
-	OutputCSV(path string) error
-}
-
 type SimResults struct {
 	SimHeadlineResults SimHeadlineResults
 	TFStats            map[string]StatSet

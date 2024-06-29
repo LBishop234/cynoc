@@ -15,7 +15,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.TrafficFlowConfig, runAnalysisFlag bool, logger zerolog.Logger) (domain.Results, error) {
+func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.TrafficFlowConfig, runAnalysisFlag bool, logger zerolog.Logger) (results.Results, error) {
 	network, err := network.NewNetwork(
 		top,
 		conf,
@@ -81,7 +81,7 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 		return nil, err
 	}
 
-	var resultsSet domain.Results
+	var resultsSet results.Results
 	if runAnalysisFlag {
 		wg.Wait()
 		var analysisResults domain.AnalysisResults = <-analysisResultsChan

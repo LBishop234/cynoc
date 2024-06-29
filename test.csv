@@ -1,0 +1,11 @@
+TF_ID,Num_Packets_Routed,Num_Packets_Exceeded_Deadline,Min_Latency,Mean_Latency,Max_Latency,Deadline,Schedulable,Jitter
+t1,400,0,21,21.00,21,100,true,0
+t2,334,0,27,27.00,27,50,true,0
+t3,250,0,23,23.00,23,150,true,0
+t4,200,0,27,27.00,27,100,true,0
+t5,200,0,25,25.00,25,25,true,0
+t6,1000,0,19,19.00,19,100,true,0
+t7,500,0,20,20.40,22,50,true,0
+t8,500,0,27,27.00,27,50,true,0
+t9,250,0,24,24.00,24,100,true,0
+t10,500,0,33,33.00,33,50,true,0

@@ -3,37 +3,21 @@ package results
 import (
 	"encoding/csv"
 	"fmt"
+	"main/src/domain"
 	"math"
 	"os"
 	"strconv"
-
-	"main/src/domain"
 )
 
-type localSimResults domain.SimHeadlineResults
-
-func (r *localSimResults) prettify() (str string) {
-	str += "Simulation domain.Results\n"
+func prettifySimResults(r domain.SimHeadlineResults) string {
+	str := "Simulation domain.Results\n"
 	str += "==================\n"
 	str += fmt.Sprintf("Cycles: %d\n", r.Cycles)
 	str += fmt.Sprintf("Duration (ms): %d\n\n", r.Duration.Milliseconds())
 	str += fmt.Sprintf("Packets Routed: %d\n", r.PacketsRouted)
 	str += fmt.Sprintf("Packets Exceeded Deadline: %d\n", r.PacketsExceededDeadline)
-	// str += fmt.Sprintf("Packets Exceeded Shi & Burns: %d\n", r.)
 	str += "\n"
 	return str
-}
-
-type tfSim struct {
-	ID       string
-	Deadline int
-	domain.StatSet
-}
-
-type tfSimAnalysis struct {
-	tfSim
-	domain.TrafficFlowAnalysisSet
-	AnalysisHolds bool
 }
 
 func cleanInt(val int) string {
