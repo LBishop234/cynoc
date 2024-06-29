@@ -7,12 +7,12 @@ type Results interface {
 	OutputCSV(path string) error
 }
 
-type FullResults struct {
-	SimResults SimResults
-	TFStats    map[string]StatSet
+type SimResults struct {
+	SimHeadlineResults SimHeadlineResults
+	TFStats            map[string]StatSet
 }
 
-type SimResults struct {
+type SimHeadlineResults struct {
 	Cycles   int
 	Duration time.Duration
 	StatSet

@@ -14,10 +14,10 @@ type simAnalysisResults struct {
 	trafficFlows []tfSimAnalysis
 }
 
-func NewResultsWithAnalysis(sim domain.FullResults, analyses analysis.AnalysisResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
+func NewResultsWithAnalysis(sim domain.SimResults, analyses analysis.AnalysisResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
 	var results simAnalysisResults
 
-	results.simResults = localSimResults(sim.SimResults)
+	results.simResults = localSimResults(sim.SimHeadlineResults)
 
 	for i := 0; i < len(tfOrder); i++ {
 		tfSimStats, exists := sim.TFStats[tfOrder[i].ID]

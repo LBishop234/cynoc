@@ -13,10 +13,10 @@ type simResults struct {
 	trafficFlows []tfSim
 }
 
-func NewResults(sim domain.FullResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
+func NewResults(sim domain.SimResults, tfOrder []domain.TrafficFlowConfig) (domain.Results, error) {
 	var results simResults
 
-	results.simResults = localSimResults(sim.SimResults)
+	results.simResults = localSimResults(sim.SimHeadlineResults)
 
 	for i := 0; i < len(tfOrder); i++ {
 		tfStats, exists := sim.TFStats[tfOrder[i].ID]

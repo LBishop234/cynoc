@@ -11,7 +11,7 @@ import (
 	"main/src/domain"
 )
 
-type localSimResults domain.SimResults
+type localSimResults domain.SimHeadlineResults
 
 func (r *localSimResults) prettify() (str string) {
 	str += "Simulation domain.Results\n"
