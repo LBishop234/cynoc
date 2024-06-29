@@ -3,10 +3,11 @@ package results
 import (
 	"encoding/csv"
 	"fmt"
-	"main/src/domain"
 	"math"
 	"os"
 	"strconv"
+
+	"main/src/domain"
 )
 
 func prettifySimResults(r domain.SimHeadlineResults) string {

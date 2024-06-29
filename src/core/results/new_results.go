@@ -1,9 +1,9 @@
 package results
 
 import (
-	"fmt"
-	"main/src/domain"
 	"strconv"
+
+	"main/src/domain"
 
 	"github.com/alexeyco/simpletable"
 )
@@ -96,7 +96,7 @@ var parameters = []resultParameter{
 		csvStr:              "Schedulable",
 		terminalAllowedFlag: false,
 		reqAnalysisFlag:     false,
-		value:               func(tf tfSimAnalysis) string { return fmt.Sprint(tf.Schedulable()) },
+		value:               func(tf tfSimAnalysis) string { return strconv.FormatBool(tf.Schedulable()) },
 	},
 	{
 		name:                "Jitter",
@@ -128,7 +128,7 @@ var parameters = []resultParameter{
 		csvStr:              "Shi_Burns_Schedulable",
 		terminalAllowedFlag: false,
 		reqAnalysisFlag:     true,
-		value:               func(tf tfSimAnalysis) string { return fmt.Sprint(tf.AnalysisSchedulable()) },
+		value:               func(tf tfSimAnalysis) string { return strconv.FormatBool(tf.AnalysisSchedulable()) },
 	},
 }
 
