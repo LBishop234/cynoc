@@ -10,7 +10,7 @@ import (
 	"main/src/domain"
 )
 
-func prettifySimResults(r domain.SimHeadlineResults) string {
+func prettifySimHeadlineResults(r domain.SimHeadlineResults) string {
 	str := "Simulation domain.Results\n"
 	str += "==================\n"
 	str += fmt.Sprintf("Cycles: %d\n", r.Cycles)
