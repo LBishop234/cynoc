@@ -127,13 +127,12 @@ func TestShiBurns(t *testing.T) {
 	}{
 		XiongEtAl: {
 			simConf: domain.SimConfig{
-				CycleLimit:       2000,
-				RoutingAlgorithm: domain.XYRouting,
-				MaxPriority:      5,
-				BufferSize:       25,
-				FlitSize:         1,
-				ProcessingDelay:  6,
-				LinkBandwidth:    1,
+				CycleLimit:      2000,
+				MaxPriority:     5,
+				BufferSize:      25,
+				FlitSize:        1,
+				ProcessingDelay: 6,
+				LinkBandwidth:   1,
 			},
 			tfs: map[string]tfStruct{
 				"t1": {
@@ -212,12 +211,11 @@ func BenchmarkShiBurns(b *testing.B) {
 	}{
 		XiongEtAl: {
 			simConf: domain.SimConfig{
-				CycleLimit:       2000,
-				RoutingAlgorithm: domain.XYRouting,
-				MaxPriority:      5,
-				BufferSize:       25,
-				FlitSize:         1,
-				ProcessingDelay:  6,
+				CycleLimit:      2000,
+				MaxPriority:     5,
+				BufferSize:      25,
+				FlitSize:        1,
+				ProcessingDelay: 6,
 			},
 			tfs: tfAndRoutes[XiongEtAl],
 		},

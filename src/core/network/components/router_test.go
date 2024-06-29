@@ -20,12 +20,11 @@ func testRouter(t *testing.T) *routerImpl {
 				Pos: domain.NewPosition(0, 0),
 			},
 			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       1,
-				FlitSize:         1,
-				MaxPriority:      1,
-				ProcessingDelay:  1,
-				LinkBandwidth:    1,
+				BufferSize:      1,
+				FlitSize:        1,
+				MaxPriority:     1,
+				ProcessingDelay: 1,
+				LinkBandwidth:   1,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -55,12 +54,11 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 				Pos: aPos,
 			},
 			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       bufferSize,
-				FlitSize:         flitSize,
-				ProcessingDelay:  processingDelay,
-				MaxPriority:      maxPriority,
-				LinkBandwidth:    linkBandwidth,
+				BufferSize:      bufferSize,
+				FlitSize:        flitSize,
+				ProcessingDelay: processingDelay,
+				MaxPriority:     maxPriority,
+				LinkBandwidth:   linkBandwidth,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -80,12 +78,11 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 				Pos: bPos,
 			},
 			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       bufferSize,
-				FlitSize:         flitSize,
-				ProcessingDelay:  processingDelay,
-				MaxPriority:      maxPriority,
-				LinkBandwidth:    linkBandwidth,
+				BufferSize:      bufferSize,
+				FlitSize:        flitSize,
+				ProcessingDelay: processingDelay,
+				MaxPriority:     maxPriority,
+				LinkBandwidth:   linkBandwidth,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -138,12 +135,11 @@ func TestNewRouter(t *testing.T) {
 				Pos: domain.NewPosition(0, 0),
 			},
 			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       1,
-				FlitSize:         1,
-				ProcessingDelay:  1,
-				MaxPriority:      1,
-				LinkBandwidth:    1,
+				BufferSize:      1,
+				FlitSize:        1,
+				ProcessingDelay: 1,
+				MaxPriority:     1,
+				LinkBandwidth:   1,
 			},
 		}
 
@@ -164,12 +160,11 @@ func TestNewRouter(t *testing.T) {
 		_, err := newRouter(
 			RouterConfig{
 				SimConfig: domain.SimConfig{
-					RoutingAlgorithm: domain.XYRouting,
-					BufferSize:       0,
-					FlitSize:         1,
-					ProcessingDelay:  1,
-					MaxPriority:      1,
-					LinkBandwidth:    1,
+					BufferSize:      0,
+					FlitSize:        1,
+					ProcessingDelay: 1,
+					MaxPriority:     1,
+					LinkBandwidth:   1,
 				},
 			},
 			zerolog.New(io.Discard).With().Logger(),
@@ -181,12 +176,11 @@ func TestNewRouter(t *testing.T) {
 		_, err := newRouter(
 			RouterConfig{
 				SimConfig: domain.SimConfig{
-					RoutingAlgorithm: domain.XYRouting,
-					BufferSize:       1,
-					FlitSize:         1,
-					ProcessingDelay:  0,
-					MaxPriority:      1,
-					LinkBandwidth:    1,
+					BufferSize:      1,
+					FlitSize:        1,
+					ProcessingDelay: 0,
+					MaxPriority:     1,
+					LinkBandwidth:   1,
 				},
 			},
 			zerolog.New(io.Discard).With().Logger(),
@@ -204,12 +198,11 @@ func TestRouterNodeID(t *testing.T) {
 		RouterConfig{
 			NodeID: nodeID,
 			SimConfig: domain.SimConfig{
-				RoutingAlgorithm: domain.XYRouting,
-				BufferSize:       1,
-				FlitSize:         1,
-				ProcessingDelay:  1,
-				MaxPriority:      1,
-				LinkBandwidth:    1,
+				BufferSize:      1,
+				FlitSize:        1,
+				ProcessingDelay: 1,
+				MaxPriority:     1,
+				LinkBandwidth:   1,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -440,101 +433,11 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 func TestRouterRouteFlit(t *testing.T) {
 	t.Parallel()
 
-	t.Run("XYRouting", func(t *testing.T) {
-		t.Skip("Test would replicate code in TestRouterXYRouting")
-	})
-
 	t.Run("MissingPacketsTransmitting", func(t *testing.T) {
 		router := testRouter(t)
-		router.simConf.RoutingAlgorithm = "unknown"
 
 		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{}, zerolog.New(io.Discard))
 		_, err := router.routeFlit(flit)
-		require.ErrorIs(t, err, domain.ErrNoPort)
-	})
-}
-
-func TestRouterXYRouting(t *testing.T) {
-	t.Parallel()
-
-	t.Run("ValidHopToRouter", func(t *testing.T) {
-		srcRouter, err := newRouter(
-			RouterConfig{
-				NodeID: domain.NodeID{
-					ID:  "n1",
-					Pos: domain.NewPosition(0, 0),
-				},
-				SimConfig: domain.SimConfig{
-					RoutingAlgorithm: domain.XYRouting,
-					BufferSize:       1,
-					FlitSize:         1,
-					ProcessingDelay:  1,
-					MaxPriority:      1,
-					LinkBandwidth:    1,
-				},
-			},
-			zerolog.New(io.Discard).With().Logger(),
-		)
-		require.NoError(t, err)
-
-		dstRouter, err := newRouter(
-			RouterConfig{
-				NodeID: domain.NodeID{
-					ID:  "n2",
-					Pos: domain.NewPosition(0, 1),
-				},
-				SimConfig: domain.SimConfig{
-					RoutingAlgorithm: domain.XYRouting,
-					BufferSize:       1,
-					FlitSize:         1,
-					ProcessingDelay:  1,
-					MaxPriority:      1,
-					LinkBandwidth:    1,
-				},
-			},
-			zerolog.New(io.Discard).With().Logger(),
-		)
-		require.NoError(t, err)
-
-		conn, err := NewConnection(dstRouter.simConf.MaxPriority, dstRouter.simConf.LinkBandwidth, zerolog.New(io.Discard))
-		require.NoError(t, err)
-		err = dstRouter.RegisterInputPort(conn)
-		require.NoError(t, err)
-		err = srcRouter.RegisterOutputPort(conn)
-		require.NoError(t, err)
-
-		srcRouter.UpdateOutputMap()
-
-		gotOutputPort, err := srcRouter.routeFlit(packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{srcRouter.NodeID(), dstRouter.NodeID()}, zerolog.New(io.Discard)))
-		require.NoError(t, err)
-		assert.Equal(t, conn, gotOutputPort.connection())
-	})
-
-	t.Run("NoOutputPort", func(t *testing.T) {
-		var packetID string = "AA"
-
-		router, err := newRouter(
-			RouterConfig{
-				NodeID: domain.NodeID{
-					ID:  "n",
-					Pos: domain.NewPosition(0, 0),
-				},
-				SimConfig: domain.SimConfig{
-					RoutingAlgorithm: domain.XYRouting,
-					BufferSize:       1,
-					FlitSize:         1,
-					ProcessingDelay:  1,
-					MaxPriority:      1,
-					LinkBandwidth:    1,
-				},
-			},
-			zerolog.New(io.Discard).With().Logger(),
-		)
-		require.NoError(t, err)
-
-		router.packetsNextRouter[packetID] = router.nodeID
-
-		_, err = router.routeFlit(packet.NewHeaderFlit("t", packetID, 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard)))
 		require.ErrorIs(t, err, domain.ErrNoPort)
 	})
 }

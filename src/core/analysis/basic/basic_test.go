@@ -25,10 +25,9 @@ func TestBasicLatency(t *testing.T) {
 	testCases := []testCase{
 		{
 			conf: domain.SimConfig{
-				RoutingAlgorithm: "XY",
-				FlitSize:         4,
-				ProcessingDelay:  6,
-				LinkBandwidth:    4,
+				FlitSize:        4,
+				ProcessingDelay: 6,
+				LinkBandwidth:   4,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -41,10 +40,9 @@ func TestBasicLatency(t *testing.T) {
 		},
 		{
 			conf: domain.SimConfig{
-				RoutingAlgorithm: "XY",
-				FlitSize:         1,
-				ProcessingDelay:  3,
-				LinkBandwidth:    1,
+				FlitSize:        1,
+				ProcessingDelay: 3,
+				LinkBandwidth:   1,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -57,10 +55,9 @@ func TestBasicLatency(t *testing.T) {
 		},
 		{
 			conf: domain.SimConfig{
-				RoutingAlgorithm: "XY",
-				FlitSize:         4,
-				ProcessingDelay:  6,
-				LinkBandwidth:    4,
+				FlitSize:        4,
+				ProcessingDelay: 6,
+				LinkBandwidth:   4,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
@@ -73,10 +70,9 @@ func TestBasicLatency(t *testing.T) {
 		},
 		{
 			conf: domain.SimConfig{
-				RoutingAlgorithm: "XY",
-				FlitSize:         4,
-				ProcessingDelay:  6,
-				LinkBandwidth:    4,
+				FlitSize:        4,
+				ProcessingDelay: 6,
+				LinkBandwidth:   4,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
@@ -89,10 +85,9 @@ func TestBasicLatency(t *testing.T) {
 		},
 		{
 			conf: domain.SimConfig{
-				RoutingAlgorithm: "XY",
-				FlitSize:         4,
-				ProcessingDelay:  6,
-				LinkBandwidth:    8,
+				FlitSize:        4,
+				ProcessingDelay: 6,
+				LinkBandwidth:   8,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -105,10 +100,9 @@ func TestBasicLatency(t *testing.T) {
 		},
 		{
 			conf: domain.SimConfig{
-				RoutingAlgorithm: "XY",
-				FlitSize:         1,
-				ProcessingDelay:  3,
-				LinkBandwidth:    3,
+				FlitSize:        1,
+				ProcessingDelay: 3,
+				LinkBandwidth:   3,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{

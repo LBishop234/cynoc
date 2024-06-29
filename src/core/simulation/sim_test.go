@@ -19,57 +19,51 @@ import (
 
 var (
 	OnePriorityConfig = domain.SimConfig{
-		RoutingAlgorithm: domain.XYRouting,
-		MaxPriority:      1,
-		BufferSize:       2,
-		FlitSize:         1,
-		ProcessingDelay:  3,
-		LinkBandwidth:    1,
+		MaxPriority:     1,
+		BufferSize:      2,
+		FlitSize:        1,
+		ProcessingDelay: 3,
+		LinkBandwidth:   1,
 	}
 
 	TwoPriorityConfig = domain.SimConfig{
-		RoutingAlgorithm: domain.XYRouting,
-		MaxPriority:      2,
-		BufferSize:       4,
-		FlitSize:         1,
-		ProcessingDelay:  3,
-		LinkBandwidth:    1,
+		MaxPriority:     2,
+		BufferSize:      4,
+		FlitSize:        1,
+		ProcessingDelay: 3,
+		LinkBandwidth:   1,
 	}
 
 	TwoPriorityConfig2LinkBandwidth = domain.SimConfig{
-		RoutingAlgorithm: domain.XYRouting,
-		MaxPriority:      2,
-		BufferSize:       4,
-		FlitSize:         1,
-		ProcessingDelay:  3,
-		LinkBandwidth:    2,
+		MaxPriority:     2,
+		BufferSize:      4,
+		FlitSize:        1,
+		ProcessingDelay: 3,
+		LinkBandwidth:   2,
 	}
 
 	FourPriorityConfig = domain.SimConfig{
-		RoutingAlgorithm: domain.XYRouting,
-		MaxPriority:      4,
-		BufferSize:       32,
-		FlitSize:         4,
-		ProcessingDelay:  6,
-		LinkBandwidth:    1,
+		MaxPriority:     4,
+		BufferSize:      32,
+		FlitSize:        4,
+		ProcessingDelay: 6,
+		LinkBandwidth:   1,
 	}
 
 	TenPriorityConfig = domain.SimConfig{
-		RoutingAlgorithm: domain.XYRouting,
-		MaxPriority:      10,
-		BufferSize:       80,
-		FlitSize:         4,
-		ProcessingDelay:  6,
-		LinkBandwidth:    1,
+		MaxPriority:     10,
+		BufferSize:      80,
+		FlitSize:        4,
+		ProcessingDelay: 6,
+		LinkBandwidth:   1,
 	}
 
 	TwentyPriorityConfig = domain.SimConfig{
-		RoutingAlgorithm: domain.XYRouting,
-		MaxPriority:      20,
-		BufferSize:       160,
-		FlitSize:         4,
-		ProcessingDelay:  6,
-		LinkBandwidth:    1,
+		MaxPriority:     20,
+		BufferSize:      160,
+		FlitSize:        4,
+		ProcessingDelay: 6,
+		LinkBandwidth:   1,
 	}
 )
 
@@ -545,7 +539,7 @@ func BenchmarkNewSimulator(b *testing.B) {
 			b.ResetTimer()
 
 			for i := 0; i < b.N; i++ {
-				_, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
+				_, err := newSimulator(network, trafficFlows, testCase.cycles, zerolog.New(io.Discard))
 				require.NoError(b, err)
 			}
 		})
@@ -634,7 +628,7 @@ func TestRunSimulation(t *testing.T) {
 				trafficFlows[i] = tf
 			}
 
-			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
+			simulator, err := newSimulator(network, trafficFlows, testCase.cycles, zerolog.New(io.Discard))
 			require.NoError(t, err)
 
 			_, records, err := simulator.runSimulation(context.Background())
@@ -700,7 +694,7 @@ func BenchmarkRunSimulation(b *testing.B) {
 				trafficFlows[i] = tf
 			}
 
-			simulator, err := newSimulator(network, trafficFlows, domain.XYRouting, testCase.cycles, zerolog.New(io.Discard))
+			simulator, err := newSimulator(network, trafficFlows, testCase.cycles, zerolog.New(io.Discard))
 			require.NoError(b, err)
 
 			b.ReportAllocs()

@@ -20,7 +20,6 @@ const (
 type simulator struct {
 	network      network.Network
 	trafficFlows []trafficFlowRoute
-	routingAlg   domain.RoutingAlgorithm
 	cycleLimit   int
 
 	rcrds *Records
@@ -33,12 +32,12 @@ type trafficFlowRoute struct {
 	route domain.Route
 }
 
-func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int, logger zerolog.Logger) (domain.SimResults, error) {
+func Simulate(ctx context.Context, network network.Network, trafficFlows []traffic.TrafficFlow, cycleLimit int, logger zerolog.Logger) (domain.SimResults, error) {
 	select {
 	case <-ctx.Done():
 		return domain.SimResults{}, ctx.Err()
 	default:
-		simulator, err := newSimulator(network, trafficFlows, routingAlg, cycleLimit, logger)
+		simulator, err := newSimulator(network, trafficFlows, cycleLimit, logger)
 		if err != nil {
 			logger.Error().Err(nil).Msg("error creating simulator")
 			return domain.SimResults{}, err
@@ -54,10 +53,9 @@ func Simulate(ctx context.Context, network network.Network, trafficFlows []traff
 	}
 }
 
-func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, routingAlg domain.RoutingAlgorithm, cycleLimit int, logger zerolog.Logger) (*simulator, error) {
+func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, cycleLimit int, logger zerolog.Logger) (*simulator, error) {
 	simulator := &simulator{
 		network:      network,
-		routingAlg:   routingAlg,
 		cycleLimit:   cycleLimit,
 		trafficFlows: make([]trafficFlowRoute, len(trafficFlows)),
 
@@ -70,16 +68,10 @@ func newSimulator(network network.Network, trafficFlows []traffic.TrafficFlow, r
 		var route domain.Route
 		var err error
 
-		switch routingAlg {
-		case domain.XYRouting:
-			route, err = network.Topology().XYRoute(
-				network.NetworkInterfacesIDMap()[trafficFlows[i].Src()].NodeID(),
-				network.NetworkInterfacesIDMap()[trafficFlows[i].Dst()].NodeID(),
-			)
-		default:
-			logger.Error().Err(domain.ErrUnknownRoutingAlgorithm).Str("routing_algorithm", string(routingAlg)).Msg("routing algorithm not supported")
-			return nil, domain.ErrUnknownRoutingAlgorithm
-		}
+		route, err = network.Topology().XYRoute(
+			network.NetworkInterfacesIDMap()[trafficFlows[i].Src()].NodeID(),
+			network.NetworkInterfacesIDMap()[trafficFlows[i].Dst()].NodeID(),
+		)
 		if err != nil {
 			logger.Error().Err(err).Msg("error calculating router")
 			return nil, err

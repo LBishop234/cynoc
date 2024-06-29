@@ -36,13 +36,12 @@ func TestReadConfig(t *testing.T) {
 			overrides: nil,
 			err:       nil,
 			conf: domain.SimConfig{
-				CycleLimit:       1000,
-				RoutingAlgorithm: "XY",
-				MaxPriority:      6,
-				BufferSize:       12,
-				FlitSize:         2,
-				LinkBandwidth:    2,
-				ProcessingDelay:  6,
+				CycleLimit:      1000,
+				MaxPriority:     6,
+				BufferSize:      12,
+				FlitSize:        2,
+				LinkBandwidth:   2,
+				ProcessingDelay: 6,
 			},
 		},
 		{
@@ -51,14 +50,6 @@ func TestReadConfig(t *testing.T) {
 			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
 				"cycle_limit": 0,
-			},
-		},
-		{
-			name:     "invalid_routing_algorithm",
-			err:      ErrInvalidRoutingAlgorithm,
-			baseFile: "valid_basic.yaml",
-			overrides: map[string]any{
-				"routing_algorithm": "UNKNOWN",
 			},
 		},
 		{
