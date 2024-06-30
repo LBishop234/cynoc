@@ -1,10 +1,16 @@
 # Network-on-Chip with Wormhole Switching Simulation
 
 ### CLI Flags
-- Logging:
-    - `-log`: output info level logs
-    - `-deubg`: output debug level logs
-    - `-trace`: output trace level logs
+
+| Flag | Shorthand | Operation |
+| :--- | :-------- | :-------- |
+| `config FILE` | `c FILE` | Specify simulation *yaml* configuration file |
+| `topology FILE` | `t FILE` | Specify topology *GraphML* configuration file |
+| `traffic FILE` | `tr FILE` | Specify traffic flows *csv* configuration file |
+| `cycle_limit VAL` | `cy VAL` | Override the number of simulation cycles specified in the configuration file |
+| `max_priority VAL` | `mp VAL` | Override the maximum traffic flow priority value specified in the configuration file |
+| `buffer_size VAL` | `bs VAL` | Override the buffer size
+
 - Specifying configuration files:
     - `-config FILE`: path to simulation configuration file
     - `-topology FILE`: path to topology configuration file
@@ -14,6 +20,10 @@
     - `-routing_algorithm`: routing algorithm used, from [XY]
     - `-buffer_size`: total size of a buffer in bytes
     - `-flit_size`: filt size in bytes
+- Logging:
+    - `-log`: output info level and above logs
+    - `-deubg`: output debug level and above logs
+    - `-trace`: output trace level and above logs
 
 ### Simulation Configuration File
 High level simulation configuration is defined in a *.yaml* file.
