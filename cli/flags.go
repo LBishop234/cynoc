@@ -41,7 +41,6 @@ func LogArgs(app *cli.App) *LogConfig {
 		app.Flags,
 		&cli.BoolFlag{
 			Name:        "log",
-			Aliases:     []string{"l"},
 			Usage:       "print logs to stdout",
 			Value:       false,
 			Destination: &lConf.Log,

@@ -172,7 +172,7 @@ func (t *trafficFlowImpl) ValidateAgainstConfig(conf domain.SimConfig) error {
 func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int) {
 	if cycle%t.releasePeriod == 0 {
 		t.currentPeriod = cycle
-		t.currentJitter = rand.Intn(t.jitter + 1)
+		t.currentJitter = rand.Intn(t.jitter)
 	}
 
 	if cycle == t.currentPeriod+t.currentJitter {
