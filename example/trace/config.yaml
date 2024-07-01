@@ -1,5 +1,0 @@
-cycle_limit: 50
-max_priority: 4
-buffer_size: 16
-flit_size: 4
-processing_delay: 6
