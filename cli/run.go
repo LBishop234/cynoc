@@ -64,14 +64,14 @@ func NewApp() *cli.App {
 
 func initLogger(logConf *LogConfig) {
 	var logLevel log.LogLevel
-	if logConf.TraceOutput {
-		logLevel = log.TRACE
+	if logConf.Log {
+		logLevel = log.INFO
 	} else if logConf.DebugOutput {
 		logLevel = log.DEBUG
-	} else if logConf.Log {
-		logLevel = log.INFO
+	} else if logConf.TraceOutput {
+		logLevel = log.TRACE
 	} else {
-		logLevel = log.ERROR
+		logLevel = log.WARN
 	}
 	log.InitLogger(logLevel)
 }
