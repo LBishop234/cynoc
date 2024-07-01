@@ -49,30 +49,23 @@ tasks:
       - go mod tidy
       - go build -o simulator
 
-  # trace:
-  #   dir: .
-  #   deps:
-  #     - build
-  #   cmds:
-  #     - ./simulator -c example/trace/config.yaml -t example/trace/3-h-line.xml -tr example/trace/traffic.csv -a -trace
-
-  debug:
+  demo:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/debug/config.yaml -t example/debug/3-3-square.xml -tr example/debug/traffic.csv -a -debug
+      - ./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -debug
 
-  log:
+  demo-2:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/log/config.yaml -t example/log/3-3-square.xml -tr example/log/traffic.csv -a -log
+      - ./simulator -c example/high-load/config.yaml -t example/high-load/3-3-square.xml -tr example/high-load/traffic.csv -a -log
 
-  run:
+  xiong-et-al:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/run/config.yaml -t example/run/3-3-square.xml -tr example/run/traffic.csv -a
+      - ./simulator -c example/xiong-et-al/config.yaml -t example/xiong-et-al/7-node-line.xml -tr example/xiong-et-al/traffic.csv -a
