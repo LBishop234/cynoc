@@ -111,7 +111,7 @@ var parameters = []resultParameter{
 	{
 		name:                "Jitter + Shi & Burns Network Latency",
 		terminalStr:         "J^R_i + R_i",
-		csvStr:              "Jitter_Plus_Shi_And_Burns",
+		csvStr:              "Jitter_Plus_Shi_Burns",
 		terminalAllowedFlag: true,
 		reqAnalysisFlag:     true,
 		value:               func(tf tfSimAnalysis) string { return strconv.Itoa(tf.Jitter + tf.ShiAndBurns) },
