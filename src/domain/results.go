@@ -48,5 +48,5 @@ type TrafficFlowAnalysisSet struct {
 }
 
 func (a TrafficFlowAnalysisSet) AnalysisSchedulable() bool {
-	return (a.Jitter + a.ShiAndBurns) < a.Deadline
+	return (a.Jitter + a.ShiAndBurns) <= a.Deadline
 }
