@@ -96,7 +96,7 @@ var parameters = []resultParameter{
 		name:                "Jitter",
 		terminalStr:         "J^R_i",
 		csvStr:              "Jitter",
-		terminalAllowedFlag: false,
+		terminalAllowedFlag: true,
 		reqAnalysisFlag:     false,
 		value:               func(tf tfSimAnalysis) string { return strconv.Itoa(tf.Jitter) },
 	},

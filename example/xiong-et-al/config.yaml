@@ -1,6 +1,6 @@
-cycle_limit: 100000
+cycle_limit: 2000000
 max_priority: 5
-buffer_size: 80
-flit_size: 4
-processing_delay: 2
-link_bandwidth: 16
+buffer_size: 50
+flit_size: 1
+processing_delay: 1
+link_bandwidth: 5

@@ -68,4 +68,4 @@ tasks:
     deps:
       - build
     cmds:
-      - ./simulator -c example/xiong-et-al/config.yaml -t example/xiong-et-al/7-node-line.xml -tr example/xiong-et-al/traffic.csv -a
+      - ./simulator -c example/xiong-et-al/config.yaml -t example/xiong-et-al/7-node-line.xml -tr example/xiong-et-al/traffic.csv -a -log
