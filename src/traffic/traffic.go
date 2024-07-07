@@ -109,7 +109,7 @@ func NewTrafficFlow(conf domain.TrafficFlowConfig) (*trafficFlowImpl, error) {
 	}
 
 	if conf.Deadline > (conf.Period - conf.Jitter) {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("deadline", conf.Deadline).Int("period", conf.Period).Int("jitter", conf.Jitter).Msg("TrafficFlow deadline must be less than or equal period")
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("deadline", conf.Deadline).Int("period", conf.Period).Int("jitter", conf.Jitter).Msg("TrafficFlow deadline must be less than or equal period - jitter")
 		return nil, domain.ErrInvalidConfig
 	}
 
