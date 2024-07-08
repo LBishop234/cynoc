@@ -24,7 +24,6 @@ type networkInterfaceImpl struct {
 	// Core Attributes
 	nodeID      domain.NodeID
 	bufferSize  int
-	flitSize    int
 	maxPriority int
 
 	flitsInTransit map[int][]packet.Flit
@@ -38,7 +37,7 @@ type networkInterfaceImpl struct {
 	logger zerolog.Logger
 }
 
-func newNetworkInterface(nodeID domain.NodeID, bufferSize, flitSize, maxPriority int, logger zerolog.Logger) (*networkInterfaceImpl, error) {
+func newNetworkInterface(nodeID domain.NodeID, bufferSize, maxPriority int, logger zerolog.Logger) (*networkInterfaceImpl, error) {
 	if err := validBufferSize(bufferSize, maxPriority); err != nil {
 		logger.Error().Err(err).Msg("invalid buffer size")
 		return nil, err
@@ -48,7 +47,6 @@ func newNetworkInterface(nodeID domain.NodeID, bufferSize, flitSize, maxPriority
 	return &networkInterfaceImpl{
 		nodeID:         nodeID,
 		bufferSize:     bufferSize,
-		flitSize:       flitSize,
 		maxPriority:    maxPriority,
 		flitsInTransit: make(map[int][]packet.Flit),
 		flitsArriving:  make(map[string]packet.Reconstructor),
@@ -99,7 +97,7 @@ func (n *networkInterfaceImpl) RoutePacket(cycle int, pkt packet.Packet) error {
 
 	logger.Trace().Str("packet", pkt.ID()).Msg("network interface received packet")
 
-	flits := pkt.Flits(n.flitSize)
+	flits := pkt.Flits()
 	for i := 0; i < len(flits); i++ {
 		logger.Trace().
 			Str("flit", flits[i].ID()).Str("type", flits[i].Type().String()).
@@ -138,11 +136,11 @@ func (n *networkInterfaceImpl) HandleArrivingFlits(cycle int) error {
 				actionFlag = true
 
 				var err error
-				if headerFlit, ok := flit.(packet.HeaderFlit); ok {
+				if headerFlit, ok := flit.(packet.HeaderFlit); ok && flit.Type() == packet.HeaderFlitType {
 					err = n.arrivedHeaderFlit(headerFlit)
-				} else if bodyFlit, ok := flit.(packet.BodyFlit); ok {
+				} else if bodyFlit, ok := flit.(packet.BodyFlit); ok && flit.Type() == packet.BodyFlitType {
 					err = n.arrivedBodyFlit(bodyFlit)
-				} else if tailFlit, ok := flit.(packet.TailFlit); ok {
+				} else if tailFlit, ok := flit.(packet.TailFlit); ok && flit.Type() == packet.TailFlitType {
 					err = n.arrivedTailFlit(tailFlit)
 				} else {
 					return domain.ErrUnknownFlitType

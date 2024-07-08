@@ -23,7 +23,7 @@ func NewRouterNode(conf RouterConfig, logger zerolog.Logger) (RouterNode, error)
 		return RouterNode{}, err
 	}
 
-	netIntfc, err := newNetworkInterface(conf.NodeID, conf.BufferSize, conf.FlitSize, conf.MaxPriority, logger)
+	netIntfc, err := newNetworkInterface(conf.NodeID, conf.BufferSize, conf.MaxPriority, logger)
 	if err != nil {
 		logger.Error().Err(err).Msg("error creating new network interface")
 		return RouterNode{}, err
