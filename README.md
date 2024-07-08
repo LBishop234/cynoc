@@ -84,6 +84,7 @@ t3,2,50,100,0,4,"[n2,n3]"
 - `priority`: the traffic flow's unique priority level in the range [1, max_priority], inherited by all created packets.
 - `period`: the regular interval, in cycles, at which point the traffic flow creates a new packet.
 - `deadline`: the maximum tolerated latency for packets created by the traffic flow, i.e. packets must arrive at their destination router within $x$ cycles of creation.
+    - Requires $deadline \leq period + jitter$ [[3]](#3).
 - `jitter`: the maximum jitter the traffic flow's packets may experience, i.e. how long, in cycles, after creation may a packet be released to the network for transmission.
     - E.g. for a traffic flow with period $p$ and jitter $j$, a packet created on cycle $np$ will be released $x$ cycles after the packet's creation where $np \leq x < np+j$.
 - `packet_size`: the size of a packet's payload in bytes.
@@ -139,6 +140,8 @@ t5,0,0,5334,0,25,25.00,25,25,true,1,27,27,false
 
 ## References
 - <a id='1'>[1]</a>
-Duato, J., Yalamanchili, S., 1997. Interconnection Networks: An Engineering Approach. IEEE; 1st edition, 1997.
+Duato, J., Yalamanchili, S., 1997. *Interconnection Networks: An Engineering Approach*. IEEE.
 - <a id='2'>[2]</a>
-Shi, Z. and Burns, A., 2008. Real-time communication analysis for on-chip networks with wormhole switching. In: Second ACM/IEEE International Symposium on Networks-on-Chip (NoCs 2008), pp.161-170.
+Shi, Z. and Burns, A., 2008. Real-time communication analysis for on-chip networks with wormhole switching. In: *Second ACM/IEEE International Symposium on Networks-on-Chip (NoCs 2008)*, pp.161-170.
+- <a id='3'>[3]</a>
+Xiong, Q., Wu, F., Lu, Z. and Xie, C., 2017. Extending real-time analysis for wormhole NoCs. *IEEE Transactions on Computers*, **66**(9), pp.1532-1546.
