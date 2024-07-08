@@ -64,14 +64,12 @@ func TestNewBodyFlit(t *testing.T) {
 	packetIndex := "AABBCCDD"
 	flitIndex := 1
 	priority := 1
-	dataSize := 4
 
-	flit := NewBodyFlit(trafficFlowID, packetIndex, flitIndex, priority, dataSize, zerolog.New(io.Discard))
+	flit := NewBodyFlit(trafficFlowID, packetIndex, flitIndex, priority, zerolog.New(io.Discard))
 	assert.Equal(t, newPacketID(trafficFlowID, packetIndex), flit.packetID)
 	assert.Equal(t, packetIndex, flit.packetIndex)
 	assert.Equal(t, flitIndex, flit.flitIndex)
 	assert.Equal(t, priority, flit.priority)
-	assert.Equal(t, dataSize, flit.dataSize)
 
 	assert.Implements(t, (*BodyFlit)(nil), flit)
 	assert.Implements(t, (*Flit)(nil), flit)
@@ -181,14 +179,14 @@ func TestHeaderFlitRoute(t *testing.T) {
 func TestBodyFlitID(t *testing.T) {
 	t.Parallel()
 
-	flit := NewBodyFlit("t", "AABBCCDD", 1, 1, 1, zerolog.New(io.Discard))
+	flit := NewBodyFlit("t", "AABBCCDD", 1, 1, zerolog.New(io.Discard))
 	assert.Equal(t, flit.id, flit.ID())
 }
 
 func TestBodyFlitType(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, BodyFlitType, NewBodyFlit("t", "AABBCCDD", 1, 1, 1, zerolog.New(io.Discard)).Type())
+	assert.Equal(t, BodyFlitType, NewBodyFlit("t", "AABBCCDD", 1, 1, zerolog.New(io.Discard)).Type())
 }
 
 func TestBodyFlitPacketID(t *testing.T) {
@@ -199,7 +197,7 @@ func TestBodyFlitPacketID(t *testing.T) {
 
 	expectedPacketID := "t-AABBCCDD"
 
-	assert.Equal(t, expectedPacketID, NewBodyFlit(trafficFlowID, packetIndex, 1, 1, 1, zerolog.New(io.Discard)).PacketID())
+	assert.Equal(t, expectedPacketID, NewBodyFlit(trafficFlowID, packetIndex, 1, 1, zerolog.New(io.Discard)).PacketID())
 }
 
 func TestBodyFlitPacketIndex(t *testing.T) {
@@ -207,30 +205,21 @@ func TestBodyFlitPacketIndex(t *testing.T) {
 
 	packetIndex := "AABBCCDD"
 
-	assert.Equal(t, packetIndex, NewBodyFlit("t", packetIndex, 1, 1, 1, zerolog.New(io.Discard)).PacketIndex())
+	assert.Equal(t, packetIndex, NewBodyFlit("t", packetIndex, 1, 1, zerolog.New(io.Discard)).PacketIndex())
 }
 
 func TestBodyFlitIndex(t *testing.T) {
 	t.Parallel()
 
 	flitIndex := rand.Intn(math.MaxInt)
-	assert.Equal(t, flitIndex, NewBodyFlit("t", "AABBCCDD", flitIndex, 1, 1, zerolog.New(io.Discard)).FlitIndex())
+	assert.Equal(t, flitIndex, NewBodyFlit("t", "AABBCCDD", flitIndex, 1, zerolog.New(io.Discard)).FlitIndex())
 }
 
 func TestBodyFlitPriority(t *testing.T) {
 	t.Parallel()
 
 	priority := 1
-	assert.Equal(t, priority, NewBodyFlit("t", "AABBCCDD", 1, 1, 1, zerolog.New(io.Discard)).Priority())
-}
-
-func TestBodyFlitDataSize(t *testing.T) {
-	t.Parallel()
-
-	dataSize := 4
-
-	flit := NewBodyFlit("t", "AABBCCDD", 1, 1, dataSize, zerolog.New(io.Discard))
-	assert.Equal(t, dataSize, flit.DataSize())
+	assert.Equal(t, priority, NewBodyFlit("t", "AABBCCDD", 1, 1, zerolog.New(io.Discard)).Priority())
 }
 
 func TestTailFlitID(t *testing.T) {

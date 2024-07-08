@@ -22,7 +22,6 @@ type TrafficFlow interface {
 	Jitter() int
 	PacketSize() int
 	Route() []string
-	ValidateAgainstConfig(conf domain.SimConfig) error
 	ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int)
 }
 
@@ -71,13 +70,8 @@ func TrafficFlows(conf domain.SimConfig, tfConfs []domain.TrafficFlowConfig) ([]
 	var err error
 
 	for i := 0; i < len(trafficFlows); i++ {
-		if trafficFlows[i], err = NewTrafficFlow(tfConfs[i]); err != nil {
+		if trafficFlows[i], err = NewTrafficFlow(tfConfs[i], conf); err != nil {
 			log.Log.Error().Err(err).Str("id", tfConfs[i].ID).Msg("error creating traffic flow")
-			return nil, err
-		}
-
-		if err := trafficFlows[i].ValidateAgainstConfig(conf); err != nil {
-			log.Log.Error().Err(err).Str("id", tfConfs[i].ID).Msg("error invalid traffic flow")
 			return nil, err
 		}
 	}
@@ -86,47 +80,52 @@ func TrafficFlows(conf domain.SimConfig, tfConfs []domain.TrafficFlowConfig) ([]
 	return trafficFlows, nil
 }
 
-func NewTrafficFlow(conf domain.TrafficFlowConfig) (*trafficFlowImpl, error) {
-	if conf.Priority < 1 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("priority", conf.Priority).Msg("Invalid TrafficFlow priority")
+func NewTrafficFlow(tfConf domain.TrafficFlowConfig, conf domain.SimConfig) (*trafficFlowImpl, error) {
+	if tfConf.Priority < 1 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("priority", tfConf.Priority).Msg("Invalid TrafficFlow priority")
 		return nil, domain.ErrInvalidConfig
 	}
-	if conf.Period < 1 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("period", conf.Period).Msg("Invalid TrafficFlow period")
+	if tfConf.Period < 1 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("period", tfConf.Period).Msg("Invalid TrafficFlow period")
 		return nil, domain.ErrInvalidConfig
 	}
-	if conf.Deadline < 1 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("deadline", conf.Deadline).Msg("Invalid TrafficFlow deadline")
+	if tfConf.Deadline < 1 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("deadline", tfConf.Deadline).Msg("Invalid TrafficFlow deadline")
 		return nil, domain.ErrInvalidConfig
 	}
-	if conf.Jitter < 0 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("jitter", conf.Jitter).Msg("Invalid TrafficFlow jitter")
+	if tfConf.Jitter < 0 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("jitter", tfConf.Jitter).Msg("Invalid TrafficFlow jitter")
 		return nil, domain.ErrInvalidConfig
 	}
-	if conf.PacketSize < 1 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("packet_size", conf.PacketSize).Msg("Invalid TrafficFlow packet size")
-		return nil, domain.ErrInvalidConfig
-	}
-
-	if conf.Deadline > (conf.Period - conf.Jitter) {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", conf.ID).Int("deadline", conf.Deadline).Int("period", conf.Period).Int("jitter", conf.Jitter).Msg("TrafficFlow deadline must be less than or equal period - jitter")
+	if tfConf.PacketSize < 1 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("packet_size", tfConf.PacketSize).Msg("Invalid TrafficFlow packet size")
 		return nil, domain.ErrInvalidConfig
 	}
 
-	route, err := conf.RouteArray()
+	if tfConf.Deadline > (tfConf.Period - tfConf.Jitter) {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("deadline", tfConf.Deadline).Int("period", tfConf.Period).Int("jitter", tfConf.Jitter).Msg("TrafficFlow deadline must be less than or equal period - jitter")
+		return nil, domain.ErrInvalidConfig
+	}
+
+	if tfConf.Priority > conf.MaxPriority {
+		log.Log.Error().Str("id", tfConf.ID).Int("priority", tfConf.Priority).Int("max_priority", conf.MaxPriority).Msg("traffic flow priority exceeds max priority")
+		return nil, domain.ErrInvalidConfig
+	}
+
+	route, err := tfConf.RouteArray()
 	if err != nil {
-		log.Log.Error().Err(err).Str("id", conf.ID).Str("route", conf.Route).Msg("Invalid TrafficFlow route")
+		log.Log.Error().Err(err).Str("id", tfConf.ID).Str("route", tfConf.Route).Msg("Invalid TrafficFlow route")
 		return nil, err
 	}
 
-	log.Log.Trace().Str("id", conf.ID).Msg("new traffic flow")
+	log.Log.Trace().Str("id", tfConf.ID).Msg("new traffic flow")
 	return &trafficFlowImpl{
-		id:            conf.ID,
-		priority:      conf.Priority,
-		releasePeriod: conf.Period,
-		deadline:      conf.Deadline,
-		jitter:        conf.Jitter,
-		packetSize:    conf.PacketSize,
+		id:            tfConf.ID,
+		priority:      tfConf.Priority,
+		releasePeriod: tfConf.Period,
+		deadline:      tfConf.Deadline,
+		jitter:        tfConf.Jitter,
+		packetSize:    tfConf.PacketSize,
 		route:         route,
 	}, nil
 }
@@ -157,16 +156,6 @@ func (t *trafficFlowImpl) PacketSize() int {
 
 func (t *trafficFlowImpl) Route() []string {
 	return t.route
-}
-
-func (t *trafficFlowImpl) ValidateAgainstConfig(conf domain.SimConfig) error {
-	if t.priority > conf.MaxPriority {
-		log.Log.Error().Str("id", t.id).
-			Int("priority", t.priority).Int("max_priority", conf.MaxPriority).
-			Msg("traffic flow priority exceeds max priority")
-		return domain.ErrInvalidConfig
-	}
-	return nil
 }
 
 func (t *trafficFlowImpl) ReleasePacket(cycle int, trafficFlow TrafficFlow, route domain.Route, logger zerolog.Logger) (bool, packet.Packet, int) {

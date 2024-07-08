@@ -76,7 +76,6 @@ type BodyFlit interface {
 	PacketIndex() string
 	FlitIndex() int
 	Priority() int
-	DataSize() int
 	RecordEvent(cycle int, event FlitEvent, location string)
 }
 
@@ -87,7 +86,6 @@ type bodyFlit struct {
 	packetIndex   string
 	flitIndex     int
 	priority      int
-	dataSize      int
 	logger        zerolog.Logger
 }
 
@@ -116,7 +114,7 @@ func newFlitID(trafficFlowID, packetIndex string, flitIndex int) string {
 	return fmt.Sprintf("%s-%d", newPacketID(trafficFlowID, packetIndex), flitIndex)
 }
 
-func NewHeaderFlit(trafficFlowID string, packetIndex string, flitIndex int, priority, deadline int, route domain.Route, logger zerolog.Logger) *headerFlit {
+func NewHeaderFlit(trafficFlowID, packetIndex string, flitIndex, priority, deadline int, route domain.Route, logger zerolog.Logger) *headerFlit {
 	id := newFlitID(trafficFlowID, packetIndex, flitIndex)
 	packetID := newPacketID(trafficFlowID, packetIndex)
 
@@ -135,7 +133,7 @@ func NewHeaderFlit(trafficFlowID string, packetIndex string, flitIndex int, prio
 	}
 }
 
-func NewBodyFlit(trafficFlowID string, packetIndex string, flitIndex int, priority, dataSize int, logger zerolog.Logger) *bodyFlit {
+func NewBodyFlit(trafficFlowID, packetIndex string, flitIndex, priority int, logger zerolog.Logger) *bodyFlit {
 	id := newFlitID(trafficFlowID, packetIndex, flitIndex)
 	packetID := newPacketID(trafficFlowID, packetIndex)
 
@@ -149,11 +147,10 @@ func NewBodyFlit(trafficFlowID string, packetIndex string, flitIndex int, priori
 		packetIndex:   packetIndex,
 		flitIndex:     flitIndex,
 		priority:      priority,
-		dataSize:      dataSize,
 	}
 }
 
-func NewTailFlit(trafficFlowID string, packetIndex string, flitIndex int, priority int, logger zerolog.Logger) *tailFlit {
+func NewTailFlit(trafficFlowID, packetIndex string, flitIndex, priority int, logger zerolog.Logger) *tailFlit {
 	id := newFlitID(trafficFlowID, packetIndex, flitIndex)
 	packetID := newPacketID(trafficFlowID, packetIndex)
 
@@ -236,10 +233,6 @@ func (f *bodyFlit) FlitIndex() int {
 
 func (f *bodyFlit) Priority() int {
 	return f.priority
-}
-
-func (f *bodyFlit) DataSize() int {
-	return f.dataSize
 }
 
 func (f *bodyFlit) RecordEvent(cycle int, event FlitEvent, location string) {
