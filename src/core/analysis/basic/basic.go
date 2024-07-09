@@ -1,9 +1,10 @@
 package basic
 
 import (
+	"math"
+
 	"main/src/core/analysis/util"
 	"main/src/domain"
-	"math"
 )
 
 func BasicLatency(conf domain.SimConfig, tfr util.TrafficFlowAndRoute) int {

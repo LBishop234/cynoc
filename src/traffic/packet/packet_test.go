@@ -221,7 +221,7 @@ func TestPacketBodyFlits(t *testing.T) {
 		index := i
 		testCase := testCases[index]
 
-		t.Run(fmt.Sprintf("TestCase-%s", testCase.id), func(t *testing.T) {
+		t.Run("TestCase-"+testCase.id, func(t *testing.T) {
 			src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 			dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 			route := domain.Route{src, dst}
