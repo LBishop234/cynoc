@@ -12,7 +12,8 @@
 | `-cycle_limit VAL` | `-cy VAL` | Override the number of simulation cycles specified in the configuration file |
 | `-max_priority VAL` | `-mp VAL` | Override the maximum traffic flow priority value specified in the configuration file |
 | `-buffer_size VAL` | `-bs VAL` | Override the buffer size specified in the configuration file |
-| `-processing_delay VAL` | `-pd VAL` | Override the header flit router processing delay (cycles) specified in the configuration file |
+| `-processing_delay VAL` | `-pd VAL` | Override the header flit router processing delay specified in the configuration file |
+| `-link_bandwidth VAL` | `-lb VAL` | Override the link bandwidth specified in the configuration file |
 | `-analysis` | `-a` | Enables calculation of maximum basic network latency [[1]](#1) and Shi & Burns worst case network latency [[2]](#2) analyses for the configured simulation case |
 | `-no-console-output` | `-nco` | Disables terminal results output, does not affect logging messages |
 | `-results-csv FILE` | `-csv FILE` | Specifies the *csv* file to write full results to, creates the file if it does not exist |
