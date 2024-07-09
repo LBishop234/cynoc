@@ -26,8 +26,8 @@ func TestReadConfig(t *testing.T) {
 		baseFile  string
 		enabled   bool
 		err       error
-		conf      domain.SimConfig
 		overrides map[string]any
+		expected  domain.SimConfig
 	}
 
 	testCases := []testCase{
@@ -37,10 +37,10 @@ func TestReadConfig(t *testing.T) {
 			enabled:   true,
 			overrides: nil,
 			err:       nil,
-			conf: domain.SimConfig{
+			expected: domain.SimConfig{
 				CycleLimit:      1000,
 				MaxPriority:     6,
-				BufferSize:      12,
+				BufferSize:      24,
 				LinkBandwidth:   2,
 				ProcessingDelay: 6,
 			},
@@ -101,14 +101,14 @@ func TestReadConfig(t *testing.T) {
 			},
 		},
 		{
-			name:     "invalid_link_bandwidth_greater_than_virtual_channel_size",
+			name:     "invalid_link_bandwidth_greater_than_half_virtual_channel_size",
 			baseFile: "valid_basic.yaml",
 			enabled:  true,
 			err:      ErrInvalidLinkBandwidth,
 			overrides: map[string]any{
 				"buffer_size":    12,
 				"max_priority":   6,
-				"link_bandwidth": 4,
+				"link_bandwidth": 2,
 			},
 		},
 	}
@@ -149,7 +149,7 @@ func TestReadConfig(t *testing.T) {
 					}
 
 					if err == nil {
-						assert.Equal(t, tc.conf, conf)
+						assert.Equal(t, tc.expected, conf)
 					}
 				})
 
@@ -163,7 +163,7 @@ func TestReadConfig(t *testing.T) {
 					}
 
 					if err == nil {
-						assert.Equal(t, tc.conf, conf)
+						assert.Equal(t, tc.expected, conf)
 					}
 				})
 			})
