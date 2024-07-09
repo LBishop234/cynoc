@@ -33,7 +33,7 @@ max_priority: 4
 buffer_size: 16
 # Header processing delay experienced at each router.
 processing_delay: 6
-# Link bandwidth in flits per cycle
+# Link bandwidth in flits per cycle, cannot exceed half virtual channel size (prevents back pressure invalidating Shi & Burns analysis).
 link_bandwidth: 8
 ```
 
@@ -85,7 +85,7 @@ t3,2,50,100,0,4,"[n2,n3]"
     - Requires $deadline \leq period + jitter$ [[3]](#3).
 - `jitter`: the maximum jitter the traffic flow's packets may experience, i.e. how long, in cycles, after creation may a packet be released to the network for transmission.
     - E.g. for a traffic flow with period $p$ and jitter $j$, a packet created on cycle $np$ will be released $x$ cycles after the packet's creation where $np \leq x < np+j$.
-- `packet_size`: the number of body flits produced by the packet.
+- `packet_size`: the number of body flits produced by the packet (i.e. excluding header and tail flits).
 - `route`: the fixed route the traffic flow's packets traverse across the network.
 
 ## Results
