@@ -30,8 +30,8 @@ cycle_limit: 16000
 max_priority: 4
 # Total size of a buffer in flits (divided by max_priority to calculate virtual channel size)
 buffer_size: 16
-# Header processing delay experienced at each router.
-processing_delay: 6
+# Header processing delay experienced at each router in cycles.
+processing_delay: 1
 ```
 
 ### Topology Configuration File

@@ -1,4 +1,4 @@
 cycle_limit: 160000
 max_priority: 20
 buffer_size: 80
-processing_delay: 6
+processing_delay: 1

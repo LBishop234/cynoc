@@ -41,7 +41,7 @@ func TestReadConfig(t *testing.T) {
 				CycleLimit:      1000,
 				MaxPriority:     6,
 				BufferSize:      24,
-				ProcessingDelay: 6,
+				ProcessingDelay: 1,
 			},
 		},
 		{
