@@ -62,12 +62,11 @@ func TestNetworkInterfaceSetInputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		var bufferSize int = 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = netIntfc.SetInputPort(conn)
@@ -102,12 +101,11 @@ func TestNetworkInterfaceSetOutputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		var bufferSize int = 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = netIntfc.SetOutputPort(conn)
@@ -198,7 +196,7 @@ func TestNetworkInterfaceHandleArrivingFlits(t *testing.T) {
 		pkt := packet.NewPacket("t", "AA", 1, 100, route, 2, zerolog.New(io.Discard))
 		flits := pkt.Flits()
 
-		inConn, err := NewConnection(maxPriority, 1, zerolog.New(io.Discard))
+		inConn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = netIntfc.SetInputPort(inConn)
@@ -342,12 +340,11 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 
 	t.Run("NoFlitsToTransit", func(t *testing.T) {
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = netIntfc.SetOutputPort(conn)
@@ -357,19 +354,18 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("LinkBandwidth1", func(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
 		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		var route domain.Route = domain.Route{src, dst}
 
 		var bufferSize int = 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		buff, err := newBuffer(bufferSize, maxPriority, zerolog.New(io.Discard))
@@ -390,46 +386,5 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 		gotFlit := <-conn.flitChan
 		assert.Equal(t, pkt.Flits()[0].PacketIndex(), gotFlit.PacketIndex())
 		assert.Equal(t, pkt.Flits()[0].Type(), gotFlit.Type())
-	})
-
-	t.Run("LinkBandwidth2", func(t *testing.T) {
-		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
-		var route domain.Route = domain.Route{src, dst}
-
-		var bufferSize int = 2
-		var maxPriority int = 1
-		var linkBandwidth int = bufferSize
-
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, bufferSize, maxPriority, zerolog.New(io.Discard))
-		require.NoError(t, err)
-
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
-		require.NoError(t, err)
-
-		buff, err := newBuffer(bufferSize, maxPriority, zerolog.New(io.Discard))
-		require.NoError(t, err)
-		newInputPort(conn, buff, zerolog.New(io.Discard))
-
-		err = netIntfc.SetOutputPort(conn)
-		require.NoError(t, err)
-
-		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
-
-		err = netIntfc.RoutePacket(0, pkt)
-		require.NoError(t, err)
-
-		err = netIntfc.TransmitPendingPackets(0)
-		require.NoError(t, err)
-
-		require.Len(t, conn.flitChan, linkBandwidth)
-
-		gotFlit1 := <-conn.flitChan
-		assert.Equal(t, pkt.Flits()[0].PacketIndex(), gotFlit1.PacketIndex())
-		assert.Equal(t, pkt.Flits()[0].Type(), gotFlit1.Type())
-
-		gotFlit2 := <-conn.flitChan
-		assert.Equal(t, pkt.Flits()[1].PacketIndex(), gotFlit2.PacketIndex())
-		assert.Equal(t, pkt.Flits()[1].Type(), gotFlit2.Type())
 	})
 }

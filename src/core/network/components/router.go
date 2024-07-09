@@ -125,7 +125,7 @@ func (r *routerImpl) SetNetworkInterface(netIntfc NetworkInterface) error {
 		return domain.ErrNilParameter
 	}
 
-	inConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth, r.logger)
+	inConn, err := NewConnection(r.simConf.MaxPriority, r.logger)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (r *routerImpl) SetNetworkInterface(netIntfc NetworkInterface) error {
 		return err
 	}
 
-	outConn, err := NewConnection(r.simConf.MaxPriority, r.simConf.LinkBandwidth, r.logger)
+	outConn, err := NewConnection(r.simConf.MaxPriority, r.logger)
 	if err != nil {
 		return err
 	}
@@ -169,13 +169,11 @@ func (r *routerImpl) UpdateOutputPortsCredit() error {
 func (r *routerImpl) RouteBufferedFlits(cycle int) error {
 	r.headerFlitsProcessedPerCycle = make(map[string]bool)
 
-	for b := 0; b < r.simConf.LinkBandwidth; b++ {
-		for p := 1; p <= r.simConf.MaxPriority; p++ {
-			for i := 0; i < len(r.inputPorts); i++ {
-				if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
-					if err := r.arbitrateFlit(cycle, i, flit); err != nil {
-						return err
-					}
+	for p := 1; p <= r.simConf.MaxPriority; p++ {
+		for i := 0; i < len(r.inputPorts); i++ {
+			if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
+				if err := r.arbitrateFlit(cycle, i, flit); err != nil {
+					return err
 				}
 			}
 		}

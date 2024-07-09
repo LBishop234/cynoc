@@ -23,7 +23,6 @@ func testRouter(t *testing.T) *routerImpl {
 				BufferSize:      1,
 				MaxPriority:     1,
 				ProcessingDelay: 1,
-				LinkBandwidth:   1,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -42,7 +41,7 @@ type testRouterPair struct {
 	BtoA *connectionImpl
 }
 
-func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority, linkBandwidth int) testRouterPair {
+func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority int) testRouterPair {
 	aPos := domain.NewPosition(0, 0)
 	bPos := domain.NewPosition(1, 0)
 
@@ -56,7 +55,6 @@ func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority, l
 				BufferSize:      bufferSize,
 				ProcessingDelay: processingDelay,
 				MaxPriority:     maxPriority,
-				LinkBandwidth:   linkBandwidth,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -79,7 +77,6 @@ func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority, l
 				BufferSize:      bufferSize,
 				ProcessingDelay: processingDelay,
 				MaxPriority:     maxPriority,
-				LinkBandwidth:   linkBandwidth,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -92,13 +89,13 @@ func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority, l
 	err = rB.SetNetworkInterface(niB)
 	require.NoError(t, err)
 
-	AtoB, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+	AtoB, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	rA.RegisterOutputPort(AtoB)
 	rB.RegisterInputPort(AtoB)
 
-	BtoA, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+	BtoA, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	rB.RegisterOutputPort(BtoA)
@@ -135,7 +132,6 @@ func TestNewRouter(t *testing.T) {
 				BufferSize:      1,
 				ProcessingDelay: 1,
 				MaxPriority:     1,
-				LinkBandwidth:   1,
 			},
 		}
 
@@ -159,7 +155,6 @@ func TestNewRouter(t *testing.T) {
 					BufferSize:      0,
 					ProcessingDelay: 1,
 					MaxPriority:     1,
-					LinkBandwidth:   1,
 				},
 			},
 			zerolog.New(io.Discard).With().Logger(),
@@ -174,7 +169,6 @@ func TestNewRouter(t *testing.T) {
 					BufferSize:      1,
 					ProcessingDelay: 0,
 					MaxPriority:     1,
-					LinkBandwidth:   1,
 				},
 			},
 			zerolog.New(io.Discard).With().Logger(),
@@ -195,7 +189,6 @@ func TestRouterNodeID(t *testing.T) {
 				BufferSize:      1,
 				ProcessingDelay: 1,
 				MaxPriority:     1,
-				LinkBandwidth:   1,
 			},
 		},
 		zerolog.New(io.Discard).With().Logger(),
@@ -211,7 +204,7 @@ func TestRouterRegisterInputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(router.simConf.MaxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.RegisterInputPort(conn)
@@ -231,7 +224,7 @@ func TestRouterRegisterInputPort(t *testing.T) {
 
 		router.simConf.BufferSize = 0
 
-		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(router.simConf.MaxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.RegisterInputPort(conn)
@@ -245,7 +238,7 @@ func TestRouterRegisterOutputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(router.simConf.MaxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.RegisterOutputPort(conn)
@@ -267,7 +260,7 @@ func TestRouterUpdateOutputMap(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		conn1, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
+		conn1, err := NewConnection(router.simConf.MaxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 		port1, err := newOutputPort(conn1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
@@ -275,7 +268,7 @@ func TestRouterUpdateOutputMap(t *testing.T) {
 		conn1.SetDstRouter(nodeID1)
 		router.outputPorts = append(router.outputPorts, port1)
 
-		conn2, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
+		conn2, err := NewConnection(router.simConf.MaxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 		port2, err := newOutputPort(conn2, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
@@ -343,7 +336,7 @@ func TestRouterUpdateOutputPortsCredit(t *testing.T) {
 
 	router := testRouter(t)
 
-	conn, err := NewConnection(router.simConf.MaxPriority, router.simConf.LinkBandwidth, zerolog.New(io.Discard))
+	conn, err := NewConnection(router.simConf.MaxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 	router.RegisterOutputPort(conn)
 
@@ -357,7 +350,7 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1)
 
 		pkt := packet.NewPacket("t", "AA", 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, 10, zerolog.New(io.Discard))
 
@@ -391,7 +384,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1)
 
 		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, zerolog.New(io.Discard))
 		testRouterPair.AtoB.flitChannel() <- flit
@@ -405,7 +398,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	})
 
 	t.Run("ReadIntoBufferError", func(t *testing.T) {
-		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1)
 
 		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, zerolog.New(io.Discard))
 		testRouterPair.AtoB.flitChannel() <- flit

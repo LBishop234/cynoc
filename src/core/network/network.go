@@ -141,7 +141,7 @@ func buildNetwork(top *topology.Topology, conf domain.SimConfig, logger zerolog.
 			return nil, domain.ErrInvalidTopology
 		}
 
-		aToB, err := components.NewConnection(conf.MaxPriority, conf.LinkBandwidth, logger)
+		aToB, err := components.NewConnection(conf.MaxPriority, logger)
 		if err != nil {
 			logger.Error().Err(err).Str("id", edge.ID()).Msg("error creating connection")
 			return nil, err
@@ -155,7 +155,7 @@ func buildNetwork(top *topology.Topology, conf domain.SimConfig, logger zerolog.
 			return nil, err
 		}
 
-		bToA, err := components.NewConnection(conf.MaxPriority, conf.LinkBandwidth, logger)
+		bToA, err := components.NewConnection(conf.MaxPriority, logger)
 		if err != nil {
 			logger.Error().Err(err).Str("id", edge.ID()).Msg("error creating connection")
 			return nil, err

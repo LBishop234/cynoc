@@ -54,7 +54,7 @@ tasks:
     deps:
       - build
     cmds:
-      - ./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -debug
+      - ./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -log
 
   demo-2:
     dir: .

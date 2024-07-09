@@ -1,7 +1,6 @@
 package components
 
 import (
-	"fmt"
 	"io"
 	"testing"
 
@@ -13,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testInputPort(t *testing.T, bufferSize, maxPriority, linkBandwidth int) *inputPortImpl {
-	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+func testInputPort(t *testing.T, bufferSize, maxPriority int) *inputPortImpl {
+	conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 	buff, err := newBuffer(bufferSize, 1, zerolog.New(io.Discard))
 	require.NoError(t, err)
@@ -29,8 +28,8 @@ func testInputPort(t *testing.T, bufferSize, maxPriority, linkBandwidth int) *in
 	return port
 }
 
-func testOutputPort(t *testing.T, maxPriority, linkBandwidth int) *outputPortImpl {
-	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+func testOutputPort(t *testing.T, maxPriority int) *outputPortImpl {
+	conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	port, err := newOutputPort(conn, maxPriority, zerolog.New(io.Discard))
@@ -43,7 +42,7 @@ func TestNewInputPort(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ImplementsInterface", func(t *testing.T) {
-		port := testInputPort(t, 1, 1, 1)
+		port := testInputPort(t, 1, 1)
 
 		assert.Implements(t, (*inputPort)(nil), port)
 	})
@@ -51,12 +50,11 @@ func TestNewInputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		var bufferSize int = 32
 		var maxPriority int = 4
-		var linkBandwidth int = 4
 
 		buff, err := newBuffer(bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		port, err := newInputPort(conn, buff, zerolog.New(io.Discard))
@@ -76,9 +74,8 @@ func TestNewInputPort(t *testing.T) {
 
 	t.Run("NilBuffer", func(t *testing.T) {
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		_, err = newInputPort(conn, nil, zerolog.New(io.Discard))
@@ -90,7 +87,7 @@ func TestNewOutputPort(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ValidInterface", func(t *testing.T) {
-		port := testOutputPort(t, 1, 1)
+		port := testOutputPort(t, 1)
 
 		assert.Implements(t, (*outputPort)(nil), port)
 	})
@@ -98,9 +95,8 @@ func TestNewOutputPort(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		var priority int = 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
-		conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		outputPort, err := newOutputPort(conn, priority, zerolog.New(io.Discard))
@@ -119,9 +115,8 @@ func TestInputPortConnection(t *testing.T) {
 	t.Parallel()
 
 	var maxPriority int = 1
-	var linkBandwidth int = 1
 
-	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+	conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 	buff, err := newBuffer(1, 1, zerolog.New(io.Discard))
 	require.NoError(t, err)
@@ -138,32 +133,26 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 		var packetID string = "AA"
 		var bufferSize int = 3
 		var maxPriority int = 1
-		var linkBandwidth int = 3
+		var flitPriority int = 1
 
-		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
+		port := testInputPort(t, bufferSize, maxPriority)
 
-		flits := make([]packet.Flit, linkBandwidth)
-		for i := 0; i < linkBandwidth; i++ {
-			flits[i] = packet.NewHeaderFlit(fmt.Sprintf("t%d", i), packetID, 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
-			port.conn.flitChannel() <- flits[i]
-		}
+		flit := packet.NewHeaderFlit("t0", packetID, 0, flitPriority, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		port.conn.flitChannel() <- flit
 
 		err := port.readIntoBuffer(0)
 		require.NoError(t, err)
 
-		for i := 0; i < linkBandwidth; i++ {
-			gotFlit, exists := port.buff.popFlit(flits[i].Priority())
-			assert.True(t, exists)
-			assert.Equal(t, flits[i], gotFlit)
-		}
+		gotFlit, exists := port.buff.popFlit(flitPriority)
+		assert.True(t, exists)
+		assert.Equal(t, flit, gotFlit)
 	})
 
 	t.Run("NoFlitInChannel", func(t *testing.T) {
 		bufferSize := 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
-		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
+		port := testInputPort(t, bufferSize, maxPriority)
 
 		err := port.readIntoBuffer(0)
 		require.NoError(t, err)
@@ -172,9 +161,8 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 	t.Run("FullBuffer", func(t *testing.T) {
 		bufferSize := 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
-		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
+		port := testInputPort(t, bufferSize, maxPriority)
 
 		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
 
@@ -194,9 +182,8 @@ func TestInputPortPeakBuffer(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		bufferSize := 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
-		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
+		port := testInputPort(t, bufferSize, maxPriority)
 
 		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}, domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
 		port.buff.addFlit(flit)
@@ -209,9 +196,8 @@ func TestInputPortPeakBuffer(t *testing.T) {
 	t.Run("EmptyBuffer", func(t *testing.T) {
 		bufferSize := 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
-		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
+		port := testInputPort(t, bufferSize, maxPriority)
 
 		flit, exists := port.peakBuffer(1)
 		assert.False(t, exists)
@@ -223,32 +209,26 @@ func TestInputPortReadOutOfBuffer(t *testing.T) {
 	t.Parallel()
 
 	t.Run("FlitInBuffer", func(t *testing.T) {
-		bufferSize := 3
+		var bufferSize int = 3
 		var maxPriority int = 1
-		var linkBandwidth int = 3
+		var flitPriority int = 1
 
-		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
+		port := testInputPort(t, bufferSize, maxPriority)
 
-		flits := make([]packet.Flit, linkBandwidth)
-		for i := 0; i < linkBandwidth; i++ {
-			flits[i] = packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
-			port.buff.addFlit(flits[i])
-		}
+		flit := packet.NewHeaderFlit("t", "AA", 0, flitPriority, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		port.buff.addFlit(flit)
 
-		for i := 0; i < linkBandwidth; i++ {
-			gotFlit, exists := port.readOutOfBuffer(0, flits[i].Priority())
-			assert.True(t, exists)
-			assert.Equal(t, flits[i], gotFlit)
-			assert.Equal(t, 1, <-port.conn.creditChannel(flits[i].Priority()))
-		}
+		gotFlit, exists := port.readOutOfBuffer(0, flitPriority)
+		assert.True(t, exists)
+		assert.Equal(t, flit, gotFlit)
+		assert.Equal(t, 1, <-port.conn.creditChannel(flit.Priority()))
 	})
 
 	t.Run("NoFlitInBuffer", func(t *testing.T) {
-		bufferSize := 1
+		var bufferSize int = 1
 		var maxPriority int = 1
-		var linkBandwidth int = 1
 
-		port := testInputPort(t, bufferSize, maxPriority, linkBandwidth)
+		port := testInputPort(t, bufferSize, maxPriority)
 
 		gotFlit, exists := port.readOutOfBuffer(0, 1)
 		assert.False(t, exists)
@@ -260,9 +240,8 @@ func TestOutputPortConnection(t *testing.T) {
 	t.Parallel()
 
 	var maxPriority int = 1
-	var linkBandwidth int = 1
 
-	conn, err := NewConnection(maxPriority, linkBandwidth, zerolog.New(io.Discard))
+	conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 	port, err := newOutputPort(conn, 1, zerolog.New(io.Discard))
 	require.NoError(t, err)
@@ -275,41 +254,22 @@ func TestOutputPortAllowedToSend(t *testing.T) {
 
 	t.Run("Allowed", func(t *testing.T) {
 		var priority int = 1
-		var linkBandwidth int = 3
 
-		port := testOutputPort(t, priority, linkBandwidth)
+		port := testOutputPort(t, priority)
 
-		port.credits[priority] = linkBandwidth
+		port.credits[priority] = 1
 
-		for i := 0; i < linkBandwidth; i++ {
-			assert.True(t, port.allowedToSend(priority))
-			port.credits[priority]--
-			port.conn.flitChannel() <- packet.NewTailFlit("t", "AA", 2, priority, zerolog.New(io.Discard))
-		}
+		assert.True(t, port.allowedToSend(priority))
+		port.credits[priority]--
+		port.conn.flitChannel() <- packet.NewTailFlit("t", "AA", 2, priority, zerolog.New(io.Discard))
 	})
 
 	t.Run("NotAllowedLackingCredits", func(t *testing.T) {
 		var priority int = 1
-		var linkBandwidth int = 1
 
-		port := testOutputPort(t, priority, linkBandwidth)
+		port := testOutputPort(t, priority)
 
 		port.credits[priority] = 0
-
-		assert.False(t, port.allowedToSend(priority))
-	})
-
-	t.Run("NotAllowedReachedBandwidth", func(t *testing.T) {
-		var priority int = 1
-		var linkBandwidth int = 1
-
-		port := testOutputPort(t, priority, linkBandwidth)
-
-		port.credits[priority] = linkBandwidth + 1
-
-		for i := 0; i < linkBandwidth; i++ {
-			port.conn.flitChannel() <- packet.NewTailFlit("t", "AA", 2, priority, zerolog.New(io.Discard))
-		}
 
 		assert.False(t, port.allowedToSend(priority))
 	})
@@ -320,12 +280,11 @@ func TestOutputPortSendFlit(t *testing.T) {
 
 	t.Run("AllowedToSend", func(t *testing.T) {
 		var priority int = 1
-		var linkBandwidth int = 3
 
-		port := testOutputPort(t, priority, linkBandwidth)
+		port := testOutputPort(t, priority)
 
 		for i := 0; i < priority; i++ {
-			port.credits[i] = linkBandwidth
+			port.credits[i] = 1
 		}
 
 		for i := 0; i < priority; i++ {
@@ -333,16 +292,15 @@ func TestOutputPortSendFlit(t *testing.T) {
 
 			err := port.sendFlit(0, flit)
 			require.NoError(t, err)
-			assert.Equal(t, linkBandwidth-1, port.credits[i])
+			assert.Equal(t, 0, port.credits[i])
 			assert.Equal(t, flit, <-port.conn.flitChannel())
 		}
 	})
 
 	t.Run("NotAllowedToSend", func(t *testing.T) {
 		var priority int = 1
-		var linkBandwidth int = 1
 
-		port := testOutputPort(t, priority, linkBandwidth)
+		port := testOutputPort(t, priority)
 
 		port.credits[priority] = 0
 
@@ -358,9 +316,8 @@ func TestOutputPortUpdateCredits(t *testing.T) {
 	t.Run("PendingCredits", func(t *testing.T) {
 		var credits int = 3
 		var priority int = 1
-		var linkBandwidth int = 3
 
-		port := testOutputPort(t, priority, linkBandwidth)
+		port := testOutputPort(t, priority)
 
 		for i := 0; i < credits; i++ {
 			port.conn.creditChannel(priority) <- 1

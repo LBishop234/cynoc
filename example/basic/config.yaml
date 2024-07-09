@@ -2,4 +2,3 @@ cycle_limit: 160000
 max_priority: 10
 buffer_size: 20
 processing_delay: 6
-link_bandwidth: 1

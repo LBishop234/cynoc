@@ -41,7 +41,6 @@ func TestReadConfig(t *testing.T) {
 				CycleLimit:      1000,
 				MaxPriority:     6,
 				BufferSize:      24,
-				LinkBandwidth:   2,
 				ProcessingDelay: 6,
 			},
 		},
@@ -89,26 +88,6 @@ func TestReadConfig(t *testing.T) {
 			err:      ErrInvalidProcessingDelay,
 			overrides: map[string]any{
 				"processing_delay": 0,
-			},
-		},
-		{
-			name:     "invalid_link_bandwidth_zero",
-			baseFile: "valid_basic.yaml",
-			enabled:  true,
-			err:      ErrInvalidLinkBandwidth,
-			overrides: map[string]any{
-				"link_bandwidth": 0,
-			},
-		},
-		{
-			name:     "invalid_link_bandwidth_greater_than_half_virtual_channel_size",
-			baseFile: "valid_basic.yaml",
-			enabled:  true,
-			err:      ErrInvalidLinkBandwidth,
-			overrides: map[string]any{
-				"buffer_size":    12,
-				"max_priority":   6,
-				"link_bandwidth": 2,
 			},
 		},
 	}
