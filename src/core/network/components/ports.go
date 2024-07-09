@@ -86,9 +86,9 @@ func (i *inputPortImpl) readIntoBuffer(cycle int) (err error) {
 			return err
 		}
 
-		i.logger.Trace().
+		i.logger.Debug().
 			Int("cycle", cycle).Str("flit", flit.ID()).Str("type", flit.Type().String()).
-			Msg("flit read into buffer")
+			Msg("flit arrived at component")
 	}
 	return nil
 }

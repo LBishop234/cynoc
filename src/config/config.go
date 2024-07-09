@@ -89,9 +89,9 @@ func validate(conf domain.SimConfig) error {
 		return err
 	}
 
-	if conf.LinkBandwidth > (conf.BufferSize / conf.MaxPriority) {
+	if 2*conf.LinkBandwidth > (conf.BufferSize / conf.MaxPriority) {
 		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
-		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("link bandwidth must be less than or equal to virtual channel size")
+		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("link bandwidth must be less then or equal to half virtual channel size, to prevent back-pressure violating Shi & Burns analysis")
 		return err
 	}
 

@@ -169,8 +169,8 @@ func (r *routerImpl) UpdateOutputPortsCredit() error {
 func (r *routerImpl) RouteBufferedFlits(cycle int) error {
 	r.headerFlitsProcessedPerCycle = make(map[string]bool)
 
-	for p := 1; p <= r.simConf.MaxPriority; p++ {
-		for b := 0; b < r.simConf.LinkBandwidth; b++ {
+	for b := 0; b < r.simConf.LinkBandwidth; b++ {
+		for p := 1; p <= r.simConf.MaxPriority; p++ {
 			for i := 0; i < len(r.inputPorts); i++ {
 				if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
 					if err := r.arbitrateFlit(cycle, i, flit); err != nil {

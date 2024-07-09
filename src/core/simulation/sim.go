@@ -121,7 +121,7 @@ func (s *simulator) runSimulation(ctx context.Context) (time.Duration, *Records,
 				s.logger.Info().Int("cycle", c).Int("limit", s.cycleLimit).Msg("simulation progress")
 			}
 
-			s.logger.Trace().Int("cycle", c).Msg("cycle completed")
+			s.logger.Debug().Int("cycle", c).Msg("cycle completed")
 		}
 	}
 

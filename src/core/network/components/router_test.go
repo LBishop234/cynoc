@@ -2,10 +2,9 @@ package components
 
 import (
 	"io"
-	"testing"
-
 	"main/src/domain"
 	"main/src/traffic/packet"
+	"testing"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"

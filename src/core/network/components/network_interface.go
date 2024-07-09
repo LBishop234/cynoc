@@ -154,7 +154,7 @@ func (n *networkInterfaceImpl) HandleArrivingFlits(cycle int) error {
 
 				logger.Trace().
 					Str("flit", flit.ID()).Str("type", flit.Type().String()).
-					Msg("flit arrived at network interface")
+					Msg("flit received at network interface")
 			}
 		}
 	}
