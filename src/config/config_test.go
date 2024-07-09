@@ -79,7 +79,6 @@ func TestReadConfig(t *testing.T) {
 			err:      ErrInvalidBufferSize,
 			overrides: map[string]any{
 				"max_priority": 3,
-				"flit_size":    2,
 				"buffer_size":  8,
 			},
 		},
