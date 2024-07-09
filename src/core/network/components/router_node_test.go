@@ -24,7 +24,6 @@ func TestNewRouterNode(t *testing.T) {
 				BufferSize:      16,
 				MaxPriority:     4,
 				ProcessingDelay: 5,
-				LinkBandwidth:   1,
 			},
 		}
 
@@ -45,7 +44,6 @@ func TestNewRouterNode(t *testing.T) {
 				BufferSize:      -1,
 				MaxPriority:     3,
 				ProcessingDelay: 5,
-				LinkBandwidth:   1,
 			},
 		}
 

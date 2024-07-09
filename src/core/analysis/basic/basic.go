@@ -1,18 +1,12 @@
 package basic
 
 import (
-	"math"
-
 	"main/src/core/analysis/util"
 	"main/src/domain"
 )
 
 func BasicLatency(conf domain.SimConfig, tfr util.TrafficFlowAndRoute) int {
 	noFlits := tfr.PacketSize + util.NoAdditionalFlits
-
-	transmission := float64(noFlits) / float64(conf.LinkBandwidth)
-
-	headerProcessing := len(tfr.Route) * conf.ProcessingDelay
-
-	return int(math.Round(transmission)) + headerProcessing
+	processingDelay := len(tfr.Route) * conf.ProcessingDelay
+	return noFlits + processingDelay
 }

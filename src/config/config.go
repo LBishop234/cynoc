@@ -18,7 +18,6 @@ var (
 	ErrInvalidMaxPriority     = errors.New("invalid max priority")
 	ErrInvalidBufferSize      = errors.New("invalid buffer size")
 	ErrInvalidProcessingDelay = errors.New("invalid processing delay")
-	ErrInvalidLinkBandwidth   = errors.New("invalid link bandwidth")
 )
 
 func ReadConfig(fPath string) (domain.SimConfig, error) {
@@ -80,18 +79,6 @@ func validate(conf domain.SimConfig) error {
 	if conf.ProcessingDelay < 1 {
 		err := errors.Join(ErrInvalidConfig, ErrInvalidProcessingDelay)
 		log.Log.Error().Err(err).Int("processing_delay", conf.ProcessingDelay).Msg("processing delay must be greater than 0")
-		return err
-	}
-
-	if conf.LinkBandwidth < 1 {
-		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
-		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Msg("link bandwidth must be greater than 0")
-		return err
-	}
-
-	if 2*conf.LinkBandwidth > (conf.BufferSize / conf.MaxPriority) {
-		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
-		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("link bandwidth must be less then or equal to half virtual channel size, to prevent back-pressure violating Shi & Burns analysis")
 		return err
 	}
 

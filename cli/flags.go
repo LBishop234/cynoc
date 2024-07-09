@@ -126,7 +126,6 @@ const (
 	overideMaxPriorityFlag = "max_priority"
 	overrideBufferSizeFlag = "buffer_size"
 	processingDelayFlag    = "processing_delay"
-	linkBandwidthFlag      = "link_bandwidth"
 )
 
 func ConfigOverridesArgs(app *cli.App) {
@@ -163,13 +162,6 @@ func ConfigOverridesArgs(app *cli.App) {
 			Category:    category,
 			DefaultText: "no-op when unset",
 		},
-		&cli.IntFlag{
-			Name:        linkBandwidthFlag,
-			Aliases:     []string{"lb"},
-			Usage:       fmt.Sprintf(usageBaseStr, linkBandwidthFlag),
-			Category:    category,
-			DefaultText: "no-op when unset",
-		},
 	)
 }
 
@@ -186,10 +178,6 @@ func ApplyConfigOverrides(ctx *cli.Context, conf domain.SimConfig) domain.SimCon
 	if ctx.IsSet(processingDelayFlag) {
 		conf.ProcessingDelay = ctx.Int(processingDelayFlag)
 	}
-	if ctx.IsSet(linkBandwidthFlag) {
-		conf.LinkBandwidth = ctx.Int(linkBandwidthFlag)
-	}
-
 	return conf
 }
 

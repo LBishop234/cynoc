@@ -11,7 +11,6 @@ type Connection interface {
 	flitChannel() chan packet.Flit
 	creditChannels() map[int]chan int
 	creditChannel(priority int) chan int
-	flitBandwidth() int
 
 	GetDstRouter() domain.NodeID
 	SetDstRouter(nodeID domain.NodeID)
@@ -25,21 +24,19 @@ type connectionImpl struct {
 	creditChan map[int]chan int
 	destRouter domain.NodeID
 	srcRouter  domain.NodeID
-	bandwidth  int
 	logger     zerolog.Logger
 }
 
-func NewConnection(maxPriority, bandwidth int, logger zerolog.Logger) (*connectionImpl, error) {
+func NewConnection(maxPriority int, logger zerolog.Logger) (*connectionImpl, error) {
 	creditChan := make(map[int]chan int, maxPriority)
 	for i := 1; i <= maxPriority; i++ {
-		creditChan[i] = make(chan int, bandwidth)
+		creditChan[i] = make(chan int, 1)
 	}
 
-	logger.Trace().Int("credit_channels", maxPriority).Int("flit_bandwidth", bandwidth).Msg("new connection")
+	logger.Trace().Int("credit_channels", maxPriority).Msg("new connection")
 	return &connectionImpl{
-		flitChan:   make(chan packet.Flit, bandwidth),
+		flitChan:   make(chan packet.Flit, 1),
 		creditChan: creditChan,
-		bandwidth:  bandwidth,
 		logger:     logger.With().Logger(),
 	}, nil
 }
@@ -58,10 +55,6 @@ func (c *connectionImpl) creditChannel(priority int) chan int {
 	}
 
 	return c.creditChan[priority]
-}
-
-func (c *connectionImpl) flitBandwidth() int {
-	return c.bandwidth
 }
 
 func (c *connectionImpl) GetDstRouter() domain.NodeID {

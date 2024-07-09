@@ -22,42 +22,30 @@ var (
 		MaxPriority:     1,
 		BufferSize:      2,
 		ProcessingDelay: 3,
-		LinkBandwidth:   1,
 	}
 
 	TwoPriorityConfig = domain.SimConfig{
 		MaxPriority:     2,
 		BufferSize:      4,
 		ProcessingDelay: 3,
-		LinkBandwidth:   1,
-	}
-
-	TwoPriorityConfig2LinkBandwidth = domain.SimConfig{
-		MaxPriority:     2,
-		BufferSize:      4,
-		ProcessingDelay: 3,
-		LinkBandwidth:   2,
 	}
 
 	FourPriorityConfig = domain.SimConfig{
 		MaxPriority:     4,
 		BufferSize:      8,
 		ProcessingDelay: 6,
-		LinkBandwidth:   1,
 	}
 
 	TenPriorityConfig = domain.SimConfig{
 		MaxPriority:     10,
 		BufferSize:      20,
 		ProcessingDelay: 6,
-		LinkBandwidth:   1,
 	}
 
 	TwentyPriorityConfig = domain.SimConfig{
 		MaxPriority:     20,
 		BufferSize:      40,
 		ProcessingDelay: 6,
-		LinkBandwidth:   1,
 	}
 )
 
@@ -92,32 +80,6 @@ var templateTestCases = map[string]templateTestCase{
 		cycles:       1000,
 		topologyFunc: topology.ThreeHorozontalLine,
 		networkConf:  TwoPriorityConfig,
-		traffic: []domain.TrafficFlowConfig{
-			{
-				ID:         "t1",
-				Priority:   1,
-				Period:     50,
-				Deadline:   50,
-				Jitter:     0,
-				PacketSize: 2,
-				Route:      "[n0,n1,n2]",
-			},
-			{
-				ID:         "t2",
-				Priority:   2,
-				Period:     math.MaxInt,
-				Deadline:   math.MaxInt,
-				Jitter:     0,
-				PacketSize: 2,
-				Route:      "[n0,n1,n2]",
-			},
-		},
-	},
-	"3hLineTwoPkts2LinkBandwidth": {
-		templateRun:  true,
-		cycles:       1000,
-		topologyFunc: topology.ThreeHorozontalLine,
-		networkConf:  TwoPriorityConfig2LinkBandwidth,
 		traffic: []domain.TrafficFlowConfig{
 			{
 				ID:         "t1",
@@ -537,20 +499,6 @@ func TestRunSimulation(t *testing.T) {
 				{
 					trafficFlowID: "t2",
 					cycle:         16,
-				},
-			},
-		},
-		"3hLineTwoPkts2LinkBandwidth": {
-			run:              true,
-			templateTestCase: templateTestCases["3hLineTwoPkts2LinkBandwidth"],
-			expected: []expectedPkts{
-				{
-					trafficFlowID: "t1",
-					cycle:         11,
-				},
-				{
-					trafficFlowID: "t2",
-					cycle:         12,
 				},
 			},
 		},

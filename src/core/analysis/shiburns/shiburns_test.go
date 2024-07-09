@@ -126,7 +126,6 @@ func TestShiBurns(t *testing.T) {
 				MaxPriority:     5,
 				BufferSize:      25,
 				ProcessingDelay: 6,
-				LinkBandwidth:   1,
 			},
 			tfs: map[string]tfStruct{
 				"t1": {

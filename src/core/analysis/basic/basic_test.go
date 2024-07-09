@@ -26,7 +26,6 @@ func TestBasicLatency(t *testing.T) {
 		{
 			conf: domain.SimConfig{
 				ProcessingDelay: 6,
-				LinkBandwidth:   1,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -39,7 +38,6 @@ func TestBasicLatency(t *testing.T) {
 		{
 			conf: domain.SimConfig{
 				ProcessingDelay: 3,
-				LinkBandwidth:   1,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -52,7 +50,6 @@ func TestBasicLatency(t *testing.T) {
 		{
 			conf: domain.SimConfig{
 				ProcessingDelay: 6,
-				LinkBandwidth:   1,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
@@ -65,7 +62,6 @@ func TestBasicLatency(t *testing.T) {
 		{
 			conf: domain.SimConfig{
 				ProcessingDelay: 6,
-				LinkBandwidth:   1,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
@@ -78,7 +74,6 @@ func TestBasicLatency(t *testing.T) {
 		{
 			conf: domain.SimConfig{
 				ProcessingDelay: 6,
-				LinkBandwidth:   2,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -86,12 +81,11 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 4,
 				Route:      "[n0,n1,n2]",
 			},
-			expected: 21,
+			expected: 24,
 		},
 		{
 			conf: domain.SimConfig{
 				ProcessingDelay: 3,
-				LinkBandwidth:   3,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
@@ -99,7 +93,7 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 12,
 				Route:      "[n0,n1,n2]",
 			},
-			expected: 14,
+			expected: 23,
 		},
 	}
 
