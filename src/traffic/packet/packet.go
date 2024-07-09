@@ -3,7 +3,6 @@ package packet
 import (
 	"errors"
 	"fmt"
-	"math"
 
 	"main/src/domain"
 
@@ -27,7 +26,7 @@ type Packet interface {
 	Deadline() int
 	Route() domain.Route
 	BodySize() int
-	Flits(flitSize int) []Flit
+	Flits() []Flit
 }
 
 type packet struct {
@@ -91,12 +90,12 @@ func (p *packet) BodySize() int {
 	return p.bodySize
 }
 
-func (p *packet) Flits(flitSize int) []Flit {
-	flits := make([]Flit, 1+p.bodyFlitCount(flitSize)+1)
+func (p *packet) Flits() []Flit {
+	flits := make([]Flit, 1+p.bodySize+1)
 
 	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.PacketIndex(), 0, p.priority, p.deadline, p.route, p.logger)
 
-	bodyFlits := p.bodyFlits(flitSize)
+	bodyFlits := p.bodyFlits()
 	for i := 0; i < len(bodyFlits); i++ {
 		flits[i+1] = bodyFlits[i]
 	}
@@ -106,21 +105,13 @@ func (p *packet) Flits(flitSize int) []Flit {
 	return flits
 }
 
-func (p *packet) bodyFlits(flitSize int) []BodyFlit {
-	bodyFlits := make([]BodyFlit, p.bodyFlitCount(flitSize))
-	for i := 0; i < p.bodyFlitCount(flitSize); i++ {
-		if (i+1)*flitSize < p.bodySize {
-			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketIndex(), i+1, p.priority, flitSize, p.logger)
-		} else {
-			bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketIndex(), i+1, p.priority, p.bodySize-(i*flitSize), p.logger)
-		}
+func (p *packet) bodyFlits() []BodyFlit {
+	bodyFlits := make([]BodyFlit, p.bodySize)
+	for i := 0; i < p.bodySize; i++ {
+		bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketIndex(), i+1, p.priority, p.logger)
 	}
 
 	return bodyFlits
-}
-
-func (p *packet) bodyFlitCount(flitSize int) int {
-	return int(math.Ceil(float64(p.bodySize) / float64(flitSize)))
 }
 
 func EqualPackets(pkt1, pkt2 Packet) error {

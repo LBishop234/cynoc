@@ -71,18 +71,13 @@ func (r *reconstructor) Reconstruct() (Packet, error) {
 		return nil, domain.ErrFlitUnset
 	}
 
-	bodySize := 0
-	for i := 0; i < len(r.bodyFlits); i++ {
-		bodySize += r.bodyFlits[i].DataSize()
-	}
-
 	pkt := NewPacket(
 		r.headerFlit.TrafficFlowID(),
 		r.headerFlit.PacketIndex(),
 		r.headerFlit.Priority(),
 		r.headerFlit.Deadline(),
 		r.headerFlit.Route(),
-		bodySize,
+		len(r.bodyFlits),
 		// Reconstructed packets should only be used for records purposes, so the logger can be discarded.
 		zerolog.New(io.Discard),
 	)

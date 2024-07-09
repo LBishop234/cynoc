@@ -16,7 +16,6 @@ var (
 	ErrInvalidConfig          = errors.New("invalid config")
 	ErrInvalidCycleLimit      = errors.New("invalid cycle limit")
 	ErrInvalidMaxPriority     = errors.New("invalid max priority")
-	ErrInvalidFlitSize        = errors.New("invalid flit size")
 	ErrInvalidBufferSize      = errors.New("invalid buffer size")
 	ErrInvalidProcessingDelay = errors.New("invalid processing delay")
 	ErrInvalidLinkBandwidth   = errors.New("invalid link bandwidth")
@@ -60,12 +59,6 @@ func validate(conf domain.SimConfig) error {
 		return err
 	}
 
-	if conf.FlitSize < 1 {
-		err := errors.Join(ErrInvalidConfig, ErrInvalidFlitSize)
-		log.Log.Error().Err(err).Int("flit_size", conf.FlitSize).Msg("flit size must be greater than 0")
-		return err
-	}
-
 	if conf.BufferSize < 1 {
 		err := errors.Join(ErrInvalidConfig, ErrInvalidBufferSize)
 		log.Log.Error().Err(err).Int("buffer_size", conf.BufferSize).Msg("buffer size must be greater than 0")
@@ -78,9 +71,9 @@ func validate(conf domain.SimConfig) error {
 		return err
 	}
 
-	if conf.BufferSize%conf.FlitSize != 0 {
+	if conf.BufferSize < 1 {
 		err := errors.Join(ErrInvalidConfig, ErrInvalidBufferSize)
-		log.Log.Error().Err(err).Int("buffer_size", conf.BufferSize).Int("flit_size", conf.FlitSize).Msg("buffer size must be a multiple of flit size")
+		log.Log.Error().Err(err).Int("buffer_size", conf.BufferSize).Msg("buffer size must be greater than 0")
 		return err
 	}
 
@@ -96,15 +89,9 @@ func validate(conf domain.SimConfig) error {
 		return err
 	}
 
-	if conf.LinkBandwidth%conf.FlitSize != 0 {
+	if 2*conf.LinkBandwidth > (conf.BufferSize / conf.MaxPriority) {
 		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
-		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("flit_size", conf.FlitSize).Msg("link bandwidth must be a multiple of flit size")
-		return err
-	}
-
-	if conf.LinkBandwidth > (conf.BufferSize / conf.MaxPriority) {
-		err := errors.Join(ErrInvalidConfig, ErrInvalidLinkBandwidth)
-		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("link bandwidth must be less then or equal to the size of a virtual channel")
+		log.Log.Error().Err(err).Int("link_bandwidth", conf.LinkBandwidth).Int("buffer_size", conf.BufferSize).Int("max_priority", conf.MaxPriority).Msg("link bandwidth must be less then or equal to half virtual channel size, to prevent back-pressure violating Shi & Burns analysis")
 		return err
 	}
 

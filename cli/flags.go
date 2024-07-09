@@ -125,13 +125,13 @@ const (
 	overrideCyclesFlag     = "cycle_limit"
 	overideMaxPriorityFlag = "max_priority"
 	overrideBufferSizeFlag = "buffer_size"
-	overrideFlitSizeFlag   = "flit_size"
 	processingDelayFlag    = "processing_delay"
+	linkBandwidthFlag      = "link_bandwidth"
 )
 
 func ConfigOverridesArgs(app *cli.App) {
 	const category = "Configuration Overrides"
-	const usageBaseStr = "override %s configuration file value with `VALUE`"
+	const usageBaseStr = "override %s's configuration file value with `VALUE`"
 
 	app.Flags = append(
 		app.Flags,
@@ -157,16 +157,16 @@ func ConfigOverridesArgs(app *cli.App) {
 			DefaultText: "no-op when unset",
 		},
 		&cli.IntFlag{
-			Name:        overrideFlitSizeFlag,
-			Aliases:     []string{"fs"},
-			Usage:       fmt.Sprintf(usageBaseStr, overrideFlitSizeFlag),
+			Name:        processingDelayFlag,
+			Aliases:     []string{"pd"},
+			Usage:       fmt.Sprintf(usageBaseStr, processingDelayFlag),
 			Category:    category,
 			DefaultText: "no-op when unset",
 		},
 		&cli.IntFlag{
-			Name:        processingDelayFlag,
-			Aliases:     []string{"pd"},
-			Usage:       fmt.Sprintf(usageBaseStr, processingDelayFlag),
+			Name:        linkBandwidthFlag,
+			Aliases:     []string{"lb"},
+			Usage:       fmt.Sprintf(usageBaseStr, linkBandwidthFlag),
 			Category:    category,
 			DefaultText: "no-op when unset",
 		},
@@ -183,11 +183,11 @@ func ApplyConfigOverrides(ctx *cli.Context, conf domain.SimConfig) domain.SimCon
 	if ctx.IsSet(overrideBufferSizeFlag) {
 		conf.BufferSize = ctx.Int(overrideBufferSizeFlag)
 	}
-	if ctx.IsSet(overrideFlitSizeFlag) {
-		conf.FlitSize = ctx.Int(overrideFlitSizeFlag)
-	}
 	if ctx.IsSet(processingDelayFlag) {
 		conf.ProcessingDelay = ctx.Int(processingDelayFlag)
+	}
+	if ctx.IsSet(linkBandwidthFlag) {
+		conf.LinkBandwidth = ctx.Int(linkBandwidthFlag)
 	}
 
 	return conf

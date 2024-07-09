@@ -21,7 +21,6 @@ func testRouter(t *testing.T) *routerImpl {
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      1,
-				FlitSize:        1,
 				MaxPriority:     1,
 				ProcessingDelay: 1,
 				LinkBandwidth:   1,
@@ -43,7 +42,7 @@ type testRouterPair struct {
 	BtoA *connectionImpl
 }
 
-func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxPriority, linkBandwidth int) testRouterPair {
+func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority, linkBandwidth int) testRouterPair {
 	aPos := domain.NewPosition(0, 0)
 	bPos := domain.NewPosition(1, 0)
 
@@ -55,7 +54,6 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      bufferSize,
-				FlitSize:        flitSize,
 				ProcessingDelay: processingDelay,
 				MaxPriority:     maxPriority,
 				LinkBandwidth:   linkBandwidth,
@@ -65,7 +63,7 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 	)
 	require.NoError(t, err)
 
-	niA, err := newNetworkInterface(domain.NodeID{ID: "i-a", Pos: aPos}, bufferSize, flitSize, flitSize, zerolog.New(io.Discard))
+	niA, err := newNetworkInterface(domain.NodeID{ID: "i-a", Pos: aPos}, bufferSize, maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	err = rA.SetNetworkInterface(niA)
@@ -79,7 +77,6 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      bufferSize,
-				FlitSize:        flitSize,
 				ProcessingDelay: processingDelay,
 				MaxPriority:     maxPriority,
 				LinkBandwidth:   linkBandwidth,
@@ -89,7 +86,7 @@ func newTestRouterPair(t *testing.T, bufferSize, flitSize, processingDelay, maxP
 	)
 	require.NoError(t, err)
 
-	niB, err := newNetworkInterface(domain.NodeID{ID: "i-b", Pos: bPos}, bufferSize, flitSize, flitSize, zerolog.New(io.Discard))
+	niB, err := newNetworkInterface(domain.NodeID{ID: "i-b", Pos: bPos}, bufferSize, maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	err = rB.SetNetworkInterface(niB)
@@ -136,7 +133,6 @@ func TestNewRouter(t *testing.T) {
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      1,
-				FlitSize:        1,
 				ProcessingDelay: 1,
 				MaxPriority:     1,
 				LinkBandwidth:   1,
@@ -161,7 +157,6 @@ func TestNewRouter(t *testing.T) {
 			RouterConfig{
 				SimConfig: domain.SimConfig{
 					BufferSize:      0,
-					FlitSize:        1,
 					ProcessingDelay: 1,
 					MaxPriority:     1,
 					LinkBandwidth:   1,
@@ -177,7 +172,6 @@ func TestNewRouter(t *testing.T) {
 			RouterConfig{
 				SimConfig: domain.SimConfig{
 					BufferSize:      1,
-					FlitSize:        1,
 					ProcessingDelay: 0,
 					MaxPriority:     1,
 					LinkBandwidth:   1,
@@ -199,7 +193,6 @@ func TestRouterNodeID(t *testing.T) {
 			NodeID: nodeID,
 			SimConfig: domain.SimConfig{
 				BufferSize:      1,
-				FlitSize:        1,
 				ProcessingDelay: 1,
 				MaxPriority:     1,
 				LinkBandwidth:   1,
@@ -302,7 +295,7 @@ func TestRouterSetNetworkInterface(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(1, 1)}, 1, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(1, 1)}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.SetNetworkInterface(netIntfc)
@@ -364,33 +357,30 @@ func TestRouterRouteBufferedFlits(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		var flitSize int = 1
-		var cycle int = 0
-
-		testRouterPair := newTestRouterPair(t, 1, flitSize, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
 
 		pkt := packet.NewPacket("t", "AA", 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, 10, zerolog.New(io.Discard))
 
 		err := testRouterPair.niA.RoutePacket(0, pkt)
 		require.NoError(t, err)
 
-		flits := pkt.Flits(flitSize)
+		flits := pkt.Flits()
 		for i := 0; i < len(flits); i++ {
 			err = testRouterPair.rA.UpdateOutputPortsCredit()
 			require.NoError(t, err)
 
-			err = testRouterPair.niA.TransmitPendingPackets(cycle)
+			err = testRouterPair.niA.TransmitPendingPackets(0)
 			require.NoError(t, err)
 
-			err = testRouterPair.rA.ReadFromInputPorts(cycle)
+			err = testRouterPair.rA.ReadFromInputPorts(0)
 			require.NoError(t, err)
 
-			err = testRouterPair.rA.RouteBufferedFlits(cycle)
+			err = testRouterPair.rA.RouteBufferedFlits(0)
 			require.NoError(t, err)
 
 			gotFlit := <-testRouterPair.AtoB.flitChannel()
-			assert.Equal(t, pkt.Flits(flitSize)[i].PacketIndex(), gotFlit.PacketIndex())
-			assert.Equal(t, pkt.Flits(flitSize)[i].Type(), gotFlit.Type())
+			assert.Equal(t, pkt.Flits()[i].PacketIndex(), gotFlit.PacketIndex())
+			assert.Equal(t, pkt.Flits()[i].Type(), gotFlit.Type())
 
 			testRouterPair.AtoB.creditChannel(flits[i].Priority()) <- 1
 		}
@@ -401,7 +391,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
 
 		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, zerolog.New(io.Discard))
 		testRouterPair.AtoB.flitChannel() <- flit
@@ -415,7 +405,7 @@ func TestRouterReadFromInputPorts(t *testing.T) {
 	})
 
 	t.Run("ReadIntoBufferError", func(t *testing.T) {
-		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1, 1)
+		testRouterPair := newTestRouterPair(t, 1, 1, 1, 1)
 
 		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{testRouterPair.rA.NodeID(), testRouterPair.rB.NodeID()}, zerolog.New(io.Discard))
 		testRouterPair.AtoB.flitChannel() <- flit

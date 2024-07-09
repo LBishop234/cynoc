@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	NoAdditionalFlits       = 2
-	LinkBandwidthFlitFactor = 1
+	NoAdditionalFlits = 2
 )
 
 type TrafficFlowAndRoute struct {

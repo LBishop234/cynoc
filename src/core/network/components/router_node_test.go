@@ -22,7 +22,6 @@ func TestNewRouterNode(t *testing.T) {
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      16,
-				FlitSize:        8,
 				MaxPriority:     4,
 				ProcessingDelay: 5,
 				LinkBandwidth:   1,
@@ -44,7 +43,6 @@ func TestNewRouterNode(t *testing.T) {
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      -1,
-				FlitSize:        8,
 				MaxPriority:     3,
 				ProcessingDelay: 5,
 				LinkBandwidth:   1,

@@ -25,21 +25,19 @@ func TestBasicLatency(t *testing.T) {
 	testCases := []testCase{
 		{
 			conf: domain.SimConfig{
-				FlitSize:        4,
 				ProcessingDelay: 6,
-				LinkBandwidth:   4,
+				LinkBandwidth:   1,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
 				ID:         "t1",
-				PacketSize: 4,
+				PacketSize: 1,
 				Route:      "[n0,n1,n2]",
 			},
 			expected: 21,
 		},
 		{
 			conf: domain.SimConfig{
-				FlitSize:        1,
 				ProcessingDelay: 3,
 				LinkBandwidth:   1,
 			},
@@ -53,49 +51,45 @@ func TestBasicLatency(t *testing.T) {
 		},
 		{
 			conf: domain.SimConfig{
-				FlitSize:        4,
 				ProcessingDelay: 6,
-				LinkBandwidth:   4,
+				LinkBandwidth:   1,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
 				ID:         "t1",
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n0,n1,n2]",
 			},
 			expected: 28,
 		},
 		{
 			conf: domain.SimConfig{
-				FlitSize:        4,
 				ProcessingDelay: 6,
-				LinkBandwidth:   4,
+				LinkBandwidth:   1,
 			},
 			top: topology.ThreeByThreeMesh,
 			tf: domain.TrafficFlowConfig{
 				ID:         "t5",
-				PacketSize: 50,
+				PacketSize: 13,
 				Route:      "[n3,n4,n1]",
 			},
 			expected: 33,
 		},
 		{
 			conf: domain.SimConfig{
-				FlitSize:        4,
 				ProcessingDelay: 6,
-				LinkBandwidth:   8,
+				LinkBandwidth:   2,
 			},
 			top: topology.ThreeHorozontalLine,
 			tf: domain.TrafficFlowConfig{
 				ID:         "t1",
-				PacketSize: 16,
+				PacketSize: 4,
 				Route:      "[n0,n1,n2]",
 			},
 			expected: 21,
 		},
 		{
 			conf: domain.SimConfig{
-				FlitSize:        1,
 				ProcessingDelay: 3,
 				LinkBandwidth:   3,
 			},

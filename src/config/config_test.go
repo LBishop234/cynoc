@@ -24,111 +24,91 @@ func TestReadConfig(t *testing.T) {
 	type testCase struct {
 		name      string
 		baseFile  string
-		overrides map[string]any
+		enabled   bool
 		err       error
-		conf      domain.SimConfig
+		overrides map[string]any
+		expected  domain.SimConfig
 	}
 
 	testCases := []testCase{
 		{
 			name:      "valid_basic",
 			baseFile:  "valid_basic.yaml",
+			enabled:   true,
 			overrides: nil,
 			err:       nil,
-			conf: domain.SimConfig{
+			expected: domain.SimConfig{
 				CycleLimit:      1000,
 				MaxPriority:     6,
-				BufferSize:      12,
-				FlitSize:        2,
+				BufferSize:      24,
 				LinkBandwidth:   2,
 				ProcessingDelay: 6,
 			},
 		},
 		{
 			name:     "invalid_cycle_limit_zero",
-			err:      ErrInvalidCycleLimit,
 			baseFile: "valid_basic.yaml",
+			enabled:  true,
+			err:      ErrInvalidCycleLimit,
 			overrides: map[string]any{
 				"cycle_limit": 0,
 			},
 		},
 		{
 			name:     "invalid_max_priority_zero",
-			err:      ErrInvalidMaxPriority,
 			baseFile: "valid_basic.yaml",
+			enabled:  true,
+			err:      ErrInvalidMaxPriority,
 			overrides: map[string]any{
 				"max_priority": 0,
 			},
 		},
 		{
-			name:     "invalid_flit_size_zero",
-			err:      ErrInvalidFlitSize,
-			baseFile: "valid_basic.yaml",
-			overrides: map[string]any{
-				"flit_size": 0,
-			},
-		},
-		{
 			name:     "invalid_buffer_size_zero",
-			err:      ErrInvalidBufferSize,
 			baseFile: "valid_basic.yaml",
+			enabled:  true,
+			err:      ErrInvalidBufferSize,
 			overrides: map[string]any{
 				"buffer_size": 0,
 			},
 		},
 		{
 			name:     "invalid_buffer_size_not_multiple_max_priority",
-			err:      ErrInvalidBufferSize,
 			baseFile: "valid_basic.yaml",
+			enabled:  true,
+			err:      ErrInvalidBufferSize,
 			overrides: map[string]any{
 				"max_priority": 3,
-				"flit_size":    2,
 				"buffer_size":  8,
 			},
 		},
 		{
-			name:     "invalid_buffer_size_not_multiple_flit_size",
-			err:      ErrInvalidBufferSize,
-			baseFile: "valid_basic.yaml",
-			overrides: map[string]any{
-				"max_priority": 5,
-				"flit_size":    4,
-				"buffer_size":  10,
-			},
-		},
-		{
 			name:     "invalid_processing_delay_zero",
-			err:      ErrInvalidProcessingDelay,
 			baseFile: "valid_basic.yaml",
+			enabled:  true,
+			err:      ErrInvalidProcessingDelay,
 			overrides: map[string]any{
 				"processing_delay": 0,
 			},
 		},
 		{
 			name:     "invalid_link_bandwidth_zero",
-			err:      ErrInvalidLinkBandwidth,
 			baseFile: "valid_basic.yaml",
+			enabled:  true,
+			err:      ErrInvalidLinkBandwidth,
 			overrides: map[string]any{
 				"link_bandwidth": 0,
 			},
 		},
 		{
-			name:     "invalid_link_bandwidth_not_multiple_flit_size",
-			err:      ErrInvalidLinkBandwidth,
+			name:     "invalid_link_bandwidth_greater_than_half_virtual_channel_size",
 			baseFile: "valid_basic.yaml",
-			overrides: map[string]any{
-				"flit_size":      4,
-				"link_bandwidth": 5,
-			},
-		},
-		{
-			name:     "invalid_link_bandwidth_exceeds_virtual_channel_size",
+			enabled:  true,
 			err:      ErrInvalidLinkBandwidth,
-			baseFile: "valid_basic.yaml",
 			overrides: map[string]any{
-				"max_priority":   3,
 				"buffer_size":    12,
-				"link_bandwidth": 6,
+				"max_priority":   6,
+				"link_bandwidth": 2,
 			},
 		},
 	}
@@ -136,61 +116,65 @@ func TestReadConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Copy the base file to a temporary directory.
-			basePath := path.Join(testResourcesDir, tc.baseFile)
-			yPath := path.Join(tmpDir, fmt.Sprint(tc.name, ".yaml"))
+		if tc.enabled {
+			t.Run(tc.name, func(t *testing.T) {
+				// Copy the base file to a temporary directory.
+				basePath := path.Join(testResourcesDir, tc.baseFile)
+				yPath := path.Join(tmpDir, fmt.Sprint(tc.name, ".yaml"))
 
-			baseBytes, err := os.ReadFile(basePath)
-			require.NoError(t, err)
+				baseBytes, err := os.ReadFile(basePath)
+				require.NoError(t, err)
 
-			var data map[string]any
-			err = yaml.Unmarshal(baseBytes, &data)
-			require.NoError(t, err)
+				var data map[string]any
+				err = yaml.Unmarshal(baseBytes, &data)
+				require.NoError(t, err)
 
-			if tc.overrides != nil {
-				for k, v := range tc.overrides {
-					data[k] = v
-				}
-			}
-
-			yBytes, err := yaml.Marshal(data)
-			require.NoError(t, err)
-
-			err = os.WriteFile(yPath, yBytes, 0o644)
-			require.NoError(t, err)
-
-			t.Run("YAML", func(t *testing.T) {
-				conf, err := ReadConfig(yPath)
-				require.ErrorIs(t, err, tc.err)
-				if tc.err != nil {
-					require.ErrorIs(t, err, ErrInvalidConfig)
+				if tc.overrides != nil {
+					for k, v := range tc.overrides {
+						data[k] = v
+					}
 				}
 
-				if err == nil {
-					assert.Equal(t, tc.conf, conf)
-				}
+				yBytes, err := yaml.Marshal(data)
+				require.NoError(t, err)
+
+				err = os.WriteFile(yPath, yBytes, 0o644)
+				require.NoError(t, err)
+
+				t.Run("YAML", func(t *testing.T) {
+					conf, err := ReadConfig(yPath)
+					require.ErrorIs(t, err, tc.err)
+					if tc.err != nil {
+						require.ErrorIs(t, err, ErrInvalidConfig)
+					}
+
+					if err == nil {
+						assert.Equal(t, tc.expected, conf)
+					}
+				})
+
+				t.Run("JSON", func(t *testing.T) {
+					jPath := yamlFileToJsonFile(t, tmpDir, yPath)
+
+					conf, err := ReadConfig(jPath)
+					require.ErrorIs(t, err, tc.err)
+					if tc.err != nil {
+						require.ErrorIs(t, err, ErrInvalidConfig)
+					}
+
+					if err == nil {
+						assert.Equal(t, tc.expected, conf)
+					}
+				})
 			})
-
-			t.Run("JSON", func(t *testing.T) {
-				jPath := yamlFileToJsonFile(t, tmpDir, yPath)
-
-				conf, err := ReadConfig(jPath)
-				require.ErrorIs(t, err, tc.err)
-				if tc.err != nil {
-					require.ErrorIs(t, err, ErrInvalidConfig)
-				}
-
-				if err == nil {
-					assert.Equal(t, tc.conf, conf)
-				}
-			})
-		})
+		}
 	}
+}
 
-	//
-	// Custom test cases for edge cases.
-	//
+// Custom test cases for edge cases.
+func TestReadConfigEdgeCases(t *testing.T) {
+	t.Parallel()
+
 	t.Run("NoFile", func(t *testing.T) {
 		t.Run("YAML", func(t *testing.T) {
 			_, err := ReadConfig("no_file.yaml")

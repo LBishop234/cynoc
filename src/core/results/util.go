@@ -22,7 +22,7 @@ func prettifySimHeadlineResults(r domain.SimHeadlineResults) string {
 }
 
 func cleanInt(val int) string {
-	if val == math.MaxInt {
+	if val == math.MaxInt || val == 0 || val == math.MinInt {
 		return "-"
 	}
 	return strconv.Itoa(val)

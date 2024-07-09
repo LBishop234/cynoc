@@ -50,7 +50,7 @@ func TestReconstructorAddBody(t *testing.T) {
 		reconstructor, err := NewReconstructor(dummyHeaderFlit, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		bodyFlit := NewBodyFlit("t", "AA", 1, 2, 1, zerolog.New(io.Discard))
+		bodyFlit := NewBodyFlit("t", "AA", 1, 2, zerolog.New(io.Discard))
 
 		err = reconstructor.AddBody(bodyFlit)
 		require.NoError(t, err)
@@ -108,7 +108,7 @@ func TestReconstructorReconstruct(t *testing.T) {
 		var bodySize int = 4
 
 		packet := NewPacket(trafficFlowID, packetID, priority, deadline, route, bodySize, zerolog.New(io.Discard))
-		flits := packet.Flits(1)
+		flits := packet.Flits()
 
 		headerFlit, ok := flits[0].(HeaderFlit)
 		require.True(t, ok)

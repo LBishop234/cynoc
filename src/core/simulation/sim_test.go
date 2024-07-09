@@ -21,7 +21,6 @@ var (
 	OnePriorityConfig = domain.SimConfig{
 		MaxPriority:     1,
 		BufferSize:      2,
-		FlitSize:        1,
 		ProcessingDelay: 3,
 		LinkBandwidth:   1,
 	}
@@ -29,7 +28,6 @@ var (
 	TwoPriorityConfig = domain.SimConfig{
 		MaxPriority:     2,
 		BufferSize:      4,
-		FlitSize:        1,
 		ProcessingDelay: 3,
 		LinkBandwidth:   1,
 	}
@@ -37,31 +35,27 @@ var (
 	TwoPriorityConfig2LinkBandwidth = domain.SimConfig{
 		MaxPriority:     2,
 		BufferSize:      4,
-		FlitSize:        1,
 		ProcessingDelay: 3,
 		LinkBandwidth:   2,
 	}
 
 	FourPriorityConfig = domain.SimConfig{
 		MaxPriority:     4,
-		BufferSize:      32,
-		FlitSize:        4,
+		BufferSize:      8,
 		ProcessingDelay: 6,
 		LinkBandwidth:   1,
 	}
 
 	TenPriorityConfig = domain.SimConfig{
 		MaxPriority:     10,
-		BufferSize:      80,
-		FlitSize:        4,
+		BufferSize:      20,
 		ProcessingDelay: 6,
 		LinkBandwidth:   1,
 	}
 
 	TwentyPriorityConfig = domain.SimConfig{
 		MaxPriority:     20,
-		BufferSize:      160,
-		FlitSize:        4,
+		BufferSize:      40,
 		ProcessingDelay: 6,
 		LinkBandwidth:   1,
 	}
@@ -201,7 +195,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   90,
 				Jitter:     0,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n0,n1,n2]",
 			},
 			{
@@ -210,7 +204,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   110,
 				Jitter:     0,
-				PacketSize: 40,
+				PacketSize: 10,
 				Route:      "[n1,n2,n5,n8]",
 			},
 			{
@@ -219,7 +213,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     150,
 				Deadline:   120,
 				Jitter:     0,
-				PacketSize: 64,
+				PacketSize: 16,
 				Route:      "[n3,n4,n7]",
 			},
 			{
@@ -228,7 +222,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   75,
 				Jitter:     0,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n6,n7,n8,n5]",
 			},
 			{
@@ -237,7 +231,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     75,
 				Deadline:   50,
 				Jitter:     0,
-				PacketSize: 8,
+				PacketSize: 2,
 				Route:      "[n2,n1,n0,n3]",
 			},
 			{
@@ -246,7 +240,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   100,
 				Jitter:     0,
-				PacketSize: 96,
+				PacketSize: 24,
 				Route:      "[n4,n3]",
 			},
 			{
@@ -255,7 +249,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   105,
 				Jitter:     0,
-				PacketSize: 16,
+				PacketSize: 4,
 				Route:      "[n6,n3,n0]",
 			},
 			{
@@ -264,7 +258,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   100,
 				Jitter:     0,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n7,n8,n5,n2]",
 			},
 			{
@@ -273,7 +267,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   85,
 				Jitter:     0,
-				PacketSize: 48,
+				PacketSize: 12,
 				Route:      "[n4,n5,n2]",
 			},
 			{
@@ -282,7 +276,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     110,
 				Deadline:   90,
 				Jitter:     0,
-				PacketSize: 40,
+				PacketSize: 10,
 				Route:      "[n8,n7,n6,n3,n0]",
 			},
 		},
@@ -299,7 +293,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   80,
 				Jitter:     10,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n0,n1,n2]",
 			},
 			{
@@ -308,7 +302,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   115,
 				Jitter:     3,
-				PacketSize: 40,
+				PacketSize: 10,
 				Route:      "[n1,n2,n5,n8]",
 			},
 			{
@@ -317,7 +311,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     150,
 				Deadline:   135,
 				Jitter:     6,
-				PacketSize: 64,
+				PacketSize: 16,
 				Route:      "[n3,n4,n7]",
 			},
 			{
@@ -326,7 +320,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   90,
 				Jitter:     5,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n6,n7,n8,n5]",
 			},
 			{
@@ -335,7 +329,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   100,
 				Jitter:     1,
-				PacketSize: 8,
+				PacketSize: 2,
 				Route:      "[n2,n1,n0,n3]",
 			},
 			{
@@ -344,7 +338,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     200,
 				Deadline:   180,
 				Jitter:     8,
-				PacketSize: 96,
+				PacketSize: 24,
 				Route:      "[n4,n3]",
 			},
 			{
@@ -353,7 +347,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     70,
 				Deadline:   50,
 				Jitter:     2,
-				PacketSize: 16,
+				PacketSize: 4,
 				Route:      "[n6,n3,n0]",
 			},
 			{
@@ -362,7 +356,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     50,
 				Deadline:   45,
 				Jitter:     5,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n7,n8,n5,n2]",
 			},
 			{
@@ -371,7 +365,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   70,
 				Jitter:     9,
-				PacketSize: 48,
+				PacketSize: 12,
 				Route:      "[n4,n5,n2]",
 			},
 			{
@@ -380,7 +374,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   90,
 				Jitter:     14,
-				PacketSize: 40,
+				PacketSize: 10,
 				Route:      "[n8,n7,n6,n3,n0]",
 			},
 			{
@@ -389,7 +383,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   85,
 				Jitter:     7,
-				PacketSize: 64,
+				PacketSize: 16,
 				Route:      "[n5,n4,n1]",
 			},
 			{
@@ -398,7 +392,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   115,
 				Jitter:     4,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n7,n4]",
 			},
 			{
@@ -407,7 +401,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   95,
 				Jitter:     10,
-				PacketSize: 48,
+				PacketSize: 12,
 				Route:      "[n8,n7,n6]",
 			},
 			{
@@ -416,7 +410,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     75,
 				Deadline:   70,
 				Jitter:     13,
-				PacketSize: 40,
+				PacketSize: 10,
 				Route:      "[n5,n4,n7]",
 			},
 			{
@@ -425,7 +419,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   85,
 				Jitter:     12,
-				PacketSize: 64,
+				PacketSize: 16,
 				Route:      "[n3,n4,n5]",
 			},
 			{
@@ -434,7 +428,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     120,
 				Deadline:   100,
 				Jitter:     11,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n1,n0,n3,n6]",
 			},
 			{
@@ -443,7 +437,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     100,
 				Deadline:   100,
 				Jitter:     15,
-				PacketSize: 48,
+				PacketSize: 12,
 				Route:      "[n0,n1]",
 			},
 			{
@@ -452,7 +446,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     115,
 				Deadline:   100,
 				Jitter:     16,
-				PacketSize: 40,
+				PacketSize: 10,
 				Route:      "[n2,n5,n8]",
 			},
 			{
@@ -461,7 +455,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     110,
 				Deadline:   100,
 				Jitter:     17,
-				PacketSize: 64,
+				PacketSize: 16,
 				Route:      "[n4,n5]",
 			},
 			{
@@ -470,7 +464,7 @@ var templateTestCases = map[string]templateTestCase{
 				Period:     110,
 				Deadline:   95,
 				Jitter:     18,
-				PacketSize: 32,
+				PacketSize: 8,
 				Route:      "[n7,n6,n3]",
 			},
 		},
@@ -490,7 +484,7 @@ func BenchmarkNewSimulator(b *testing.B) {
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
 			for i := 0; i < len(testCase.traffic); i++ {
-				tf, err := traffic.NewTrafficFlow(testCase.traffic[i])
+				tf, err := traffic.NewTrafficFlow(testCase.traffic[i], testCase.networkConf)
 				require.NoError(b, err)
 
 				trafficFlows[i] = tf
@@ -583,7 +577,7 @@ func TestRunSimulation(t *testing.T) {
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
 			for i := 0; i < len(testCase.traffic); i++ {
-				tf, err := traffic.NewTrafficFlow(testCase.traffic[i])
+				tf, err := traffic.NewTrafficFlow(testCase.traffic[i], testCase.networkConf)
 				require.NoError(t, err)
 
 				trafficFlows[i] = tf
@@ -649,7 +643,7 @@ func BenchmarkRunSimulation(b *testing.B) {
 
 			var trafficFlows []traffic.TrafficFlow = make([]traffic.TrafficFlow, len(testCase.traffic))
 			for i := 0; i < len(testCase.traffic); i++ {
-				tf, err := traffic.NewTrafficFlow(testCase.traffic[i])
+				tf, err := traffic.NewTrafficFlow(testCase.traffic[i], testCase.networkConf)
 				require.NoError(b, err)
 
 				trafficFlows[i] = tf
