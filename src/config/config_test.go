@@ -100,6 +100,17 @@ func TestReadConfig(t *testing.T) {
 				"link_bandwidth": 0,
 			},
 		},
+		{
+			name:     "invalid_link_bandwidth_greater_than_virtual_channel_size",
+			baseFile: "valid_basic.yaml",
+			enabled:  true,
+			err:      ErrInvalidLinkBandwidth,
+			overrides: map[string]any{
+				"buffer_size":    12,
+				"max_priority":   6,
+				"link_bandwidth": 4,
+			},
+		},
 	}
 
 	tmpDir := t.TempDir()
