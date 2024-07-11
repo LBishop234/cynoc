@@ -172,48 +172,24 @@ func (r *routerImpl) RouteBufferedFlits(cycle int) error {
 	for p := 1; p <= r.simConf.MaxPriority; p++ {
 		for i := 0; i < len(r.inputPorts); i++ {
 			if flit, exists := r.inputPorts[i].peakBuffer(p); exists {
+				// Routing Header Flits
+				if flit.Type() == packet.HeaderFlitType {
+					ready, err := r.processHeaderFlit(flit.(packet.HeaderFlit))
+					if err != nil {
+						r.logger.Error().Err(err).Int("cycle", cycle).Str("flit", flit.ID()).Msg("error routing header flit")
+						return err
+					}
+					if !ready {
+						continue
+					}
+				}
+
+				// Performing Arbitration
 				if err := r.arbitrateFlit(cycle, i, flit); err != nil {
 					return err
 				}
 			}
 		}
-	}
-
-	return nil
-}
-
-func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Flit) error {
-	logger := r.logger.With().Int("cycle", cycle).Str("flit", flit.ID()).Str("type", flit.Type().String()).Logger()
-
-	if flit.Type() == packet.HeaderFlitType {
-		if headerFlit, ok := flit.(packet.HeaderFlit); ok {
-			ready, err := r.processHeaderFlit(headerFlit)
-			if err != nil {
-				logger.Error().Err(err).Msg("error routing buffered flit")
-				return err
-			} else if !ready {
-				return nil
-			}
-		} else {
-			logger.Error().Err(domain.ErrUnknownFlitType).Msg("error casting header flit to packet.HeaderFlit type")
-			return domain.ErrUnknownFlitType
-		}
-	}
-
-	if _, exists := r.outputMap[r.packetsNextRouter[flit.PacketID()]]; !exists {
-		if flit.Type() == packet.HeaderFlitType {
-			logger.Error().Err(domain.ErrNoPort).Msg("error routing buffered flit")
-			return domain.ErrNoPort
-		} else {
-			logger.Error().Err(domain.ErrMisorderedPacket).Msg("header flit for packet not previously processed. No output port allocated for flit")
-			return domain.ErrMisorderedPacket
-		}
-	}
-
-	_, err := r.sendFlit(cycle, inputPortIndex, flit)
-	if err != nil {
-		logger.Error().Err(err).Msg("error sending buffered flit")
-		return err
 	}
 
 	return nil
@@ -241,6 +217,51 @@ func (r *routerImpl) processHeaderFlit(flit packet.HeaderFlit) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func (r *routerImpl) routeFlit(flit packet.HeaderFlit) (outputPort, error) {
+	route := flit.Route()
+	for i := 0; i < len(route); i++ {
+		if route[i] == r.NodeID() {
+			if i == len(route)-1 {
+				if _, exists := r.outputMap[route[i]]; !exists {
+					return nil, domain.ErrNoPort
+				}
+
+				return r.outputMap[route[i]], nil
+			} else {
+				if _, exists := r.outputMap[route[i+1]]; !exists {
+					return nil, domain.ErrNoPort
+				}
+
+				return r.outputMap[route[i+1]], nil
+			}
+		}
+	}
+
+	return nil, domain.ErrNoPort
+}
+
+func (r *routerImpl) arbitrateFlit(cycle int, inputPortIndex int, flit packet.Flit) error {
+	logger := r.logger.With().Int("cycle", cycle).Str("flit", flit.ID()).Str("type", flit.Type().String()).Logger()
+
+	if _, exists := r.outputMap[r.packetsNextRouter[flit.PacketID()]]; !exists {
+		if flit.Type() == packet.HeaderFlitType {
+			logger.Error().Err(domain.ErrNoPort).Msg("error routing buffered flit")
+			return domain.ErrNoPort
+		} else {
+			logger.Error().Err(domain.ErrMisorderedPacket).Msg("header flit for packet not previously processed. No output port allocated for flit")
+			return domain.ErrMisorderedPacket
+		}
+	}
+
+	_, err := r.sendFlit(cycle, inputPortIndex, flit)
+	if err != nil {
+		logger.Error().Err(err).Msg("error sending buffered flit")
+		return err
+	}
+
+	return nil
 }
 
 func (r *routerImpl) sendFlit(cycle int, inputPortIndex int, flit packet.Flit) (bool, error) {
@@ -278,27 +299,4 @@ func (r *routerImpl) ReadFromInputPorts(cycle int) error {
 	}
 
 	return nil
-}
-
-func (r *routerImpl) routeFlit(flit packet.HeaderFlit) (outputPort, error) {
-	route := flit.Route()
-	for i := 0; i < len(route); i++ {
-		if route[i] == r.NodeID() {
-			if i == len(route)-1 {
-				if _, exists := r.outputMap[route[i]]; !exists {
-					return nil, domain.ErrNoPort
-				}
-
-				return r.outputMap[route[i]], nil
-			} else {
-				if _, exists := r.outputMap[route[i+1]]; !exists {
-					return nil, domain.ErrNoPort
-				}
-
-				return r.outputMap[route[i+1]], nil
-			}
-		}
-	}
-
-	return nil, domain.ErrNoPort
 }
