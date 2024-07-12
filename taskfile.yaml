@@ -63,9 +63,16 @@ tasks:
     cmds:
       - ./simulator -c example/high-load/config.yaml -t example/high-load/3-3-square.xml -tr example/high-load/traffic.csv -a -log
 
-  xiong-et-al:
+  mpb:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/xiong-et-al/config.yaml -t example/xiong-et-al/7-node-line.xml -tr example/xiong-et-al/traffic.csv -a -log
+      - ./simulator -c example/xiong-et-al-2017/config.yaml -t example/xiong-et-al-2017/5-node-line.xml -tr example/xiong-et-al-2017/traffic.csv -a -log
+
+  mpb-2:
+    dir: .
+    deps:
+      - build
+    cmds:
+      - ./simulator -c example/xiong-et-al-2016/config.yaml -t example/xiong-et-al-2016/7-node-line.xml -tr example/xiong-et-al-2016/traffic.csv -a -log

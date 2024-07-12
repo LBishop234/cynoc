@@ -1,0 +1,4 @@
+cycle_limit: 1000000
+max_priority: 5
+buffer_size: 50
+processing_delay: 1

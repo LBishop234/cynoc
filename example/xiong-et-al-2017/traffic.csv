@@ -1,0 +1,4 @@
+id,priority,period,deadline,jitter,packet_size,route
+t1,1,100,70,30,25,"[n4,n5]"
+t2,2,150,110,40,25,"[n2,n3,n4,n5]"
+t3,3,150,125,15,40,"[n1,n2,n3,n4]"
