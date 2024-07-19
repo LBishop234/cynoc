@@ -1,6 +1,13 @@
 # CYNoC - Cycle Accurate NoC Simulation
 
+A transmission level, cycle accurate, Network-on-Chip (NoC) simulator implementing *Inq-n* [[3]](#3) routers using wormhole switching [[5]](#5), virtual channels [[4]](#4) & priority pre-emptive arbitration [[6]](#6).
+In addition to simulating packet transmission and network latency, CyNoC also implements Shi & Burns' Worst Case Network Latency analysis [[2]](#2).
+
 ## Configuration
+
+CyNoC is invoked via the terminal and requires three configuration files, examples can be found in the `taskfile.yaml` and the `examples` directory.
+
+E.g.: `./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -log`
 
 ### CLI Flags
 
@@ -137,6 +144,12 @@ t5,0,0,5334,0,25,25.00,25,25,true,1,27,27,false
 - <a id='1'>[1]</a>
 Duato, J., Yalamanchili, S., 1997. *Interconnection Networks: An Engineering Approach*. IEEE.
 - <a id='2'>[2]</a>
-Shi, Z. and Burns, A., 2008. Real-time communication analysis for on-chip networks with wormhole switching. In: *Second ACM/IEEE International Symposium on Networks-on-Chip (NoCs 2008)*, pp.161-170.
+Shi, Z. and Burns, A., 2008, April. Real-time communication analysis for on-chip networks with wormhole switching. In *Second ACM/IEEE International Symposium on Networks-on-Chip (nocs 2008)* (pp. 161-170). IEEE.
 - <a id='3'>[3]</a>
-Xiong, Q., Wu, F., Lu, Z. and Xie, C., 2017. Extending real-time analysis for wormhole NoCs. *IEEE Transactions on Computers*, **66**(9), pp.1532-1546.
+Xiong, Q., Wu, F., Lu, Z. and Xie, C., 2017. Extending real-time analysis for wormhole NoCs. *IEEE Transactions on Computers*, 66(9), pp.1532-1546.
+- <a id='4'>[4]</a>
+Dally, W.J., 1992. Virtual-channel flow control. *IEEE Transactions on Parallel and Distributed systems*, 3(2), pp.194-205.
+- <a id='5'>[5]</a>
+Ni, L.M. and McKinley, P.K., 1993. A survey of wormhole routing techniques in direct networks. Computer, 26(2), pp.62-76.
+- <a id='6'>[6]</a>
+Song, H., Kwon, B. and Yoon, H., 1999. Throttle and preempt: a flow control policy for real-time traffic in wormhole networks. *Journal of systems architecture*, 45(8), pp.633-649.
