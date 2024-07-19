@@ -1,4 +1,4 @@
-project_name: CyNoC
+project_name: cynoc
 before:
   hooks:
   - go mod tidy

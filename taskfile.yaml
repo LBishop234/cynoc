@@ -47,32 +47,32 @@ tasks:
       - dependencies
     cmds:
       - go mod tidy
-      - go build -o simulator
+      - go build -o cynoc
 
   demo:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -log
+      - ./cynoc -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -log
 
   demo-2:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/high-load/config.yaml -t example/high-load/3-3-square.xml -tr example/high-load/traffic.csv -a -log
+      - ./cynoc -c example/high-load/config.yaml -t example/high-load/3-3-square.xml -tr example/high-load/traffic.csv -a -log
 
   mpb:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/xiong-et-al-2017/config.yaml -t example/xiong-et-al-2017/5-node-line.xml -tr example/xiong-et-al-2017/traffic.csv -a -log
+      - ./cynoc -c example/xiong-et-al-2017/config.yaml -t example/xiong-et-al-2017/5-node-line.xml -tr example/xiong-et-al-2017/traffic.csv -a -log
 
   mpb-2:
     dir: .
     deps:
       - build
     cmds:
-      - ./simulator -c example/xiong-et-al-2016/config.yaml -t example/xiong-et-al-2016/7-node-line.xml -tr example/xiong-et-al-2016/traffic.csv -a -log
+      - ./cynoc -c example/xiong-et-al-2016/config.yaml -t example/xiong-et-al-2016/7-node-line.xml -tr example/xiong-et-al-2016/traffic.csv -a -log
