@@ -45,8 +45,9 @@ func newPacketID(trafficFlowID, packetIndex string) string {
 	return fmt.Sprintf("%s-%s", trafficFlowID, packetIndex)
 }
 
-func NewPacket(trafficFlowID string, packetIndex string, priority, deadline int, route domain.Route, bodySize int, logger zerolog.Logger) *packet {
+func NewPacket(trafficFlowID string, packetIndex string, priority, deadline int, route domain.Route, packetSize int, logger zerolog.Logger) *packet {
 	id := newPacketID(trafficFlowID, packetIndex)
+	bodySize := packetSize - 2
 
 	logger.Trace().Str("packet", id).Msg("new packet")
 

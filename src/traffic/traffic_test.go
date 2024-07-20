@@ -40,7 +40,7 @@ func TestNewTrafficFlow(t *testing.T) {
 			Period:     4,
 			Deadline:   2,
 			Jitter:     2,
-			PacketSize: 1,
+			PacketSize: 3,
 			Route:      "[n1,n2,n3]",
 		}
 
@@ -65,7 +65,7 @@ func TestNewTrafficFlow(t *testing.T) {
 			Period:     4,
 			Deadline:   2,
 			Jitter:     2,
-			PacketSize: 1,
+			PacketSize: 3,
 			Route:      "[n1,n2,n3]",
 		}
 
@@ -167,7 +167,7 @@ func TestTrafficFlowJitter(t *testing.T) {
 func TestTrafficFlowPacketSize(t *testing.T) {
 	t.Parallel()
 
-	packetSize := 1
+	packetSize := 3
 
 	trafficFlow, err := NewTrafficFlow(domain.TrafficFlowConfig{
 		Priority:   1,

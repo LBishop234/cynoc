@@ -97,8 +97,8 @@ func NewTrafficFlow(tfConf domain.TrafficFlowConfig, conf domain.SimConfig) (*tr
 		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("jitter", tfConf.Jitter).Msg("Invalid TrafficFlow jitter")
 		return nil, domain.ErrInvalidConfig
 	}
-	if tfConf.PacketSize < 1 {
-		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("packet_size", tfConf.PacketSize).Msg("Invalid TrafficFlow packet size")
+	if tfConf.PacketSize < 2 {
+		log.Log.Error().Err(domain.ErrInvalidConfig).Str("id", tfConf.ID).Int("packet_size", tfConf.PacketSize).Msg("Invalid TrafficFlow packet size, must be at least 2 to allow for header and tail flits")
 		return nil, domain.ErrInvalidConfig
 	}
 
