@@ -274,7 +274,7 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 		var route domain.Route = domain.Route{src, dst}
-		var bodySize int = 4
+		var packetSize int = 4
 
 		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
@@ -283,13 +283,13 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		netIntfc.flitsArriving[headerFlit.PacketID()], err = packet.NewReconstructor(headerFlit, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		for i := 0; i < bodySize; i++ {
-			bodyFlit := packet.NewBodyFlit(trafficFlowID, pktID, i+1, priority, zerolog.New(io.Discard))
+		for i := 1; i < packetSize-1; i++ {
+			bodyFlit := packet.NewBodyFlit(trafficFlowID, pktID, i, priority, zerolog.New(io.Discard))
 			err = netIntfc.flitsArriving[bodyFlit.PacketID()].AddBody(bodyFlit)
 			require.NoError(t, err)
 		}
 
-		tailFlit := packet.NewTailFlit(trafficFlowID, pktID, bodySize+1, priority, zerolog.New(io.Discard))
+		tailFlit := packet.NewTailFlit(trafficFlowID, pktID, packetSize-1, priority, zerolog.New(io.Discard))
 		err = netIntfc.arrivedTailFlit(tailFlit)
 		require.NoError(t, err)
 
@@ -298,7 +298,7 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		assert.Equal(t, priority, netIntfc.arrivedPackets[0].Priority())
 		assert.Equal(t, deadline, netIntfc.arrivedPackets[0].Deadline())
 		assert.Equal(t, route, netIntfc.arrivedPackets[0].Route())
-		assert.Equal(t, bodySize, netIntfc.arrivedPackets[0].BodySize())
+		assert.Equal(t, packetSize, netIntfc.arrivedPackets[0].PacketSize())
 
 		assert.NotContains(t, netIntfc.flitsArriving, tailFlit.PacketID())
 	})

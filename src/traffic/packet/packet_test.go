@@ -19,11 +19,10 @@ func TestNewPacket(t *testing.T) {
 	dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 	route := domain.Route{src, dst}
 	packetSize := 4
-	expectedBodySize := packetSize - 2
 
 	packet := NewPacket("t", "AA", 1, 100, route, packetSize, zerolog.New(io.Discard))
 	assert.Equal(t, route, packet.route)
-	assert.Equal(t, expectedBodySize, packet.bodySize)
+	assert.Equal(t, packetSize, packet.packetSize)
 
 	assert.Implements(t, (*Packet)(nil), packet)
 }
@@ -74,17 +73,16 @@ func TestPacketRoute(t *testing.T) {
 	assert.Equal(t, route, packet.Route())
 }
 
-func TestPacketBodySize(t *testing.T) {
+func TestPacketPacketSize(t *testing.T) {
 	t.Parallel()
 
 	src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 	dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 	route := domain.Route{src, dst}
 	packetSize := 4
-	expectedBodySize := packetSize - 2
 
 	packet := NewPacket("t", "AA", 1, 100, route, packetSize, zerolog.New(io.Discard))
-	assert.Equal(t, expectedBodySize, packet.BodySize())
+	assert.Equal(t, packetSize, packet.PacketSize())
 }
 
 func TestPacketFlits(t *testing.T) {
