@@ -77,7 +77,8 @@ func (r *reconstructor) Reconstruct() (Packet, error) {
 		r.headerFlit.Priority(),
 		r.headerFlit.Deadline(),
 		r.headerFlit.Route(),
-		len(r.bodyFlits),
+		// The packet size is the sum of the header, body, and tail flits.
+		len(r.bodyFlits)+2,
 		// Reconstructed packets should only be used for records purposes, so the logger can be discarded.
 		zerolog.New(io.Discard),
 	)

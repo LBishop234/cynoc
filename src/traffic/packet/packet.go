@@ -25,7 +25,7 @@ type Packet interface {
 	Priority() int
 	Deadline() int
 	Route() domain.Route
-	BodySize() int
+	PacketSize() int
 	Flits() []Flit
 }
 
@@ -36,7 +36,7 @@ type packet struct {
 	priority      int
 	deadline      int
 	route         domain.Route
-	bodySize      int
+	packetSize    int
 
 	logger zerolog.Logger
 }
@@ -45,7 +45,7 @@ func newPacketID(trafficFlowID, packetIndex string) string {
 	return fmt.Sprintf("%s-%s", trafficFlowID, packetIndex)
 }
 
-func NewPacket(trafficFlowID string, packetIndex string, priority, deadline int, route domain.Route, bodySize int, logger zerolog.Logger) *packet {
+func NewPacket(trafficFlowID string, packetIndex string, priority, deadline int, route domain.Route, packetSize int, logger zerolog.Logger) *packet {
 	id := newPacketID(trafficFlowID, packetIndex)
 
 	logger.Trace().Str("packet", id).Msg("new packet")
@@ -57,7 +57,7 @@ func NewPacket(trafficFlowID string, packetIndex string, priority, deadline int,
 		priority:      priority,
 		deadline:      deadline,
 		route:         route,
-		bodySize:      bodySize,
+		packetSize:    packetSize,
 		logger:        logger,
 	}
 }
@@ -86,12 +86,12 @@ func (p *packet) Route() domain.Route {
 	return p.route
 }
 
-func (p *packet) BodySize() int {
-	return p.bodySize
+func (p *packet) PacketSize() int {
+	return p.packetSize
 }
 
 func (p *packet) Flits() []Flit {
-	flits := make([]Flit, 1+p.bodySize+1)
+	flits := make([]Flit, p.packetSize)
 
 	flits[0] = NewHeaderFlit(p.TrafficFlowID(), p.PacketIndex(), 0, p.priority, p.deadline, p.route, p.logger)
 
@@ -106,8 +106,10 @@ func (p *packet) Flits() []Flit {
 }
 
 func (p *packet) bodyFlits() []BodyFlit {
-	bodyFlits := make([]BodyFlit, p.bodySize)
-	for i := 0; i < p.bodySize; i++ {
+	bodySize := p.packetSize - 2
+
+	bodyFlits := make([]BodyFlit, bodySize)
+	for i := 0; i < bodySize; i++ {
 		bodyFlits[i] = NewBodyFlit(p.TrafficFlowID(), p.PacketIndex(), i+1, p.priority, p.logger)
 	}
 
@@ -149,8 +151,8 @@ func EqualPackets(pkt1, pkt2 Packet) error {
 		}
 	}
 
-	if pkt1.BodySize() != pkt2.BodySize() {
-		return errors.Join(domain.ErrPacketsNotEqual, errors.New("BodySize"))
+	if pkt1.PacketSize() != pkt2.PacketSize() {
+		return errors.Join(domain.ErrPacketsNotEqual, errors.New("Packet Size"))
 	}
 
 	return nil

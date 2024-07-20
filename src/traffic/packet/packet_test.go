@@ -18,11 +18,11 @@ func TestNewPacket(t *testing.T) {
 	src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 	dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 	route := domain.Route{src, dst}
-	bodySize := 4
+	packetSize := 4
 
-	packet := NewPacket("t", "AA", 1, 100, route, bodySize, zerolog.New(io.Discard))
+	packet := NewPacket("t", "AA", 1, 100, route, packetSize, zerolog.New(io.Discard))
 	assert.Equal(t, route, packet.route)
-	assert.Equal(t, bodySize, packet.bodySize)
+	assert.Equal(t, packetSize, packet.packetSize)
 
 	assert.Implements(t, (*Packet)(nil), packet)
 }
@@ -73,16 +73,16 @@ func TestPacketRoute(t *testing.T) {
 	assert.Equal(t, route, packet.Route())
 }
 
-func TestPacketBodySize(t *testing.T) {
+func TestPacketPacketSize(t *testing.T) {
 	t.Parallel()
 
 	src := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
 	dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 	route := domain.Route{src, dst}
-	bodySize := 4
+	packetSize := 4
 
-	packet := NewPacket("t", "AA", 1, 100, route, bodySize, zerolog.New(io.Discard))
-	assert.Equal(t, bodySize, packet.BodySize())
+	packet := NewPacket("t", "AA", 1, 100, route, packetSize, zerolog.New(io.Discard))
+	assert.Equal(t, packetSize, packet.PacketSize())
 }
 
 func TestPacketFlits(t *testing.T) {
@@ -95,7 +95,7 @@ func TestPacketFlits(t *testing.T) {
 		deadline      int
 		src           domain.NodeID
 		dst           domain.NodeID
-		bodySize      int
+		packetSize    int
 		expected      []Flit
 	}{
 		{
@@ -105,7 +105,7 @@ func TestPacketFlits(t *testing.T) {
 			deadline:      100,
 			src:           domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)},
 			dst:           domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)},
-			bodySize:      3,
+			packetSize:    5,
 			expected: []Flit{
 				NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "AA", 1, 1, zerolog.New(io.Discard)),
@@ -121,7 +121,7 @@ func TestPacketFlits(t *testing.T) {
 			deadline:      100,
 			src:           domain.NodeID{ID: "n3", Pos: domain.NewPosition(1, 1)},
 			dst:           domain.NodeID{ID: "n4", Pos: domain.NewPosition(1, 2)},
-			bodySize:      2,
+			packetSize:    4,
 			expected: []Flit{
 				NewHeaderFlit("t", "BB", 0, 1, 100, domain.Route{domain.NodeID{ID: "n3", Pos: domain.NewPosition(1, 1)}, domain.NodeID{ID: "n4", Pos: domain.NewPosition(1, 2)}}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "BB", 1, 3, zerolog.New(io.Discard)),
@@ -136,7 +136,7 @@ func TestPacketFlits(t *testing.T) {
 			deadline:      100,
 			src:           domain.NodeID{ID: "n5", Pos: domain.NewPosition(2, 2)},
 			dst:           domain.NodeID{ID: "n6", Pos: domain.NewPosition(2, 3)},
-			bodySize:      0,
+			packetSize:    2,
 			expected: []Flit{
 				NewHeaderFlit("t", "CC", 0, 1, 100, domain.Route{domain.NodeID{ID: "n5", Pos: domain.NewPosition(2, 2)}, domain.NodeID{ID: "n6", Pos: domain.NewPosition(2, 3)}}, zerolog.New(io.Discard)),
 				NewTailFlit("t", "CC", 1, 1, zerolog.New(io.Discard)),
@@ -149,7 +149,7 @@ func TestPacketFlits(t *testing.T) {
 			deadline:      100,
 			src:           domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)},
 			dst:           domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)},
-			bodySize:      3,
+			packetSize:    5,
 			expected: []Flit{
 				NewHeaderFlit("t", "DD", 0, 5, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "DD", 1, 5, zerolog.New(io.Discard)),
@@ -165,7 +165,7 @@ func TestPacketFlits(t *testing.T) {
 			deadline:      500,
 			src:           domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)},
 			dst:           domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)},
-			bodySize:      3,
+			packetSize:    5,
 			expected: []Flit{
 				NewHeaderFlit("t", "EE", 0, 1, 500, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "EE", 1, 1, zerolog.New(io.Discard)),
@@ -181,7 +181,7 @@ func TestPacketFlits(t *testing.T) {
 		testCase := testCases[index]
 
 		t.Run(fmt.Sprintf("TestCase-%d", index), func(t *testing.T) {
-			packet := NewPacket(testCase.trafficFlowID, testCase.id, testCase.priority, testCase.deadline, domain.Route{testCase.src, testCase.dst}, testCase.bodySize, zerolog.New(io.Discard))
+			packet := NewPacket(testCase.trafficFlowID, testCase.id, testCase.priority, testCase.deadline, domain.Route{testCase.src, testCase.dst}, testCase.packetSize, zerolog.New(io.Discard))
 
 			gotFlits := packet.Flits()
 			assert.Equal(t, len(testCase.expected), len(gotFlits))
@@ -197,13 +197,13 @@ func TestPacketBodyFlits(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		id       string
-		bodySize int
-		expected []BodyFlit
+		id         string
+		packetSize int
+		expected   []BodyFlit
 	}{
 		{
-			id:       "3BodyFlits",
-			bodySize: 3,
+			id:         "3BodyFlits",
+			packetSize: 5,
 			expected: []BodyFlit{
 				NewBodyFlit("t", "AA", 1, 1, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "AA", 2, 1, zerolog.New(io.Discard)),
@@ -211,9 +211,9 @@ func TestPacketBodyFlits(t *testing.T) {
 			},
 		},
 		{
-			id:       "NoBody",
-			bodySize: 0,
-			expected: []BodyFlit{},
+			id:         "NoBody",
+			packetSize: 2,
+			expected:   []BodyFlit{},
 		},
 	}
 
@@ -226,7 +226,7 @@ func TestPacketBodyFlits(t *testing.T) {
 			dst := domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
 			route := domain.Route{src, dst}
 
-			packet := NewPacket("t", testCase.id, 1, 100, route, testCase.bodySize, zerolog.New(io.Discard))
+			packet := NewPacket("t", testCase.id, 1, 100, route, testCase.packetSize, zerolog.New(io.Discard))
 			assert.Equal(t, len(testCase.expected), len(packet.bodyFlits()))
 		})
 	}
