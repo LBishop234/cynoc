@@ -5,10 +5,6 @@ import (
 	"main/src/topology"
 )
 
-const (
-	NoAdditionalFlits = 2
-)
-
 type TrafficFlowAndRoute struct {
 	domain.TrafficFlowConfig
 	domain.Route

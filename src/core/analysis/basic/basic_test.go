@@ -33,7 +33,7 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 1,
 				Route:      "[n0,n1,n2]",
 			},
-			expected: 21,
+			expected: 19,
 		},
 		{
 			conf: domain.SimConfig{
@@ -45,7 +45,7 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 2,
 				Route:      "[n0,n1,n2]",
 			},
-			expected: 13,
+			expected: 11,
 		},
 		{
 			conf: domain.SimConfig{
@@ -57,7 +57,7 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 8,
 				Route:      "[n0,n1,n2]",
 			},
-			expected: 28,
+			expected: 26,
 		},
 		{
 			conf: domain.SimConfig{
@@ -69,7 +69,7 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 13,
 				Route:      "[n3,n4,n1]",
 			},
-			expected: 33,
+			expected: 31,
 		},
 		{
 			conf: domain.SimConfig{
@@ -81,7 +81,7 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 4,
 				Route:      "[n0,n1,n2]",
 			},
-			expected: 24,
+			expected: 22,
 		},
 		{
 			conf: domain.SimConfig{
@@ -93,7 +93,7 @@ func TestBasicLatency(t *testing.T) {
 				PacketSize: 12,
 				Route:      "[n0,n1,n2]",
 			},
-			expected: 23,
+			expected: 21,
 		},
 	}
 

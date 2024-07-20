@@ -133,7 +133,7 @@ func TestShiBurns(t *testing.T) {
 					res: ShiBurnsResults{
 						DirectInterferenceCount:   0,
 						IndirectInterferenceCount: 0,
-						Latency:                   40,
+						Latency:                   38,
 					},
 				},
 				"t2": {
@@ -141,7 +141,7 @@ func TestShiBurns(t *testing.T) {
 					res: ShiBurnsResults{
 						DirectInterferenceCount:   0,
 						IndirectInterferenceCount: 0,
-						Latency:                   111,
+						Latency:                   109,
 					},
 				},
 				"t3": {
@@ -149,7 +149,7 @@ func TestShiBurns(t *testing.T) {
 					res: ShiBurnsResults{
 						DirectInterferenceCount:   2,
 						IndirectInterferenceCount: 0,
-						Latency:                   225,
+						Latency:                   219,
 					},
 				},
 				"t4": {
@@ -157,7 +157,7 @@ func TestShiBurns(t *testing.T) {
 					res: ShiBurnsResults{
 						DirectInterferenceCount:   2,
 						IndirectInterferenceCount: 1,
-						Latency:                   257,
+						Latency:                   251,
 					},
 				},
 				"t5": {
@@ -165,7 +165,7 @@ func TestShiBurns(t *testing.T) {
 					res: ShiBurnsResults{
 						DirectInterferenceCount:   1,
 						IndirectInterferenceCount: 2,
-						Latency:                   224,
+						Latency:                   220,
 					},
 				},
 			},

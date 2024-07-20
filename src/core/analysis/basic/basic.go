@@ -6,7 +6,7 @@ import (
 )
 
 func BasicLatency(conf domain.SimConfig, tfr util.TrafficFlowAndRoute) int {
-	noFlits := tfr.PacketSize + util.NoAdditionalFlits
+	noFlits := tfr.PacketSize
 	processingDelay := len(tfr.Route) * conf.ProcessingDelay
 	return noFlits + processingDelay
 }
