@@ -89,7 +89,7 @@ t3,2,50,100,0,4,"[n2,n2]"
     - Requires $deadline \leq period + jitter$ [[2]](#2).
 - `jitter`: the maximum jitter the traffic flow's packets may experience, i.e. how long, in cycles, after creation may a packet be released to the network for transmission.
     - E.g. for a traffic flow with period $p$ and jitter $j$, a packet created on cycle $np$ will be released $x$ cycles after the packet's creation where $np \leq x < np+j$.
-- `packet_size`: the packet's size as the number of body flits it produces (excluding header and tail flits which are automatically added at the network interface).
+- `packet_size`: the packet's size as the number of flits it produces (including header and tail flits).
 - `route`: the fixed route the traffic flow's packets traverse across the network.
 
 ## Results
