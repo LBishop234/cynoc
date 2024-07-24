@@ -59,8 +59,12 @@ func Run(conf domain.SimConfig, top *topology.Topology, trafficConf []domain.Tra
 
 			analysisResultsChan <- analysisResults
 
-			if !analysisResults.AnalysesSchedulable() {
-				logger.Warn().Msg("Analysis indicates the network is not schedulable")
+			if valid, tfs := analysisResults.AnalysesSchedulable(); !valid {
+				strArr := zerolog.Arr()
+				for _, tf := range tfs {
+					strArr = strArr.Str(tf)
+				}
+				logger.Warn().Array("traffic_flows", strArr).Msg("Analysis indicates the network is not schedulable")
 			}
 
 			logger.Info().Msg("Finished running analysis")
