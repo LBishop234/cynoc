@@ -29,14 +29,20 @@ func (s *StatSet) Schedulable() bool {
 
 type AnalysisResults map[string]TrafficFlowAnalysisSet
 
-func (r AnalysisResults) AnalysesSchedulable() bool {
+func (r AnalysisResults) AnalysesSchedulable() (bool, []string) {
+	tfs := make([]string, 0)
+
 	for _, tf := range r {
 		if !tf.AnalysisSchedulable() {
-			return false
+			tfs = append(tfs, tf.ID)
 		}
 	}
 
-	return true
+	if len(tfs) > 0 {
+		return false, tfs
+	} else {
+		return true, nil
+	}
 }
 
 type TrafficFlowAnalysisSet struct {
