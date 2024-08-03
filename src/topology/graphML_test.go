@@ -11,11 +11,8 @@ import (
 )
 
 func testGraphmlGraph(t *testing.T) (*graphml.Graph, []*Node, []*Edge) {
-	nA, err := NewNode("nA")
-	require.NoError(t, err)
-
-	nB, err := NewNode("nB")
-	require.NoError(t, err)
+	nA := NewNode("nA")
+	nB := NewNode("nB")
 
 	e, err := NewEdge("e", nA.NodeID(), nB.NodeID())
 	require.NoError(t, err)

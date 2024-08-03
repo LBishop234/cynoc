@@ -12,9 +12,7 @@ type Topology struct {
 	edges map[string]*Edge
 }
 
-type Node struct {
-	nodeID string
-}
+type Node string
 
 type Edge struct {
 	id string
@@ -90,16 +88,15 @@ func (t *Topology) Route(nodes []string) (domain.Route, error) {
 	return route, nil
 }
 
-func NewNode(id string) (*Node, error) {
+func NewNode(id string) *Node {
 	log.Log.Trace().Str("id", id).Msg("new node")
 
-	return &Node{
-		nodeID: id,
-	}, nil
+	node := Node(id)
+	return &node
 }
 
 func (n *Node) NodeID() string {
-	return n.nodeID
+	return string(*n)
 }
 
 func NewEdge(id string, source, target string) (*Edge, error) {

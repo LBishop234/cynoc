@@ -61,12 +61,7 @@ func graphML(filepath string) (*Topology, error) {
 func graphMLNodes(gmlNodes []*graphml.Node) (map[string]*Node, error) {
 	var nodes map[string]*Node = make(map[string]*Node, len(gmlNodes))
 	for i := 0; i < len(gmlNodes); i++ {
-		node, err := NewNode(gmlNodes[i].ID)
-		if err != nil {
-			log.Log.Error().Err(err).Str("id", gmlNodes[i].ID).Msg("error parsing GraphML node")
-			return nil, err
-		}
-
+		node := NewNode(gmlNodes[i].ID)
 		nodes[node.NodeID()] = node
 	}
 

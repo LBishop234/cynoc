@@ -117,9 +117,7 @@ func FourByFourMesh(t testing.TB) *Topology {
 func constructTopology(tb testing.TB, nodeSpecs []nodeSpec, edgeSpecs []edgeSpec) *Topology {
 	nodes := make(map[string]*Node, len(nodeSpecs))
 	for i := 0; i < len(nodeSpecs); i++ {
-		aNode, err := NewNode(nodeSpecs[i].id)
-		require.NoError(tb, err)
-
+		aNode := NewNode(nodeSpecs[i].id)
 		nodes[aNode.NodeID()] = aNode
 	}
 
