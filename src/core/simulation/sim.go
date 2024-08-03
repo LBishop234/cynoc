@@ -144,7 +144,7 @@ func (s *simulator) releasePackets(cycle int) error {
 
 				s.rcrds.recordTransmittedPacket(periodStartCycle, cycle, pkt)
 			} else {
-				s.logger.Error().Err(domain.ErrMissingNetworkInterface).Str("network_interface", pkt.Route()[0].Pos.Prettify()).Msg("network interface not found")
+				s.logger.Error().Err(domain.ErrMissingNetworkInterface).Str("network_interface", pkt.Route()[0].ID).Msg("network interface not found")
 				return domain.ErrMissingNetworkInterface
 			}
 		}

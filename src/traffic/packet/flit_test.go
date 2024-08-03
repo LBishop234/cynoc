@@ -13,8 +13,8 @@ import (
 )
 
 func testDummyRoute(t *testing.T) (src, dst domain.NodeID, route domain.Route) {
-	src = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-	dst = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
+	src = domain.NodeID{ID: "n1"}
+	dst = domain.NodeID{ID: "n2"}
 	route = domain.Route{src, dst}
 
 	return src, dst, route

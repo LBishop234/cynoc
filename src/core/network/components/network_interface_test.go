@@ -16,14 +16,14 @@ func TestNewNetworkInterface(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ImplementsInterface", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		assert.Implements(t, (*NetworkInterface)(nil), netIntfc)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		var nodeID domain.NodeID = domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}
+		var nodeID domain.NodeID = domain.NodeID{ID: "i"}
 		var bufferSize int = 1
 		var maxPriority int = 1
 
@@ -40,7 +40,7 @@ func TestNewNetworkInterface(t *testing.T) {
 	})
 
 	t.Run("InvalidBufferSize", func(t *testing.T) {
-		_, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 0, 1, zerolog.New(io.Discard))
+		_, err := newNetworkInterface(domain.NodeID{ID: "i"}, 0, 1, zerolog.New(io.Discard))
 		require.Error(t, err)
 	})
 }
@@ -48,7 +48,7 @@ func TestNewNetworkInterface(t *testing.T) {
 func TestNetworkInterfaceNodeID(t *testing.T) {
 	t.Parallel()
 
-	var nodeID domain.NodeID = domain.NodeID{ID: "n", Pos: domain.NewPosition(0, 0)}
+	var nodeID domain.NodeID = domain.NodeID{ID: "n"}
 
 	netIntfc, err := newNetworkInterface(nodeID, 1, 1, zerolog.New(io.Discard))
 	require.NoError(t, err)
@@ -63,7 +63,7 @@ func TestNetworkInterfaceSetInputPort(t *testing.T) {
 		var bufferSize int = 1
 		var maxPriority int = 1
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, bufferSize, maxPriority, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
@@ -77,7 +77,7 @@ func TestNetworkInterfaceSetInputPort(t *testing.T) {
 	})
 
 	t.Run("NilConnection", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = netIntfc.SetInputPort(nil)
@@ -85,7 +85,7 @@ func TestNetworkInterfaceSetInputPort(t *testing.T) {
 	})
 
 	t.Run("InvalidBufferSize", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		netIntfc.bufferSize = 0
@@ -102,7 +102,7 @@ func TestNetworkInterfaceSetOutputPort(t *testing.T) {
 		var bufferSize int = 1
 		var maxPriority int = 1
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, bufferSize, maxPriority, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
@@ -116,7 +116,7 @@ func TestNetworkInterfaceSetOutputPort(t *testing.T) {
 	})
 
 	t.Run("NilConnection", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = netIntfc.SetOutputPort(nil)
@@ -128,11 +128,11 @@ func TestNetworkInterfaceRoutePacket(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
+		var src domain.NodeID = domain.NodeID{ID: "n1"}
+		var dst domain.NodeID = domain.NodeID{ID: "n2"}
 		var route domain.Route = domain.Route{src, dst}
 
 		pkt := packet.NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
@@ -147,7 +147,7 @@ func TestNetworkInterfaceRoutePacket(t *testing.T) {
 	})
 
 	t.Run("NilPacket", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = netIntfc.RoutePacket(0, nil)
@@ -159,11 +159,11 @@ func TestNetworkInterfacePopArrivedPackets(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
+		var src domain.NodeID = domain.NodeID{ID: "n1"}
+		var dst domain.NodeID = domain.NodeID{ID: "n2"}
 		var route domain.Route = domain.Route{src, dst}
 
 		pkts := []packet.Packet{
@@ -183,8 +183,8 @@ func TestNetworkInterfaceHandleArrivingFlits(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
+		var src domain.NodeID = domain.NodeID{ID: "n1"}
+		var dst domain.NodeID = domain.NodeID{ID: "n2"}
 		var route domain.Route = domain.Route{src, dst}
 
 		var bufferSize int = 1
@@ -224,10 +224,10 @@ func TestNetworkInterfaceArrivedHeaderFlit(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		headerFlit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		headerFlit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1"}, domain.NodeID{ID: "n2"}}, zerolog.New(io.Discard))
 
 		err = netIntfc.arrivedHeaderFlit(headerFlit)
 		require.NoError(t, err)
@@ -246,7 +246,7 @@ func TestNetworkInterfaceArrivedBodyFlit(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		var pktID string = "AA"
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		bodyFlit := packet.NewBodyFlit("t", pktID, 1, 1, zerolog.New(io.Discard))
@@ -271,12 +271,12 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 		var pktID string = "AA"
 		var priority int = 1
 		var deadline int = 100
-		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
+		var src domain.NodeID = domain.NodeID{ID: "n1"}
+		var dst domain.NodeID = domain.NodeID{ID: "n2"}
 		var route domain.Route = domain.Route{src, dst}
 		var packetSize int = 4
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		headerFlit := packet.NewHeaderFlit(trafficFlowID, pktID, 0, priority, deadline, route, zerolog.New(io.Discard))
@@ -306,7 +306,7 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 	t.Run("SetTailError", func(t *testing.T) {
 		var pktID string = "AA"
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		netIntfc.flitsArriving[pktID], err = packet.NewReconstructor(packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{}, zerolog.New(io.Discard)), zerolog.New(io.Discard))
@@ -323,7 +323,7 @@ func TestNetworkInterfaceArrivedTailFlit(t *testing.T) {
 	t.Run("ReconstructError", func(t *testing.T) {
 		var pktID string = "AA"
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		netIntfc.flitsArriving[pktID], err = packet.NewReconstructor(packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{}, zerolog.New(io.Discard)), zerolog.New(io.Discard))
@@ -341,7 +341,7 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 	t.Run("NoFlitsToTransit", func(t *testing.T) {
 		var maxPriority int = 1
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, 1, maxPriority, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))
@@ -355,14 +355,14 @@ func TestNetworkInterfaceTransmitPendingPackets(t *testing.T) {
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		var src domain.NodeID = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-		var dst domain.NodeID = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
+		var src domain.NodeID = domain.NodeID{ID: "n1"}
+		var dst domain.NodeID = domain.NodeID{ID: "n2"}
 		var route domain.Route = domain.Route{src, dst}
 
 		var bufferSize int = 1
 		var maxPriority int = 1
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(0, 0)}, bufferSize, maxPriority, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, bufferSize, maxPriority, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		conn, err := NewConnection(maxPriority, zerolog.New(io.Discard))

@@ -1,9 +1,7 @@
 package topology
 
 import (
-	"errors"
 	"os"
-	"strconv"
 
 	"main/log"
 	"main/src/domain"
@@ -63,7 +61,7 @@ func graphML(filepath string) (*Topology, error) {
 func graphMLNodes(gmlNodes []*graphml.Node) (map[string]*Node, error) {
 	var nodes map[string]*Node = make(map[string]*Node, len(gmlNodes))
 	for i := 0; i < len(gmlNodes); i++ {
-		node, err := parseGraphMLNode(gmlNodes[i])
+		node, err := NewNode(gmlNodes[i].ID)
 		if err != nil {
 			log.Log.Error().Err(err).Str("id", gmlNodes[i].ID).Msg("error parsing GraphML node")
 			return nil, err
@@ -74,37 +72,6 @@ func graphMLNodes(gmlNodes []*graphml.Node) (map[string]*Node, error) {
 
 	log.Log.Debug().Msg("parsed GraphML nodes")
 	return nodes, nil
-}
-
-func parseGraphMLNode(gmlNode *graphml.Node) (*Node, error) {
-	gmlAttributes := graphMLDataToAttributes(gmlNode.Data)
-
-	xintf, exists := gmlAttributes["x"]
-	if !exists {
-		log.Log.Error().Err(domain.ErrInvalidTopology).Str("id", gmlNode.ID).Msg("GraphML node missing x attribute")
-		return nil, domain.ErrInvalidTopology
-	}
-
-	x, err := strconv.Atoi(xintf.(string))
-	if err != nil {
-		log.Log.Error().Err(err).Str("id", gmlNode.ID).Msg("error parsing GraphML node x attribute to int")
-		return nil, errors.Join(domain.ErrInvalidTopology, err)
-	}
-
-	yIntfc, exists := gmlAttributes["y"]
-	if !exists {
-		log.Log.Error().Err(domain.ErrInvalidTopology).Str("id", gmlNode.ID).Msg("GraphML node missing y attribute")
-		return nil, domain.ErrInvalidTopology
-	}
-
-	y, err := strconv.Atoi(yIntfc.(string))
-	if err != nil {
-		log.Log.Error().Err(err).Str("id", gmlNode.ID).Msg("error parsing GraphML node y attribute to int")
-		return nil, errors.Join(domain.ErrInvalidTopology, err)
-	}
-
-	log.Log.Trace().Str("id", gmlNode.ID).Msg("parsed GraphML node")
-	return NewNode(gmlNode.ID, domain.NewPosition(x, y))
 }
 
 func graphMLEdges(nodes map[string]*Node, gmlEdges []*graphml.Edge) (map[string]*Edge, error) {

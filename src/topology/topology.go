@@ -8,9 +8,8 @@ import (
 )
 
 type Topology struct {
-	nodes     map[string]*Node
-	nodeByPos map[domain.Position]*Node
-	edges     map[string]*Edge
+	nodes map[string]*Node
+	edges map[string]*Edge
 }
 
 type Node struct {
@@ -52,12 +51,6 @@ func NewTopology(nodes map[string]*Node, edges map[string]*Edge) (*Topology, err
 		edges: edges,
 	}
 
-	nodesByPos := make(map[domain.Position]*Node)
-	for id := range nodes {
-		nodesByPos[nodes[id].NodeID().Pos] = nodes[id]
-	}
-	top.nodeByPos = nodesByPos
-
 	return top, nil
 }
 
@@ -97,13 +90,12 @@ func (t *Topology) Route(nodes []string) (domain.Route, error) {
 	return route, nil
 }
 
-func NewNode(id string, pos domain.Position) (*Node, error) {
+func NewNode(id string) (*Node, error) {
 	log.Log.Trace().Str("id", id).Msg("new node")
 
 	return &Node{
 		nodeID: domain.NodeID{
-			ID:  id,
-			Pos: pos,
+			ID: id,
 		},
 	}, nil
 }

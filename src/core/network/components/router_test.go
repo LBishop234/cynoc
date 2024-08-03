@@ -16,8 +16,7 @@ func testRouter(t *testing.T) *routerImpl {
 	router, err := newRouter(
 		RouterConfig{
 			NodeID: domain.NodeID{
-				ID:  "n",
-				Pos: domain.NewPosition(0, 0),
+				ID: "n",
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      1,
@@ -42,14 +41,10 @@ type testRouterPair struct {
 }
 
 func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority int) testRouterPair {
-	aPos := domain.NewPosition(0, 0)
-	bPos := domain.NewPosition(1, 0)
-
 	rA, err := newRouter(
 		RouterConfig{
 			NodeID: domain.NodeID{
-				ID:  "n-a",
-				Pos: aPos,
+				ID: "n-a",
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      bufferSize,
@@ -61,7 +56,7 @@ func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority in
 	)
 	require.NoError(t, err)
 
-	niA, err := newNetworkInterface(domain.NodeID{ID: "i-a", Pos: aPos}, bufferSize, maxPriority, zerolog.New(io.Discard))
+	niA, err := newNetworkInterface(domain.NodeID{ID: "i-a"}, bufferSize, maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	err = rA.SetNetworkInterface(niA)
@@ -70,8 +65,7 @@ func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority in
 	rB, err := newRouter(
 		RouterConfig{
 			NodeID: domain.NodeID{
-				ID:  "n-b",
-				Pos: bPos,
+				ID: "n-b",
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      bufferSize,
@@ -83,7 +77,7 @@ func newTestRouterPair(t *testing.T, bufferSize, processingDelay, maxPriority in
 	)
 	require.NoError(t, err)
 
-	niB, err := newNetworkInterface(domain.NodeID{ID: "i-b", Pos: bPos}, bufferSize, maxPriority, zerolog.New(io.Discard))
+	niB, err := newNetworkInterface(domain.NodeID{ID: "i-b"}, bufferSize, maxPriority, zerolog.New(io.Discard))
 	require.NoError(t, err)
 
 	err = rB.SetNetworkInterface(niB)
@@ -125,8 +119,7 @@ func TestNewRouter(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		conf := RouterConfig{
 			NodeID: domain.NodeID{
-				ID:  "n",
-				Pos: domain.NewPosition(0, 0),
+				ID: "n",
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      1,
@@ -180,7 +173,7 @@ func TestNewRouter(t *testing.T) {
 func TestRouterNodeID(t *testing.T) {
 	t.Parallel()
 
-	var nodeID domain.NodeID = domain.NodeID{ID: "n", Pos: domain.NewPosition(0, 0)}
+	var nodeID domain.NodeID = domain.NodeID{ID: "n"}
 
 	router, err := newRouter(
 		RouterConfig{
@@ -264,7 +257,7 @@ func TestRouterUpdateOutputMap(t *testing.T) {
 		require.NoError(t, err)
 		port1, err := newOutputPort(conn1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
-		nodeID1 := domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 1)}
+		nodeID1 := domain.NodeID{ID: "n1"}
 		conn1.SetDstRouter(nodeID1)
 		router.outputPorts = append(router.outputPorts, port1)
 
@@ -272,7 +265,7 @@ func TestRouterUpdateOutputMap(t *testing.T) {
 		require.NoError(t, err)
 		port2, err := newOutputPort(conn2, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
-		nodeID2 := domain.NodeID{ID: "n2", Pos: domain.NewPosition(1, 0)}
+		nodeID2 := domain.NodeID{ID: "n2"}
 		conn2.SetDstRouter(nodeID2)
 		router.outputPorts = append(router.outputPorts, port2)
 
@@ -288,7 +281,7 @@ func TestRouterSetNetworkInterface(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		router := testRouter(t)
 
-		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i", Pos: domain.NewPosition(1, 1)}, 1, 1, zerolog.New(io.Discard))
+		netIntfc, err := newNetworkInterface(domain.NodeID{ID: "i"}, 1, 1, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
 		err = router.SetNetworkInterface(netIntfc)

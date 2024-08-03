@@ -7,8 +7,7 @@ const (
 )
 
 type NodeID struct {
-	ID  string
-	Pos Position
+	ID string
 }
 
 type Route []NodeID

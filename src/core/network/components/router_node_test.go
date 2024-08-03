@@ -17,8 +17,7 @@ func TestNewRouterNode(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		conf := RouterConfig{
 			NodeID: domain.NodeID{
-				ID:  "n1",
-				Pos: domain.NewPosition(1, 1),
+				ID: "n1",
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      16,
@@ -37,8 +36,7 @@ func TestNewRouterNode(t *testing.T) {
 	t.Run("NewRouterError", func(t *testing.T) {
 		conf := RouterConfig{
 			NodeID: domain.NodeID{
-				ID:  "n1",
-				Pos: domain.NewPosition(1, 1),
+				ID: "n1",
 			},
 			SimConfig: domain.SimConfig{
 				BufferSize:      -1,

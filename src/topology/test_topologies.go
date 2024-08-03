@@ -3,8 +3,6 @@ package topology
 import (
 	"testing"
 
-	"main/src/domain"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -119,7 +117,7 @@ func FourByFourMesh(t testing.TB) *Topology {
 func constructTopology(tb testing.TB, nodeSpecs []nodeSpec, edgeSpecs []edgeSpec) *Topology {
 	nodes := make(map[string]*Node, len(nodeSpecs))
 	for i := 0; i < len(nodeSpecs); i++ {
-		aNode, err := NewNode(nodeSpecs[i].id, domain.NewPosition(nodeSpecs[i].x, nodeSpecs[i].y))
+		aNode, err := NewNode(nodeSpecs[i].id)
 		require.NoError(tb, err)
 
 		nodes[aNode.NodeID().ID] = aNode
