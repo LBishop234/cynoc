@@ -10,14 +10,14 @@ import (
 	"github.com/yaricom/goGraphML/graphml"
 )
 
-func testGraphmlGraph(t *testing.T) (*graphml.Graph, []string, []*Edge) {
+func testGraphmlGraph(t *testing.T) (*graphml.Graph, []*Node, []*Edge) {
 	nA, err := NewNode("nA")
 	require.NoError(t, err)
 
 	nB, err := NewNode("nB")
 	require.NoError(t, err)
 
-	e, err := NewEdge("e", nA, nB)
+	e, err := NewEdge("e", nA.NodeID(), nB.NodeID())
 	require.NoError(t, err)
 
 	graphmlStr := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
@@ -33,18 +33,18 @@ func testGraphmlGraph(t *testing.T) (*graphml.Graph, []string, []*Edge) {
 		</edge>
 	</graph>
 	</graphml>`,
-		nA,
-		nB,
+		nA.NodeID(),
+		nB.NodeID(),
 		e.ID(),
-		nA,
-		nB,
+		nA.NodeID(),
+		nB.NodeID(),
 	)
 
 	gml := graphml.NewGraphML("topology")
 	err = gml.Decode(bytes.NewReader([]byte(graphmlStr)))
 	require.NoError(t, err)
 
-	return gml.Graphs[0], []string{nA, nB}, []*Edge{e}
+	return gml.Graphs[0], []*Node{nA, nB}, []*Edge{e}
 }
 
 func TestGraphMLNodes(t *testing.T) {
@@ -66,9 +66,9 @@ func TestGraphMLEdges(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		graph, nodes, edges := testGraphmlGraph(t)
 
-		nodeMap := make(map[string]string, len(nodes))
+		nodeMap := make(map[string]*Node, len(nodes))
 		for i := 0; i < len(nodes); i++ {
-			nodeMap[nodes[i]] = nodes[i]
+			nodeMap[nodes[i].NodeID()] = nodes[i]
 		}
 
 		gotEdges, err := graphMLEdges(nodeMap, graph.Edges)
@@ -84,9 +84,9 @@ func TestGraphMLToEdge(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		graph, nodes, edges := testGraphmlGraph(t)
 
-		nodeMap := make(map[string]string, len(nodes))
+		nodeMap := make(map[string]*Node, len(nodes))
 		for i := 0; i < len(nodes); i++ {
-			nodeMap[nodes[i]] = nodes[i]
+			nodeMap[nodes[i].NodeID()] = nodes[i]
 		}
 
 		edge, err := parseGraphMLEdge(nodeMap, graph.Edges[0])

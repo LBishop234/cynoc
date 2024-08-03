@@ -108,13 +108,13 @@ func buildNetwork(top *topology.Topology, conf domain.SimConfig, logger zerolog.
 
 		rNode, err := components.NewRouterNode(
 			components.RouterConfig{
-				NodeID:    node,
+				NodeID:    node.NodeID(),
 				SimConfig: conf,
 			},
 			logger,
 		)
 		if err != nil {
-			logger.Error().Err(err).Str("node_id", node).Msg("error creating router")
+			logger.Error().Err(err).Str("node_id", node.NodeID()).Msg("error creating router")
 			return nil, err
 		}
 

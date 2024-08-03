@@ -8,8 +8,12 @@ import (
 )
 
 type Topology struct {
-	nodes map[string]string
+	nodes map[string]*Node
 	edges map[string]*Edge
+}
+
+type Node struct {
+	nodeID string
 }
 
 type Edge struct {
@@ -41,7 +45,7 @@ func ReadTopology(fPath string) (*Topology, error) {
 	return top, nil
 }
 
-func NewTopology(nodes map[string]string, edges map[string]*Edge) (*Topology, error) {
+func NewTopology(nodes map[string]*Node, edges map[string]*Edge) (*Topology, error) {
 	top := &Topology{
 		nodes: nodes,
 		edges: edges,
@@ -50,11 +54,11 @@ func NewTopology(nodes map[string]string, edges map[string]*Edge) (*Topology, er
 	return top, nil
 }
 
-func (t *Topology) Nodes() map[string]string {
+func (t *Topology) Nodes() map[string]*Node {
 	return t.nodes
 }
 
-func (t *Topology) Node(id string) (string, bool) {
+func (t *Topology) Node(id string) (*Node, bool) {
 	node, ok := t.nodes[id]
 	return node, ok
 }
@@ -80,16 +84,22 @@ func (t *Topology) Route(nodes []string) (domain.Route, error) {
 			return nil, domain.ErrInvalidRoute
 		}
 
-		route[i] = nodeID
+		route[i] = nodeID.NodeID()
 	}
 
 	return route, nil
 }
 
-func NewNode(id string) (string, error) {
+func NewNode(id string) (*Node, error) {
 	log.Log.Trace().Str("id", id).Msg("new node")
 
-	return id, nil
+	return &Node{
+		nodeID: id,
+	}, nil
+}
+
+func (n *Node) NodeID() string {
+	return n.nodeID
 }
 
 func NewEdge(id string, source, target string) (*Edge, error) {

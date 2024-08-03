@@ -25,9 +25,9 @@ func TestNewTrafficFlowAndRoute(t *testing.T) {
 	}
 
 	expectedRoute := domain.Route{
-		top.Nodes()["n3"],
-		top.Nodes()["n4"],
-		top.Nodes()["n5"],
+		top.Nodes()["n3"].NodeID(),
+		top.Nodes()["n4"].NodeID(),
+		top.Nodes()["n5"].NodeID(),
 	}
 
 	tfr, err := NewTrafficFlowAndRoute(top, tf1)

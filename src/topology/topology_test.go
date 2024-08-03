@@ -11,15 +11,15 @@ func TestNewTop(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid", func(t *testing.T) {
-		nodes := map[string]string{
-			"1": "1",
-			"2": "2",
+		nodes := map[string]*Node{
+			"1": {"1"},
+			"2": {"2"},
 		}
 		edges := map[string]*Edge{
 			"1": {
 				id: "1",
-				a:  nodes["1"],
-				b:  nodes["2"],
+				a:  nodes["1"].NodeID(),
+				b:  nodes["2"].NodeID(),
 			},
 		}
 
@@ -33,9 +33,9 @@ func TestNewTop(t *testing.T) {
 func TestTopologyNodes(t *testing.T) {
 	t.Parallel()
 
-	nodes := map[string]string{
-		"1": "1",
-		"2": "2",
+	nodes := map[string]*Node{
+		"1": {"1"},
+		"2": {"2"},
 	}
 
 	topology, err := NewTopology(nodes, nil)
@@ -67,7 +67,7 @@ func TestNewNode(t *testing.T) {
 
 		node, err := NewNode(id)
 		require.NoError(t, err)
-		assert.Equal(t, id, node)
+		assert.Equal(t, id, node.NodeID())
 	})
 }
 
@@ -76,7 +76,7 @@ func TestNodestring(t *testing.T) {
 
 	node, err := NewNode("1")
 	require.NoError(t, err)
-	assert.Equal(t, string("1"), node)
+	assert.Equal(t, string("1"), node.NodeID())
 }
 
 func TestNewEdge(t *testing.T) {

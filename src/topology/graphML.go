@@ -58,8 +58,8 @@ func graphML(filepath string) (*Topology, error) {
 	return top, nil
 }
 
-func graphMLNodes(gmlNodes []*graphml.Node) (map[string]string, error) {
-	var nodes map[string]string = make(map[string]string, len(gmlNodes))
+func graphMLNodes(gmlNodes []*graphml.Node) (map[string]*Node, error) {
+	var nodes map[string]*Node = make(map[string]*Node, len(gmlNodes))
 	for i := 0; i < len(gmlNodes); i++ {
 		node, err := NewNode(gmlNodes[i].ID)
 		if err != nil {
@@ -67,14 +67,14 @@ func graphMLNodes(gmlNodes []*graphml.Node) (map[string]string, error) {
 			return nil, err
 		}
 
-		nodes[node] = node
+		nodes[node.NodeID()] = node
 	}
 
 	log.Log.Debug().Msg("parsed GraphML nodes")
 	return nodes, nil
 }
 
-func graphMLEdges(nodes map[string]string, gmlEdges []*graphml.Edge) (map[string]*Edge, error) {
+func graphMLEdges(nodes map[string]*Node, gmlEdges []*graphml.Edge) (map[string]*Edge, error) {
 	var edges map[string]*Edge = make(map[string]*Edge, len(gmlEdges))
 	for i := 0; i < len(gmlEdges); i++ {
 		edge, err := parseGraphMLEdge(nodes, gmlEdges[i])
@@ -90,7 +90,7 @@ func graphMLEdges(nodes map[string]string, gmlEdges []*graphml.Edge) (map[string
 	return edges, nil
 }
 
-func parseGraphMLEdge(nodes map[string]string, gmlEdge *graphml.Edge) (*Edge, error) {
+func parseGraphMLEdge(nodes map[string]*Node, gmlEdge *graphml.Edge) (*Edge, error) {
 	aNode, exists := nodes[gmlEdge.Source]
 	if !exists {
 		log.Log.Error().Err(domain.ErrInvalidTopology).Str("id", gmlEdge.ID).Msg("GraphML edge missing source node")
@@ -104,5 +104,5 @@ func parseGraphMLEdge(nodes map[string]string, gmlEdge *graphml.Edge) (*Edge, er
 	}
 
 	log.Log.Trace().Str("id", gmlEdge.ID).Msg("parsed GraphML edge")
-	return NewEdge(gmlEdge.ID, aNode, bNode)
+	return NewEdge(gmlEdge.ID, aNode.NodeID(), bNode.NodeID())
 }
