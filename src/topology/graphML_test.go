@@ -21,12 +21,9 @@ func testGraphmlGraph(t *testing.T) (*graphml.Graph, []*Node, []*Edge) {
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
 	<graph id="G" edgedefault="undirected">
-		<node id="%s">
-		</node>
-		<node id="%s">
-		</node>
-		<edge id="%s" source="%s" target="%s">
-		</edge>
+		<node id="%s"/>
+		<node id="%s"/>
+		<edge id="%s" source="%s" target="%s"/>
 	</graph>
 	</graphml>`,
 		nA.NodeID(),
