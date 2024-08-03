@@ -29,9 +29,9 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					Route:      "[n3,n2,n1]",
 				},
 				Route: domain.Route{
-					fourByFourTop.Nodes()["n3"].NodeID(),
-					fourByFourTop.Nodes()["n2"].NodeID(),
-					fourByFourTop.Nodes()["n1"].NodeID(),
+					fourByFourTop.Nodes()["n3"],
+					fourByFourTop.Nodes()["n2"],
+					fourByFourTop.Nodes()["n1"],
 				},
 			},
 			"t2": {
@@ -45,8 +45,8 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					Route:      "[n8,n12]",
 				},
 				Route: domain.Route{
-					fourByFourTop.Nodes()["n8"].NodeID(),
-					fourByFourTop.Nodes()["n12"].NodeID(),
+					fourByFourTop.Nodes()["n8"],
+					fourByFourTop.Nodes()["n12"],
 				},
 			},
 			"t3": {
@@ -60,12 +60,12 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					Route:      "[n2,n1,n0,n4,n8,n12]",
 				},
 				Route: domain.Route{
-					fourByFourTop.Nodes()["n2"].NodeID(),
-					fourByFourTop.Nodes()["n1"].NodeID(),
-					fourByFourTop.Nodes()["n0"].NodeID(),
-					fourByFourTop.Nodes()["n4"].NodeID(),
-					fourByFourTop.Nodes()["n8"].NodeID(),
-					fourByFourTop.Nodes()["n12"].NodeID(),
+					fourByFourTop.Nodes()["n2"],
+					fourByFourTop.Nodes()["n1"],
+					fourByFourTop.Nodes()["n0"],
+					fourByFourTop.Nodes()["n4"],
+					fourByFourTop.Nodes()["n8"],
+					fourByFourTop.Nodes()["n12"],
 				},
 			},
 			"t4": {
@@ -79,8 +79,8 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					Route:      "[n8,n12]",
 				},
 				Route: domain.Route{
-					fourByFourTop.Nodes()["n8"].NodeID(),
-					fourByFourTop.Nodes()["n12"].NodeID(),
+					fourByFourTop.Nodes()["n8"],
+					fourByFourTop.Nodes()["n12"],
 				},
 			},
 			"t5": {
@@ -94,10 +94,10 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.Tra
 					Route:      "[n1,n0,n4,n8]",
 				},
 				Route: domain.Route{
-					fourByFourTop.Nodes()["n1"].NodeID(),
-					fourByFourTop.Nodes()["n0"].NodeID(),
-					fourByFourTop.Nodes()["n4"].NodeID(),
-					fourByFourTop.Nodes()["n8"].NodeID(),
+					fourByFourTop.Nodes()["n1"],
+					fourByFourTop.Nodes()["n0"],
+					fourByFourTop.Nodes()["n4"],
+					fourByFourTop.Nodes()["n8"],
 				},
 			},
 		},
@@ -346,15 +346,15 @@ func TestIntersectingRoutes(t *testing.T) {
 		top := topology.ThreeByThreeMesh(t)
 
 		r1 := domain.Route{
-			top.Nodes()["n0"].NodeID(),
-			top.Nodes()["n1"].NodeID(),
-			top.Nodes()["n4"].NodeID(),
-			top.Nodes()["n7"].NodeID(),
+			top.Nodes()["n0"],
+			top.Nodes()["n1"],
+			top.Nodes()["n4"],
+			top.Nodes()["n7"],
 		}
 		r2 := domain.Route{
-			top.Nodes()["n3"].NodeID(),
-			top.Nodes()["n4"].NodeID(),
-			top.Nodes()["n5"].NodeID(),
+			top.Nodes()["n3"],
+			top.Nodes()["n4"],
+			top.Nodes()["n5"],
 		}
 
 		assert.False(t, intersectingRoutes(r1, r2))
@@ -366,15 +366,15 @@ func TestIntersectingRoutes(t *testing.T) {
 		top := topology.ThreeByThreeMesh(t)
 
 		r1 := domain.Route{
-			top.Nodes()["n0"].NodeID(),
-			top.Nodes()["n1"].NodeID(),
-			top.Nodes()["n4"].NodeID(),
-			top.Nodes()["n7"].NodeID(),
+			top.Nodes()["n0"],
+			top.Nodes()["n1"],
+			top.Nodes()["n4"],
+			top.Nodes()["n7"],
 		}
 		r2 := domain.Route{
-			top.Nodes()["n2"].NodeID(),
-			top.Nodes()["n1"].NodeID(),
-			top.Nodes()["n4"].NodeID(),
+			top.Nodes()["n2"],
+			top.Nodes()["n1"],
+			top.Nodes()["n4"],
 		}
 
 		assert.True(t, intersectingRoutes(r1, r2))
