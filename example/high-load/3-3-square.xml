@@ -3,42 +3,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
   <graph id="G" edgedefault="undirected">
-    <node id="n1">
-      <data key="x">0</data>
-      <data key="y">0</data>
-    </node>
-    <node id="n2">
-      <data key="x">1</data>
-      <data key="y">0</data>
-    </node>
-    <node id="n3">
-      <data key="x">2</data>
-      <data key="y">0</data>
-    </node>
-    <node id="n4">
-      <data key="x">0</data>
-      <data key="y">1</data>
-    </node>
-    <node id="n5">
-      <data key="x">1</data>
-      <data key="y">1</data>
-    </node>
-    <node id="n6">
-      <data key="x">2</data>
-      <data key="y">1</data>
-    </node>
-    <node id="n7">
-      <data key="x">0</data>
-      <data key="y">2</data>
-    </node>
-    <node id="n8">
-      <data key="x">1</data>
-      <data key="y">2</data>
-    </node>
-    <node id="n9">
-      <data key="x">2</data>
-      <data key="y">2</data>
-    </node>
+    <node id="n1"/>
+    <node id="n2"/>
+    <node id="n3"/>
+    <node id="n4"/>
+    <node id="n5"/>
+    <node id="n6"/>
+    <node id="n7"/>
+    <node id="n8"/>
+    <node id="n9"/>
     <edge id="e0" source="n1" target="n2"/>
     <edge id="e1" source="n1" target="n4"/>
     <edge id="e2" source="n2" target="n3"/>

@@ -4,25 +4,15 @@
     xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
   <graph id="G" edgedefault="undirected">
     <node id="n1">
-        <data key="x">0</data>
-        <data key="y">0</data>
-    </node>
+        </node>
     <node id="n2">
-        <data key="x">1</data>
-        <data key="y">0</data>
-    </node>
+        </node>
     <node id="n3">
-        <data key="x">2</data>
-        <data key="y">0</data>
-    </node>
+        </node>
     <node id="n4">
-        <data key="x">3</data>
-        <data key="y">0</data>
-    </node>
+        </node>
     <node id="n5">
-        <data key="x">4</data>
-        <data key="y">0</data>
-    </node>
+        </node>
     <edge id="e1" source="n1" target="n2"/>
     <edge id="e2" source="n2" target="n3"/>
     <edge id="e3" source="n3" target="n4"/>
