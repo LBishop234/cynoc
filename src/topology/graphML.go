@@ -67,7 +67,7 @@ func graphMLNodes(gmlNodes []*graphml.Node) (map[string]*Node, error) {
 			return nil, err
 		}
 
-		nodes[node.NodeID().ID] = node
+		nodes[node.NodeID()] = node
 	}
 
 	log.Log.Debug().Msg("parsed GraphML nodes")
@@ -104,14 +104,5 @@ func parseGraphMLEdge(nodes map[string]*Node, gmlEdge *graphml.Edge) (*Edge, err
 	}
 
 	log.Log.Trace().Str("id", gmlEdge.ID).Msg("parsed GraphML edge")
-	return NewEdge(gmlEdge.ID, aNode.NodeID().ID, bNode.NodeID().ID)
-}
-
-func graphMLDataToAttributes(data []*graphml.Data) map[string]any {
-	attributes := make(map[string]any, len(data))
-	for i := 0; i < len(data); i++ {
-		attributes[data[i].Key] = data[i].Value
-	}
-
-	return attributes
+	return NewEdge(gmlEdge.ID, aNode.NodeID(), bNode.NodeID())
 }

@@ -15,8 +15,8 @@ import (
 func TestNewPacket(t *testing.T) {
 	t.Parallel()
 
-	src := domain.NodeID{ID: "n1"}
-	dst := domain.NodeID{ID: "n2"}
+	src := "n1"
+	dst := "n2"
 	route := domain.Route{src, dst}
 	packetSize := 4
 
@@ -30,8 +30,8 @@ func TestNewPacket(t *testing.T) {
 func TestPacketID(t *testing.T) {
 	t.Parallel()
 
-	src := domain.NodeID{ID: "n1"}
-	dst := domain.NodeID{ID: "n2"}
+	src := "n1"
+	dst := "n2"
 	route := domain.Route{src, dst}
 
 	packet := NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
@@ -41,8 +41,8 @@ func TestPacketID(t *testing.T) {
 func TestPacketTrafficFlowID(t *testing.T) {
 	t.Parallel()
 
-	src := domain.NodeID{ID: "n1"}
-	dst := domain.NodeID{ID: "n2"}
+	src := "n1"
+	dst := "n2"
 	route := domain.Route{src, dst}
 	trafficFlowID := "t"
 
@@ -53,8 +53,8 @@ func TestPacketTrafficFlowID(t *testing.T) {
 func TestPacketPriority(t *testing.T) {
 	t.Parallel()
 
-	src := domain.NodeID{ID: "n1"}
-	dst := domain.NodeID{ID: "n2"}
+	src := "n1"
+	dst := "n2"
 	route := domain.Route{src, dst}
 	priority := 1
 
@@ -65,8 +65,8 @@ func TestPacketPriority(t *testing.T) {
 func TestPacketRoute(t *testing.T) {
 	t.Parallel()
 
-	src := domain.NodeID{ID: "n1"}
-	dst := domain.NodeID{ID: "n2"}
+	src := "n1"
+	dst := "n2"
 	route := domain.Route{src, dst}
 
 	packet := NewPacket("t", "AA", 1, 100, route, 4, zerolog.New(io.Discard))
@@ -76,8 +76,8 @@ func TestPacketRoute(t *testing.T) {
 func TestPacketPacketSize(t *testing.T) {
 	t.Parallel()
 
-	src := domain.NodeID{ID: "n1"}
-	dst := domain.NodeID{ID: "n2"}
+	src := "n1"
+	dst := "n2"
 	route := domain.Route{src, dst}
 	packetSize := 4
 
@@ -93,8 +93,8 @@ func TestPacketFlits(t *testing.T) {
 		id            string
 		priority      int
 		deadline      int
-		src           domain.NodeID
-		dst           domain.NodeID
+		src           string
+		dst           string
 		packetSize    int
 		expected      []Flit
 	}{
@@ -103,11 +103,11 @@ func TestPacketFlits(t *testing.T) {
 			id:            "AA",
 			priority:      1,
 			deadline:      100,
-			src:           domain.NodeID{ID: "n1"},
-			dst:           domain.NodeID{ID: "n2"},
+			src:           "n1",
+			dst:           "n2",
 			packetSize:    5,
 			expected: []Flit{
-				NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1"}, domain.NodeID{ID: "n2"}}, zerolog.New(io.Discard)),
+				NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{"n1", "n2"}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "AA", 1, 1, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "AA", 2, 1, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "AA", 3, 1, zerolog.New(io.Discard)),
@@ -119,11 +119,11 @@ func TestPacketFlits(t *testing.T) {
 			id:            "BB",
 			priority:      1,
 			deadline:      100,
-			src:           domain.NodeID{ID: "n3"},
-			dst:           domain.NodeID{ID: "n4"},
+			src:           "n3",
+			dst:           "n4",
 			packetSize:    4,
 			expected: []Flit{
-				NewHeaderFlit("t", "BB", 0, 1, 100, domain.Route{domain.NodeID{ID: "n3"}, domain.NodeID{ID: "n4"}}, zerolog.New(io.Discard)),
+				NewHeaderFlit("t", "BB", 0, 1, 100, domain.Route{"n3", "n4"}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "BB", 1, 3, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "BB", 2, 2, zerolog.New(io.Discard)),
 				NewTailFlit("t", "BB", 3, 1, zerolog.New(io.Discard)),
@@ -134,11 +134,11 @@ func TestPacketFlits(t *testing.T) {
 			id:            "CC",
 			priority:      1,
 			deadline:      100,
-			src:           domain.NodeID{ID: "n5"},
-			dst:           domain.NodeID{ID: "n6"},
+			src:           "n5",
+			dst:           "n6",
 			packetSize:    2,
 			expected: []Flit{
-				NewHeaderFlit("t", "CC", 0, 1, 100, domain.Route{domain.NodeID{ID: "n5"}, domain.NodeID{ID: "n6"}}, zerolog.New(io.Discard)),
+				NewHeaderFlit("t", "CC", 0, 1, 100, domain.Route{"n5", "n6"}, zerolog.New(io.Discard)),
 				NewTailFlit("t", "CC", 1, 1, zerolog.New(io.Discard)),
 			},
 		},
@@ -147,11 +147,11 @@ func TestPacketFlits(t *testing.T) {
 			id:            "DD",
 			priority:      5,
 			deadline:      100,
-			src:           domain.NodeID{ID: "n1"},
-			dst:           domain.NodeID{ID: "n2"},
+			src:           "n1",
+			dst:           "n2",
 			packetSize:    5,
 			expected: []Flit{
-				NewHeaderFlit("t", "DD", 0, 5, 100, domain.Route{domain.NodeID{ID: "n1"}, domain.NodeID{ID: "n2"}}, zerolog.New(io.Discard)),
+				NewHeaderFlit("t", "DD", 0, 5, 100, domain.Route{"n1", "n2"}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "DD", 1, 5, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "DD", 2, 5, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "DD", 3, 5, zerolog.New(io.Discard)),
@@ -163,11 +163,11 @@ func TestPacketFlits(t *testing.T) {
 			id:            "EE",
 			priority:      1,
 			deadline:      500,
-			src:           domain.NodeID{ID: "n1"},
-			dst:           domain.NodeID{ID: "n2"},
+			src:           "n1",
+			dst:           "n2",
 			packetSize:    5,
 			expected: []Flit{
-				NewHeaderFlit("t", "EE", 0, 1, 500, domain.Route{domain.NodeID{ID: "n1"}, domain.NodeID{ID: "n2"}}, zerolog.New(io.Discard)),
+				NewHeaderFlit("t", "EE", 0, 1, 500, domain.Route{"n1", "n2"}, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "EE", 1, 1, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "EE", 2, 1, zerolog.New(io.Discard)),
 				NewBodyFlit("t", "EE", 3, 1, zerolog.New(io.Discard)),
@@ -222,8 +222,8 @@ func TestPacketBodyFlits(t *testing.T) {
 		testCase := testCases[index]
 
 		t.Run("TestCase-"+testCase.id, func(t *testing.T) {
-			src := domain.NodeID{ID: "n1"}
-			dst := domain.NodeID{ID: "n2"}
+			src := "n1"
+			dst := "n2"
 			route := domain.Route{src, dst}
 
 			packet := NewPacket("t", testCase.id, 1, 100, route, testCase.packetSize, zerolog.New(io.Discard))
@@ -240,8 +240,8 @@ func TestEqualPackets(t *testing.T) {
 		packetIndex := "AA"
 		priority := 1
 		deadline := 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 		data := 4
 
@@ -255,8 +255,8 @@ func TestEqualPackets(t *testing.T) {
 		trafficFlowID := "t"
 		priority := 1
 		deadline := 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 		data := 4
 
@@ -270,8 +270,8 @@ func TestEqualPackets(t *testing.T) {
 		packetIndex := "AA"
 		priority := 1
 		deadline := 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 		data := 4
 
@@ -285,8 +285,8 @@ func TestEqualPackets(t *testing.T) {
 		packetIndex := "AA"
 		trafficFlowID := "t"
 		deadline := 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 		data := 4
 
@@ -300,8 +300,8 @@ func TestEqualPackets(t *testing.T) {
 		packetIndex := "AA"
 		trafficFlowID := "t"
 		priority := 1
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 		data := 4
 
@@ -316,8 +316,8 @@ func TestEqualPackets(t *testing.T) {
 		packetIndex := "AA"
 		priority := 1
 		deadline := 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		data := 4
 
 		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
@@ -331,8 +331,8 @@ func TestEqualPackets(t *testing.T) {
 		packetIndex := "AA"
 		priority := 1
 		deadline := 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		data := 4
 
 		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, domain.Route{src, dst}, data, zerolog.New(io.Discard))
@@ -346,8 +346,8 @@ func TestEqualPackets(t *testing.T) {
 		packetIndex := "AA"
 		priority := 1
 		deadline := 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 
 		pkt1 := NewPacket(trafficFlowID, packetIndex, priority, deadline, route, 4, zerolog.New(io.Discard))
@@ -357,8 +357,8 @@ func TestEqualPackets(t *testing.T) {
 	})
 
 	t.Run("NilParameters", func(t *testing.T) {
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 
 		require.ErrorIs(t, EqualPackets(nil, nil), domain.ErrNilParameter)

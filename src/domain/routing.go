@@ -6,11 +6,7 @@ const (
 	XYRouting RoutingAlgorithm = "XY"
 )
 
-type NodeID struct {
-	ID string
-}
-
-type Route []NodeID
+type Route []string
 
 // Returns an array of all valid routing algorithms.
 func RoutingAlgorithms() []RoutingAlgorithm {

@@ -12,8 +12,8 @@ type Network interface {
 	NetworkInterfaces() []components.NetworkInterface
 	Routers() []components.Router
 
-	NetworkInterfaceMap() map[domain.NodeID]components.NetworkInterface
-	RouterMap() map[domain.NodeID]components.Router
+	NetworkInterfaceMap() map[string]components.NetworkInterface
+	RouterMap() map[string]components.Router
 
 	NetworkInterfacesIDMap() map[string]components.NetworkInterface
 	RoutersIDMap() map[string]components.Router
@@ -27,8 +27,8 @@ type networkImpl struct {
 	netwrkIntfcs []components.NetworkInterface
 	routers      []components.Router
 
-	netwrkIntfcMap map[domain.NodeID]components.NetworkInterface
-	routerMap      map[domain.NodeID]components.Router
+	netwrkIntfcMap map[string]components.NetworkInterface
+	routerMap      map[string]components.Router
 
 	netwrkIntfcIDMap map[string]components.NetworkInterface
 	routerIDMap      map[string]components.Router
@@ -59,24 +59,24 @@ func NewNetwork(top *topology.Topology, conf domain.SimConfig, logger zerolog.Lo
 		index++
 	}
 
-	netwrkIntfcMap := make(map[domain.NodeID]components.NetworkInterface)
+	netwrkIntfcMap := make(map[string]components.NetworkInterface)
 	for id := range routerNodes {
 		netwrkIntfcMap[routerNodes[id].NetworkInterface.NodeID()] = routerNodes[id].NetworkInterface
 	}
 
-	routerMap := make(map[domain.NodeID]components.Router)
+	routerMap := make(map[string]components.Router)
 	for id := range routerNodes {
 		routerMap[routerNodes[id].Router.NodeID()] = routerNodes[id].Router
 	}
 
 	netwrkIntfcIDMap := make(map[string]components.NetworkInterface)
 	for id := range routerNodes {
-		netwrkIntfcIDMap[routerNodes[id].NetworkInterface.NodeID().ID] = routerNodes[id].NetworkInterface
+		netwrkIntfcIDMap[routerNodes[id].NetworkInterface.NodeID()] = routerNodes[id].NetworkInterface
 	}
 
 	routerIDMap := make(map[string]components.Router)
 	for id := range routerNodes {
-		routerIDMap[routerNodes[id].Router.NodeID().ID] = routerNodes[id].Router
+		routerIDMap[routerNodes[id].Router.NodeID()] = routerNodes[id].Router
 	}
 
 	return &networkImpl{
@@ -114,11 +114,11 @@ func buildNetwork(top *topology.Topology, conf domain.SimConfig, logger zerolog.
 			logger,
 		)
 		if err != nil {
-			logger.Error().Err(err).Str("node_id", node.NodeID().ID).Msg("error creating router")
+			logger.Error().Err(err).Str("node_id", node.NodeID()).Msg("error creating router")
 			return nil, err
 		}
 
-		routerNodes[rNode.NodeID().ID] = rNode
+		routerNodes[rNode.NodeID()] = rNode
 	}
 
 	logger.Debug().Msg("connecting routers")
@@ -147,11 +147,11 @@ func buildNetwork(top *topology.Topology, conf domain.SimConfig, logger zerolog.
 			return nil, err
 		}
 		if err := aRouterNode.Router.RegisterOutputPort(aToB); err != nil {
-			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", aRouterNode.NodeID().ID).Msg("error registering output port")
+			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", aRouterNode.NodeID()).Msg("error registering output port")
 			return nil, err
 		}
 		if err := bRouterNode.Router.RegisterInputPort(aToB); err != nil {
-			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", bRouterNode.NodeID().ID).Msg("error registering input port")
+			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", bRouterNode.NodeID()).Msg("error registering input port")
 			return nil, err
 		}
 
@@ -161,11 +161,11 @@ func buildNetwork(top *topology.Topology, conf domain.SimConfig, logger zerolog.
 			return nil, err
 		}
 		if err := bRouterNode.Router.RegisterOutputPort(bToA); err != nil {
-			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", bRouterNode.NodeID().ID).Msg("error registering output port")
+			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", bRouterNode.NodeID()).Msg("error registering output port")
 			return nil, err
 		}
 		if err := aRouterNode.Router.RegisterInputPort(bToA); err != nil {
-			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", aRouterNode.NodeID().ID).Msg("error registering input port")
+			logger.Error().Err(err).Str("edge_id", edge.ID()).Str("node_id", aRouterNode.NodeID()).Msg("error registering input port")
 			return nil, err
 		}
 	}
@@ -182,11 +182,11 @@ func (n *networkImpl) Routers() []components.Router {
 	return n.routers
 }
 
-func (n *networkImpl) NetworkInterfaceMap() map[domain.NodeID]components.NetworkInterface {
+func (n *networkImpl) NetworkInterfaceMap() map[string]components.NetworkInterface {
 	return n.netwrkIntfcMap
 }
 
-func (n *networkImpl) RouterMap() map[domain.NodeID]components.Router {
+func (n *networkImpl) RouterMap() map[string]components.Router {
 	return n.routerMap
 }
 
@@ -201,7 +201,7 @@ func (n *networkImpl) RoutersIDMap() map[string]components.Router {
 func (n *networkImpl) Cycle(cycle int) error {
 	for i := 0; i < len(n.netwrkIntfcs); i++ {
 		if err := n.netwrkIntfcs[i].TransmitPendingPackets(cycle); err != nil {
-			n.logger.Error().Err(err).Str("id", n.netwrkIntfcs[i].NodeID().ID).Msg("error transmitting network interface's pending packets")
+			n.logger.Error().Err(err).Str("id", n.netwrkIntfcs[i].NodeID()).Msg("error transmitting network interface's pending packets")
 			return err
 		}
 	}
@@ -213,7 +213,7 @@ func (n *networkImpl) Cycle(cycle int) error {
 
 	for i := 0; i < len(n.netwrkIntfcs); i++ {
 		if err := n.netwrkIntfcs[i].HandleArrivingFlits(cycle); err != nil {
-			n.logger.Error().Err(err).Str("node_id", n.netwrkIntfcs[i].NodeID().ID).Msg("error handling network interface's arriving flits")
+			n.logger.Error().Err(err).Str("node_id", n.netwrkIntfcs[i].NodeID()).Msg("error handling network interface's arriving flits")
 			return err
 		}
 	}
@@ -232,21 +232,21 @@ func (n *networkImpl) cycleRouters(cycle int) error {
 
 	for i := 0; i < len(n.routers); i++ {
 		if err := n.routers[i].UpdateOutputPortsCredit(); err != nil {
-			n.logger.Error().Err(err).Str("id", n.routers[i].NodeID().ID).Msg("error updating router output ports credit")
+			n.logger.Error().Err(err).Str("id", n.routers[i].NodeID()).Msg("error updating router output ports credit")
 			return err
 		}
 	}
 
 	for i := 0; i < len(n.routers); i++ {
 		if err := n.routers[i].RouteBufferedFlits(cycle); err != nil {
-			n.logger.Error().Err(err).Str("id", n.routers[i].NodeID().ID).Msg("error routing buffered flits")
+			n.logger.Error().Err(err).Str("id", n.routers[i].NodeID()).Msg("error routing buffered flits")
 			return err
 		}
 	}
 
 	for i := 0; i < len(n.routers); i++ {
 		if err := n.routers[i].ReadFromInputPorts(cycle); err != nil {
-			n.logger.Error().Err(err).Str("id", n.routers[i].NodeID().ID).Msg("error reading from router input ports")
+			n.logger.Error().Err(err).Str("id", n.routers[i].NodeID()).Msg("error reading from router input ports")
 			return err
 		}
 	}

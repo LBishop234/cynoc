@@ -1,7 +1,6 @@
 package components
 
 import (
-	"main/src/domain"
 	"main/src/traffic/packet"
 
 	"github.com/rs/zerolog"
@@ -12,18 +11,18 @@ type Connection interface {
 	creditChannels() map[int]chan int
 	creditChannel(priority int) chan int
 
-	GetDstRouter() domain.NodeID
-	SetDstRouter(nodeID domain.NodeID)
+	GetDstRouter() string
+	SetDstRouter(nodeID string)
 
-	GetSrcRouter() domain.NodeID
-	SetSrcRouter(nodeID domain.NodeID)
+	GetSrcRouter() string
+	SetSrcRouter(nodeID string)
 }
 
 type connectionImpl struct {
 	flitChan   chan packet.Flit
 	creditChan map[int]chan int
-	destRouter domain.NodeID
-	srcRouter  domain.NodeID
+	destRouter string
+	srcRouter  string
 	logger     zerolog.Logger
 }
 
@@ -57,18 +56,18 @@ func (c *connectionImpl) creditChannel(priority int) chan int {
 	return c.creditChan[priority]
 }
 
-func (c *connectionImpl) GetDstRouter() domain.NodeID {
+func (c *connectionImpl) GetDstRouter() string {
 	return c.destRouter
 }
 
-func (c *connectionImpl) SetDstRouter(nodeID domain.NodeID) {
+func (c *connectionImpl) SetDstRouter(nodeID string) {
 	c.destRouter = nodeID
 }
 
-func (c *connectionImpl) GetSrcRouter() domain.NodeID {
+func (c *connectionImpl) GetSrcRouter() string {
 	return c.srcRouter
 }
 
-func (c *connectionImpl) SetSrcRouter(nodeID domain.NodeID) {
+func (c *connectionImpl) SetSrcRouter(nodeID string) {
 	c.srcRouter = nodeID
 }

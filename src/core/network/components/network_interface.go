@@ -8,7 +8,7 @@ import (
 )
 
 type NetworkInterface interface {
-	NodeID() domain.NodeID
+	NodeID() string
 
 	SetInputPort(conn Connection) error
 	SetOutputPort(conn Connection) error
@@ -22,7 +22,7 @@ type NetworkInterface interface {
 
 type networkInterfaceImpl struct {
 	// Core Attributes
-	nodeID      domain.NodeID
+	nodeID      string
 	bufferSize  int
 	maxPriority int
 
@@ -37,13 +37,13 @@ type networkInterfaceImpl struct {
 	logger zerolog.Logger
 }
 
-func newNetworkInterface(nodeID domain.NodeID, bufferSize, maxPriority int, logger zerolog.Logger) (*networkInterfaceImpl, error) {
+func newNetworkInterface(nodeID string, bufferSize, maxPriority int, logger zerolog.Logger) (*networkInterfaceImpl, error) {
 	if err := validBufferSize(bufferSize, maxPriority); err != nil {
 		logger.Error().Err(err).Msg("invalid buffer size")
 		return nil, err
 	}
 
-	logger.Trace().Str("id", nodeID.ID).Msg("new network interface")
+	logger.Trace().Str("id", nodeID).Msg("new network interface")
 	return &networkInterfaceImpl{
 		nodeID:         nodeID,
 		bufferSize:     bufferSize,
@@ -52,11 +52,11 @@ func newNetworkInterface(nodeID domain.NodeID, bufferSize, maxPriority int, logg
 		flitsArriving:  make(map[string]packet.Reconstructor),
 		arrivedPackets: make([]packet.Packet, 0),
 
-		logger: logger.With().Str("component", "network_interface").Str("node_id", nodeID.ID).Logger(),
+		logger: logger.With().Str("component", "network_interface").Str("node_id", nodeID).Logger(),
 	}, nil
 }
 
-func (n *networkInterfaceImpl) NodeID() domain.NodeID {
+func (n *networkInterfaceImpl) NodeID() string {
 	return n.nodeID
 }
 

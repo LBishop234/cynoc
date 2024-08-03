@@ -23,8 +23,8 @@ func TestNewReconstructor(t *testing.T) {
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 
 		headerFlit := NewHeaderFlit("t", "AA", 0, 1, 100, route, zerolog.New(io.Discard))
@@ -102,8 +102,8 @@ func TestReconstructorReconstruct(t *testing.T) {
 		var packetID string = "AA"
 		var priority int = 1
 		var deadline int = 100
-		src := domain.NodeID{ID: "n1"}
-		dst := domain.NodeID{ID: "n2"}
+		src := "n1"
+		dst := "n2"
 		route := domain.Route{src, dst}
 		var bodySize int = 4
 

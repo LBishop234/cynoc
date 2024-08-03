@@ -3,8 +3,6 @@ package topology
 import (
 	"testing"
 
-	"main/src/domain"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,22 +12,14 @@ func TestNewTop(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		nodes := map[string]*Node{
-			"1": {
-				nodeID: domain.NodeID{
-					ID: "1",
-				},
-			},
-			"2": {
-				nodeID: domain.NodeID{
-					ID: "2",
-				},
-			},
+			"1": {"1"},
+			"2": {"2"},
 		}
 		edges := map[string]*Edge{
 			"1": {
 				id: "1",
-				a:  nodes["1"].NodeID().ID,
-				b:  nodes["2"].NodeID().ID,
+				a:  nodes["1"].NodeID(),
+				b:  nodes["2"].NodeID(),
 			},
 		}
 
@@ -44,16 +34,8 @@ func TestTopologyNodes(t *testing.T) {
 	t.Parallel()
 
 	nodes := map[string]*Node{
-		"1": {
-			nodeID: domain.NodeID{
-				ID: "1",
-			},
-		},
-		"2": {
-			nodeID: domain.NodeID{
-				ID: "2",
-			},
-		},
+		"1": {"1"},
+		"2": {"2"},
 	}
 
 	topology, err := NewTopology(nodes, nil)
@@ -85,7 +67,7 @@ func TestNewNode(t *testing.T) {
 
 		node, err := NewNode(id)
 		require.NoError(t, err)
-		assert.Equal(t, id, node.NodeID().ID)
+		assert.Equal(t, id, node.NodeID())
 	})
 }
 
@@ -94,7 +76,7 @@ func TestNodestring(t *testing.T) {
 
 	node, err := NewNode("1")
 	require.NoError(t, err)
-	assert.Equal(t, string("1"), node.NodeID().ID)
+	assert.Equal(t, string("1"), node.NodeID())
 }
 
 func TestNewEdge(t *testing.T) {

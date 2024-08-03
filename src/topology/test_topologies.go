@@ -120,7 +120,7 @@ func constructTopology(tb testing.TB, nodeSpecs []nodeSpec, edgeSpecs []edgeSpec
 		aNode, err := NewNode(nodeSpecs[i].id)
 		require.NoError(tb, err)
 
-		nodes[aNode.NodeID().ID] = aNode
+		nodes[aNode.NodeID()] = aNode
 	}
 
 	edges := make(map[string]*Edge, len(edgeSpecs))

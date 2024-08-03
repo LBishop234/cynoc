@@ -13,7 +13,7 @@ type Topology struct {
 }
 
 type Node struct {
-	nodeID domain.NodeID
+	nodeID string
 }
 
 type Edge struct {
@@ -94,13 +94,11 @@ func NewNode(id string) (*Node, error) {
 	log.Log.Trace().Str("id", id).Msg("new node")
 
 	return &Node{
-		nodeID: domain.NodeID{
-			ID: id,
-		},
+		nodeID: id,
 	}, nil
 }
 
-func (n *Node) NodeID() domain.NodeID {
+func (n *Node) NodeID() string {
 	return n.nodeID
 }
 

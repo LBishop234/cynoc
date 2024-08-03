@@ -17,7 +17,7 @@ func testGraphmlGraph(t *testing.T) (*graphml.Graph, []*Node, []*Edge) {
 	nB, err := NewNode("nB")
 	require.NoError(t, err)
 
-	e, err := NewEdge("e", nA.NodeID().ID, nB.NodeID().ID)
+	e, err := NewEdge("e", nA.NodeID(), nB.NodeID())
 	require.NoError(t, err)
 
 	graphmlStr := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
@@ -33,11 +33,11 @@ func testGraphmlGraph(t *testing.T) (*graphml.Graph, []*Node, []*Edge) {
 		</edge>
 	</graph>
 	</graphml>`,
-		nA.NodeID().ID,
-		nB.NodeID().ID,
+		nA.NodeID(),
+		nB.NodeID(),
 		e.ID(),
-		nA.NodeID().ID,
-		nB.NodeID().ID,
+		nA.NodeID(),
+		nB.NodeID(),
 	)
 
 	gml := graphml.NewGraphML("topology")
@@ -68,7 +68,7 @@ func TestGraphMLEdges(t *testing.T) {
 
 		nodeMap := make(map[string]*Node, len(nodes))
 		for i := 0; i < len(nodes); i++ {
-			nodeMap[nodes[i].NodeID().ID] = nodes[i]
+			nodeMap[nodes[i].NodeID()] = nodes[i]
 		}
 
 		gotEdges, err := graphMLEdges(nodeMap, graph.Edges)
@@ -86,36 +86,11 @@ func TestGraphMLToEdge(t *testing.T) {
 
 		nodeMap := make(map[string]*Node, len(nodes))
 		for i := 0; i < len(nodes); i++ {
-			nodeMap[nodes[i].NodeID().ID] = nodes[i]
+			nodeMap[nodes[i].NodeID()] = nodes[i]
 		}
 
 		edge, err := parseGraphMLEdge(nodeMap, graph.Edges[0])
 		require.NoError(t, err)
 		assert.Equal(t, edges[0], edge)
-	})
-}
-
-func TestGraphMLDataToAttributes(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Valid", func(t *testing.T) {
-		gmlData := []*graphml.Data{
-			{
-				Key:   "x",
-				Value: "1",
-			},
-			{
-				Key:   "y",
-				Value: "2",
-			},
-		}
-
-		attributes := map[string]interface{}{
-			"x": "1",
-			"y": "2",
-		}
-
-		gotAttributes := graphMLDataToAttributes(gmlData)
-		assert.Equal(t, attributes, gotAttributes)
 	})
 }

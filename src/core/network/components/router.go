@@ -11,7 +11,7 @@ import (
 )
 
 type Router interface {
-	NodeID() domain.NodeID
+	NodeID() string
 	RegisterInputPort(connection Connection) error
 	RegisterOutputPort(connection Connection) error
 	SetNetworkInterface(netIntfc NetworkInterface) error
@@ -24,12 +24,12 @@ type Router interface {
 
 type routerImpl struct {
 	// Core Attributes
-	nodeID      domain.NodeID
+	nodeID      string
 	inputPorts  []inputPort
 	outputPorts []outputPort
 
 	outputMapSync sync.Once
-	outputMap     map[domain.NodeID]outputPort
+	outputMap     map[string]outputPort
 
 	// Configuration Constants
 	simConf domain.SimConfig
@@ -37,14 +37,14 @@ type routerImpl struct {
 	// Internal Operation
 	headerFlitsProcessings       map[string]int
 	headerFlitsProcessedPerCycle map[string]bool
-	packetsNextRouter            map[string]domain.NodeID
+	packetsNextRouter            map[string]string
 
 	// Utility
 	logger zerolog.Logger
 }
 
 type RouterConfig struct {
-	domain.NodeID
+	NodeID string
 	domain.SimConfig
 }
 
@@ -62,22 +62,22 @@ func newRouter(conf RouterConfig, logger zerolog.Logger) (*routerImpl, error) {
 		inputPorts:  make([]inputPort, 0),
 		outputPorts: make([]outputPort, 0),
 
-		outputMap: make(map[domain.NodeID]outputPort),
+		outputMap: make(map[string]outputPort),
 
 		simConf: conf.SimConfig,
 
 		headerFlitsProcessings:       make(map[string]int),
 		headerFlitsProcessedPerCycle: make(map[string]bool),
-		packetsNextRouter:            make(map[string]domain.NodeID),
+		packetsNextRouter:            make(map[string]string),
 
-		logger: logger.With().Str("component", "router").Str("node_id", conf.ID).Logger(),
+		logger: logger.With().Str("component", "router").Str("node_id", conf.NodeID).Logger(),
 	}
 
 	rtr.logger.Trace().Msg("router created")
 	return &rtr, nil
 }
 
-func (r *routerImpl) NodeID() domain.NodeID {
+func (r *routerImpl) NodeID() string {
 	return r.nodeID
 }
 
@@ -113,7 +113,7 @@ func (r *routerImpl) RegisterOutputPort(conn Connection) error {
 
 func (r *routerImpl) UpdateOutputMap() {
 	r.outputMapSync.Do(func() {
-		r.outputMap = make(map[domain.NodeID]outputPort, len(r.outputPorts))
+		r.outputMap = make(map[string]outputPort, len(r.outputPorts))
 		for i := 0; i < len(r.outputPorts); i++ {
 			r.outputMap[r.outputPorts[i].connection().GetDstRouter()] = r.outputPorts[i]
 		}
