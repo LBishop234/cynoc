@@ -43,13 +43,13 @@ func ReadTopology(fPath string) (*Topology, error) {
 	return top, nil
 }
 
-func NewTopology(nodes map[string]*Node, edges map[string]*Edge) (*Topology, error) {
+func NewTopology(nodes map[string]*Node, edges map[string]*Edge) *Topology {
 	top := &Topology{
 		nodes: nodes,
 		edges: edges,
 	}
 
-	return top, nil
+	return top
 }
 
 func (t *Topology) Nodes() map[string]*Node {
@@ -99,14 +99,14 @@ func (n *Node) NodeID() string {
 	return string(*n)
 }
 
-func NewEdge(id string, source, target string) (*Edge, error) {
+func NewEdge(id string, source, target string) *Edge {
 	log.Log.Trace().Str("id", id).Msg("new edge")
 
 	return &Edge{
 		id: id,
 		a:  source,
 		b:  target,
-	}, nil
+	}
 }
 
 func (e *Edge) ID() string {

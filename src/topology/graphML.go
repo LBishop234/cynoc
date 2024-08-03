@@ -48,11 +48,7 @@ func graphML(filepath string) (*Topology, error) {
 
 	log.Log.Debug().Msg("parsed GraphML topology file")
 
-	top, err := NewTopology(nodes, edges)
-	if err != nil {
-		log.Log.Error().Err(err).Str("path", filepath).Msg("error creating topology")
-		return nil, err
-	}
+	top := NewTopology(nodes, edges)
 
 	log.Log.Debug().Msg("loaded topology from GraphML file")
 	return top, nil
@@ -99,5 +95,5 @@ func parseGraphMLEdge(nodes map[string]*Node, gmlEdge *graphml.Edge) (*Edge, err
 	}
 
 	log.Log.Trace().Str("id", gmlEdge.ID).Msg("parsed GraphML edge")
-	return NewEdge(gmlEdge.ID, aNode.NodeID(), bNode.NodeID())
+	return NewEdge(gmlEdge.ID, aNode.NodeID(), bNode.NodeID()), nil
 }

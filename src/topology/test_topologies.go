@@ -2,8 +2,6 @@ package topology
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 type nodeSpec struct {
@@ -123,14 +121,11 @@ func constructTopology(tb testing.TB, nodeSpecs []nodeSpec, edgeSpecs []edgeSpec
 
 	edges := make(map[string]*Edge, len(edgeSpecs))
 	for i := 0; i < len(edgeSpecs); i++ {
-		aEdge, err := NewEdge(edgeSpecs[i].id, edgeSpecs[i].src, edgeSpecs[i].dst)
-		require.NoError(tb, err)
-
+		aEdge := NewEdge(edgeSpecs[i].id, edgeSpecs[i].src, edgeSpecs[i].dst)
 		edges[aEdge.ID()] = aEdge
 	}
 
-	top, err := NewTopology(nodes, edges)
-	require.NoError(tb, err)
+	top := NewTopology(nodes, edges)
 
 	return top
 }

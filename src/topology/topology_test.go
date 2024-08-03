@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewTop(t *testing.T) {
@@ -23,8 +22,7 @@ func TestNewTop(t *testing.T) {
 			},
 		}
 
-		topology, err := NewTopology(nodes, edges)
-		require.NoError(t, err)
+		topology := NewTopology(nodes, edges)
 		assert.Equal(t, nodes, topology.nodes)
 		assert.Equal(t, edges, topology.edges)
 	})
@@ -38,8 +36,7 @@ func TestTopologyNodes(t *testing.T) {
 		"2": NewNode("2"),
 	}
 
-	topology, err := NewTopology(nodes, nil)
-	require.NoError(t, err)
+	topology := NewTopology(nodes, nil)
 	assert.Equal(t, nodes, topology.Nodes())
 }
 
@@ -54,8 +51,7 @@ func TestTopologyEdges(t *testing.T) {
 		},
 	}
 
-	topology, err := NewTopology(nil, edges)
-	require.NoError(t, err)
+	topology := NewTopology(nil, edges)
 	assert.Equal(t, edges, topology.Edges())
 }
 
@@ -85,19 +81,17 @@ func TestNewEdge(t *testing.T) {
 		var source string = "n1"
 		var target string = "n2"
 
-		edge, err := NewEdge(id, source, target)
-		require.NoError(t, err)
+		edge := NewEdge(id, source, target)
 		assert.Equal(t, id, edge.id)
 		assert.Equal(t, source, edge.a)
 		assert.Equal(t, target, edge.b)
 	})
 }
 
-func TestEdgestring(t *testing.T) {
+func TestEdgeID(t *testing.T) {
 	t.Parallel()
 
-	edge, err := NewEdge("1", "n1", "n2")
-	require.NoError(t, err)
+	edge := NewEdge("1", "n1", "n2")
 	assert.Equal(t, string("1"), edge.ID())
 }
 
@@ -105,8 +99,7 @@ func TestEdgeSource(t *testing.T) {
 	t.Parallel()
 
 	source := "n1"
-	edge, err := NewEdge("", source, "n2")
-	require.NoError(t, err)
+	edge := NewEdge("", source, "n2")
 	assert.Equal(t, source, edge.A())
 }
 
@@ -114,7 +107,6 @@ func TestEdgeTarget(t *testing.T) {
 	t.Parallel()
 
 	target := "n2"
-	edge, err := NewEdge("", "n1", target)
-	require.NoError(t, err)
+	edge := NewEdge("", "n1", target)
 	assert.Equal(t, target, edge.B())
 }

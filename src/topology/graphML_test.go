@@ -14,8 +14,7 @@ func testGraphmlGraph(t *testing.T) (*graphml.Graph, []*Node, []*Edge) {
 	nA := NewNode("nA")
 	nB := NewNode("nB")
 
-	e, err := NewEdge("e", nA.NodeID(), nB.NodeID())
-	require.NoError(t, err)
+	e := NewEdge("e", nA.NodeID(), nB.NodeID())
 
 	graphmlStr := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 	<graphml xmlns="http://graphml.graphdrawing.org/xmlns"  
@@ -38,7 +37,7 @@ func testGraphmlGraph(t *testing.T) (*graphml.Graph, []*Node, []*Edge) {
 	)
 
 	gml := graphml.NewGraphML("topology")
-	err = gml.Decode(bytes.NewReader([]byte(graphmlStr)))
+	err := gml.Decode(bytes.NewReader([]byte(graphmlStr)))
 	require.NoError(t, err)
 
 	return gml.Graphs[0], []*Node{nA, nB}, []*Edge{e}
