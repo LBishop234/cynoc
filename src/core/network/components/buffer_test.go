@@ -83,7 +83,7 @@ func TestBufferPopFlit(t *testing.T) {
 		buff, err := newBuffer(2, 2, zerolog.New(io.Discard))
 		require.NoError(t, err)
 
-		flit1 := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		flit1 := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{"n1", "n2"}, zerolog.New(io.Discard))
 		buff.flits[flit1.Priority()] = append(buff.flits[flit1.Priority()], flit1)
 
 		flit2 := packet.NewTailFlit("t", "AA", 1, 1, zerolog.New(io.Discard))

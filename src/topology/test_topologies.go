@@ -2,10 +2,6 @@ package topology
 
 import (
 	"testing"
-
-	"main/src/domain"
-
-	"github.com/stretchr/testify/require"
 )
 
 type nodeSpec struct {
@@ -32,7 +28,7 @@ func ThreeHorozontalLine(t testing.TB) *Topology {
 		{"e1", "n1", "n2"},
 	}
 
-	return constructTopology(t, nodeSpecs, edgeSpecs)
+	return constructTopology(nodeSpecs, edgeSpecs)
 }
 
 func ThreeByThreeMesh(t testing.TB) *Topology {
@@ -63,7 +59,7 @@ func ThreeByThreeMesh(t testing.TB) *Topology {
 		{"e11", "n7", "n8"},
 	}
 
-	return constructTopology(t, nodeSpec, edgeSpec)
+	return constructTopology(nodeSpec, edgeSpec)
 }
 
 func FourByFourMesh(t testing.TB) *Topology {
@@ -113,28 +109,23 @@ func FourByFourMesh(t testing.TB) *Topology {
 		{"e23", "n14", "n15"},
 	}
 
-	return constructTopology(t, nodeSpec, edgeSpec)
+	return constructTopology(nodeSpec, edgeSpec)
 }
 
-func constructTopology(tb testing.TB, nodeSpecs []nodeSpec, edgeSpecs []edgeSpec) *Topology {
+func constructTopology(nodeSpecs []nodeSpec, edgeSpecs []edgeSpec) *Topology {
 	nodes := make(map[string]*Node, len(nodeSpecs))
 	for i := 0; i < len(nodeSpecs); i++ {
-		aNode, err := NewNode(nodeSpecs[i].id, domain.NewPosition(nodeSpecs[i].x, nodeSpecs[i].y))
-		require.NoError(tb, err)
-
-		nodes[aNode.NodeID().ID] = aNode
+		aNode := NewNode(nodeSpecs[i].id)
+		nodes[aNode.NodeID()] = aNode
 	}
 
 	edges := make(map[string]*Edge, len(edgeSpecs))
 	for i := 0; i < len(edgeSpecs); i++ {
-		aEdge, err := NewEdge(edgeSpecs[i].id, edgeSpecs[i].src, edgeSpecs[i].dst)
-		require.NoError(tb, err)
-
+		aEdge := NewEdge(edgeSpecs[i].id, edgeSpecs[i].src, edgeSpecs[i].dst)
 		edges[aEdge.ID()] = aEdge
 	}
 
-	top, err := NewTopology(nodes, edges)
-	require.NoError(tb, err)
+	top := NewTopology(nodes, edges)
 
 	return top
 }

@@ -137,7 +137,7 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 
 		port := testInputPort(t, bufferSize, maxPriority)
 
-		flit := packet.NewHeaderFlit("t0", packetID, 0, flitPriority, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		flit := packet.NewHeaderFlit("t0", packetID, 0, flitPriority, 100, domain.Route{"n1", "n2"}, zerolog.New(io.Discard))
 		port.conn.flitChannel() <- flit
 
 		err := port.readIntoBuffer(0)
@@ -164,7 +164,7 @@ func TestInputPortReadIntoBuffer(t *testing.T) {
 
 		port := testInputPort(t, bufferSize, maxPriority)
 
-		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{"n1", "n2"}, zerolog.New(io.Discard))
 
 		port.conn.flitChannel() <- flit
 		err := port.readIntoBuffer(0)
@@ -185,7 +185,7 @@ func TestInputPortPeakBuffer(t *testing.T) {
 
 		port := testInputPort(t, bufferSize, maxPriority)
 
-		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}, domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		flit := packet.NewHeaderFlit("t", "AA", 0, 1, 100, domain.Route{"n1", "n2", "n1", "n2"}, zerolog.New(io.Discard))
 		port.buff.addFlit(flit)
 
 		gotFlit, exists := port.peakBuffer(flit.Priority())
@@ -215,7 +215,7 @@ func TestInputPortReadOutOfBuffer(t *testing.T) {
 
 		port := testInputPort(t, bufferSize, maxPriority)
 
-		flit := packet.NewHeaderFlit("t", "AA", 0, flitPriority, 100, domain.Route{domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}, domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}}, zerolog.New(io.Discard))
+		flit := packet.NewHeaderFlit("t", "AA", 0, flitPriority, 100, domain.Route{"n1", "n2"}, zerolog.New(io.Discard))
 		port.buff.addFlit(flit)
 
 		gotFlit, exists := port.readOutOfBuffer(0, flitPriority)

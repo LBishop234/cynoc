@@ -3,10 +3,7 @@ package topology
 import (
 	"testing"
 
-	"main/src/domain"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewTop(t *testing.T) {
@@ -14,29 +11,18 @@ func TestNewTop(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		nodes := map[string]*Node{
-			"1": {
-				nodeID: domain.NodeID{
-					ID:  "1",
-					Pos: domain.NewPosition(0, 0),
-				},
-			},
-			"2": {
-				nodeID: domain.NodeID{
-					ID:  "2",
-					Pos: domain.NewPosition(0, 1),
-				},
-			},
+			"1": NewNode("1"),
+			"2": NewNode("2"),
 		}
 		edges := map[string]*Edge{
 			"1": {
 				id: "1",
-				a:  nodes["1"].NodeID().ID,
-				b:  nodes["2"].NodeID().ID,
+				a:  nodes["1"].NodeID(),
+				b:  nodes["2"].NodeID(),
 			},
 		}
 
-		topology, err := NewTopology(nodes, edges)
-		require.NoError(t, err)
+		topology := NewTopology(nodes, edges)
 		assert.Equal(t, nodes, topology.nodes)
 		assert.Equal(t, edges, topology.edges)
 	})
@@ -46,22 +32,11 @@ func TestTopologyNodes(t *testing.T) {
 	t.Parallel()
 
 	nodes := map[string]*Node{
-		"1": {
-			nodeID: domain.NodeID{
-				ID:  "1",
-				Pos: domain.NewPosition(0, 0),
-			},
-		},
-		"2": {
-			nodeID: domain.NodeID{
-				ID:  "2",
-				Pos: domain.NewPosition(0, 1),
-			},
-		},
+		"1": NewNode("1"),
+		"2": NewNode("2"),
 	}
 
-	topology, err := NewTopology(nodes, nil)
-	require.NoError(t, err)
+	topology := NewTopology(nodes, nil)
 	assert.Equal(t, nodes, topology.Nodes())
 }
 
@@ -76,8 +51,7 @@ func TestTopologyEdges(t *testing.T) {
 		},
 	}
 
-	topology, err := NewTopology(nil, edges)
-	require.NoError(t, err)
+	topology := NewTopology(nil, edges)
 	assert.Equal(t, edges, topology.Edges())
 }
 
@@ -86,30 +60,17 @@ func TestNewNode(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		var id string = "1"
-		var pos domain.Position = domain.NewPosition(0, 0)
 
-		node, err := NewNode(id, pos)
-		require.NoError(t, err)
-		assert.Equal(t, id, node.NodeID().ID)
-		assert.Equal(t, pos, node.NodeID().Pos)
+		node := NewNode(id)
+		assert.Equal(t, id, node.NodeID())
 	})
 }
 
-func TestNodestring(t *testing.T) {
+func TestNodeID(t *testing.T) {
 	t.Parallel()
 
-	node, err := NewNode("1", domain.Position{})
-	require.NoError(t, err)
-	assert.Equal(t, string("1"), node.NodeID().ID)
-}
-
-func TestNodePosition(t *testing.T) {
-	t.Parallel()
-
-	pos := domain.NewPosition(0, 0)
-	node, err := NewNode("", pos)
-	require.NoError(t, err)
-	assert.Equal(t, pos, node.NodeID().Pos)
+	node := NewNode("1")
+	assert.Equal(t, string("1"), node.NodeID())
 }
 
 func TestNewEdge(t *testing.T) {
@@ -120,19 +81,17 @@ func TestNewEdge(t *testing.T) {
 		var source string = "n1"
 		var target string = "n2"
 
-		edge, err := NewEdge(id, source, target)
-		require.NoError(t, err)
+		edge := NewEdge(id, source, target)
 		assert.Equal(t, id, edge.id)
 		assert.Equal(t, source, edge.a)
 		assert.Equal(t, target, edge.b)
 	})
 }
 
-func TestEdgestring(t *testing.T) {
+func TestEdgeID(t *testing.T) {
 	t.Parallel()
 
-	edge, err := NewEdge("1", "n1", "n2")
-	require.NoError(t, err)
+	edge := NewEdge("1", "n1", "n2")
 	assert.Equal(t, string("1"), edge.ID())
 }
 
@@ -140,8 +99,7 @@ func TestEdgeSource(t *testing.T) {
 	t.Parallel()
 
 	source := "n1"
-	edge, err := NewEdge("", source, "n2")
-	require.NoError(t, err)
+	edge := NewEdge("", source, "n2")
 	assert.Equal(t, source, edge.A())
 }
 
@@ -149,7 +107,6 @@ func TestEdgeTarget(t *testing.T) {
 	t.Parallel()
 
 	target := "n2"
-	edge, err := NewEdge("", "n1", target)
-	require.NoError(t, err)
+	edge := NewEdge("", "n1", target)
 	assert.Equal(t, target, edge.B())
 }

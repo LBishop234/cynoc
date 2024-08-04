@@ -1,18 +1,16 @@
 package components
 
 import (
-	"main/src/domain"
-
 	"github.com/rs/zerolog"
 )
 
 type RouterNode struct {
-	nodeID           domain.NodeID
+	nodeID           string
 	Router           Router
 	NetworkInterface NetworkInterface
 }
 
-func (r *RouterNode) NodeID() domain.NodeID {
+func (r *RouterNode) NodeID() string {
 	return r.nodeID
 }
 
@@ -30,11 +28,11 @@ func NewRouterNode(conf RouterConfig, logger zerolog.Logger) (RouterNode, error)
 	}
 
 	if err := router.SetNetworkInterface(netIntfc); err != nil {
-		logger.Error().Err(err).Str("id", router.NodeID().ID).Msg("error setting router network interface")
+		logger.Error().Err(err).Str("id", router.NodeID()).Msg("error setting router network interface")
 		return RouterNode{}, err
 	}
 
-	logger.Trace().Str("id", router.NodeID().ID).Msg("new router and network interface")
+	logger.Trace().Str("id", router.NodeID()).Msg("new router and network interface")
 	return RouterNode{
 		nodeID:           conf.NodeID,
 		Router:           router,

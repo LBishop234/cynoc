@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testDummyRoute(t *testing.T) (src, dst domain.NodeID, route domain.Route) {
-	src = domain.NodeID{ID: "n1", Pos: domain.NewPosition(0, 0)}
-	dst = domain.NodeID{ID: "n2", Pos: domain.NewPosition(0, 1)}
+func testDummyRoute() (src, dst string, route domain.Route) {
+	src = "n1"
+	dst = "n2"
 	route = domain.Route{src, dst}
 
 	return src, dst, route
@@ -44,7 +44,7 @@ func TestNewHeaderFlit(t *testing.T) {
 	flitIndex := 0
 	priority := 1
 	deadline := 100
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	flit := NewHeaderFlit(trafficFlowID, packetIndex, flitIndex, priority, deadline, route, zerolog.New(io.Discard))
 	assert.Equal(t, trafficFlowID, flit.trafficFlowID)
@@ -96,7 +96,7 @@ func TestNewTailFlit(t *testing.T) {
 func TestFlitID(t *testing.T) {
 	t.Parallel()
 
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	flit := NewHeaderFlit("t", "AABBCCDD", 0, 1, 100, route, zerolog.New(io.Discard))
 	assert.Equal(t, flit.id, flit.ID())
@@ -105,7 +105,7 @@ func TestFlitID(t *testing.T) {
 func TestHeaderFlitType(t *testing.T) {
 	t.Parallel()
 
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	assert.Equal(t, HeaderFlitType, NewHeaderFlit("t", "AABBCCDD", 0, 1, 100, route, zerolog.New(io.Discard)).Type())
 }
@@ -114,7 +114,7 @@ func TestHeaderFlitTrafficFlowID(t *testing.T) {
 	t.Parallel()
 
 	trafficFlowID := "t"
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	assert.Equal(t, trafficFlowID, NewHeaderFlit(trafficFlowID, "AABBCCDD", 0, 1, 100, route, zerolog.New(io.Discard)).TrafficFlowID())
 }
@@ -124,7 +124,7 @@ func TestHeaderFlitPacketID(t *testing.T) {
 
 	trafficFlowID := "t"
 	packetIndex := "AABBCCDD"
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	expectedPacketID := "t-AABBCCDD"
 
@@ -135,7 +135,7 @@ func TestHeaderFlitPacketIndex(t *testing.T) {
 	t.Parallel()
 
 	packetIndex := "AABBCCDD"
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	assert.Equal(t, packetIndex, NewHeaderFlit("t", packetIndex, 0, 1, 100, route, zerolog.New(io.Discard)).PacketIndex())
 }
@@ -144,7 +144,7 @@ func TestHeaderFlitIndex(t *testing.T) {
 	t.Parallel()
 
 	flitIndex := rand.Intn(math.MaxInt)
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	assert.Equal(t, flitIndex, NewHeaderFlit("t", "AABBCCDD", flitIndex, 1, 100, route, zerolog.New(io.Discard)).FlitIndex())
 }
@@ -153,7 +153,7 @@ func TestHeaderFlitPriority(t *testing.T) {
 	t.Parallel()
 
 	priority := 1
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	assert.Equal(t, priority, NewHeaderFlit("t", "AABBCCDD", 0, priority, 100, route, zerolog.New(io.Discard)).Priority())
 }
@@ -162,7 +162,7 @@ func TestHeaderFlitDeadline(t *testing.T) {
 	t.Parallel()
 
 	deadline := 100
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	assert.Equal(t, deadline, NewHeaderFlit("t", "AABBCCDD", 0, 1, deadline, route, zerolog.New(io.Discard)).Deadline())
 }
@@ -170,7 +170,7 @@ func TestHeaderFlitDeadline(t *testing.T) {
 func TestHeaderFlitRoute(t *testing.T) {
 	t.Parallel()
 
-	_, _, route := testDummyRoute(t)
+	_, _, route := testDummyRoute()
 
 	flit := NewHeaderFlit("t", "AABBCCDD", 0, 1, 100, route, zerolog.New(io.Discard))
 	assert.Equal(t, route, flit.Route())
