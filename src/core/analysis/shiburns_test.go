@@ -1,10 +1,11 @@
 package analysis
 
 import (
-	"testing"
-
+	"context"
 	"main/src/domain"
 	"main/src/topology"
+	"strconv"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,20 +13,22 @@ import (
 
 const XiongEtAl = "XiongEtAlNoC"
 
-func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]trafficFlowAndRoute {
+func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string][]analysisTF {
 	fourByFourTop := topology.FourByFourMesh(tb)
 
-	tfAndRoutes := map[string]map[string]trafficFlowAndRoute{
+	tfAndRoutes := map[string][]analysisTF{
 		XiongEtAl: {
-			"t1": {
-				TrafficFlowConfig: domain.TrafficFlowConfig{
-					ID:         "t1",
-					Priority:   1,
-					Deadline:   100,
-					Period:     500,
-					Jitter:     26,
-					PacketSize: 20,
-					Route:      "[n3,n2,n1]",
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t1",
+						Priority:   1,
+						Deadline:   100,
+						Period:     500,
+						Jitter:     26,
+						PacketSize: 20,
+						Route:      "[n3,n2,n1]",
+					},
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n3"].NodeID(),
@@ -33,30 +36,34 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]trafficF
 					fourByFourTop.Nodes()["n1"].NodeID(),
 				},
 			},
-			"t2": {
-				TrafficFlowConfig: domain.TrafficFlowConfig{
-					ID:         "t2",
-					Priority:   2,
-					Deadline:   107,
-					Period:     407,
-					Jitter:     33,
-					PacketSize: 97,
-					Route:      "[n8,n12]",
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t2",
+						Priority:   2,
+						Deadline:   107,
+						Period:     407,
+						Jitter:     33,
+						PacketSize: 97,
+						Route:      "[n8,n12]",
+					},
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n8"].NodeID(),
 					fourByFourTop.Nodes()["n12"].NodeID(),
 				},
 			},
-			"t3": {
-				TrafficFlowConfig: domain.TrafficFlowConfig{
-					ID:         "t3",
-					Priority:   3,
-					Deadline:   95,
-					Period:     628,
-					Jitter:     14,
-					PacketSize: 36,
-					Route:      "[n2,n1,n0,n4,n8,n12]",
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t3",
+						Priority:   3,
+						Deadline:   95,
+						Period:     628,
+						Jitter:     14,
+						PacketSize: 36,
+						Route:      "[n2,n1,n0,n4,n8,n12]",
+					},
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n2"].NodeID(),
@@ -67,30 +74,34 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]trafficF
 					fourByFourTop.Nodes()["n12"].NodeID(),
 				},
 			},
-			"t4": {
-				TrafficFlowConfig: domain.TrafficFlowConfig{
-					ID:         "t4",
-					Priority:   4,
-					Deadline:   124,
-					Period:     1506,
-					Jitter:     8,
-					PacketSize: 58,
-					Route:      "[n8,n12]",
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t4",
+						Priority:   4,
+						Deadline:   124,
+						Period:     1506,
+						Jitter:     8,
+						PacketSize: 58,
+						Route:      "[n8,n12]",
+					},
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n8"].NodeID(),
 					fourByFourTop.Nodes()["n12"].NodeID(),
 				},
 			},
-			"t5": {
-				TrafficFlowConfig: domain.TrafficFlowConfig{
-					ID:         "t5",
-					Priority:   5,
-					Deadline:   189,
-					Period:     689,
-					Jitter:     27,
-					PacketSize: 124,
-					Route:      "[n1,n0,n4,n8]",
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t5",
+						Priority:   5,
+						Deadline:   189,
+						Period:     689,
+						Jitter:     27,
+						PacketSize: 124,
+						Route:      "[n1,n0,n4,n8]",
+					},
 				},
 				Route: domain.Route{
 					fourByFourTop.Nodes()["n1"].NodeID(),
@@ -105,237 +116,152 @@ func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]trafficF
 	return tfAndRoutes
 }
 
-func TestShiBurns(t *testing.T) {
+func TestNewShiBurns(t *testing.T) {
 	t.Parallel()
 
-	tfAndRoutes := testCasesTrafficFlowAndRoutes(t)
-
-	type tfStruct struct {
-		tfr trafficFlowAndRoute
-		res shiBurnsResults
+	type testCase struct {
+		conf     domain.SimConfig
+		tfsMapID string
+		expected []int
 	}
 
-	testCases := map[string]struct {
-		simConf domain.SimConfig
-		tfs     map[string]tfStruct
-	}{
-		XiongEtAl: {
-			simConf: domain.SimConfig{
+	testCases := []testCase{
+		{
+			conf: domain.SimConfig{
 				CycleLimit:      2000,
 				MaxPriority:     5,
 				BufferSize:      25,
 				ProcessingDelay: 6,
 			},
-			tfs: map[string]tfStruct{
-				"t1": {
-					tfr: tfAndRoutes[XiongEtAl]["t1"],
-					res: shiBurnsResults{
-						DirectInterferenceCount:   0,
-						IndirectInterferenceCount: 0,
-						Latency:                   38,
-					},
-				},
-				"t2": {
-					tfr: tfAndRoutes[XiongEtAl]["t2"],
-					res: shiBurnsResults{
-						DirectInterferenceCount:   0,
-						IndirectInterferenceCount: 0,
-						Latency:                   109,
-					},
-				},
-				"t3": {
-					tfr: tfAndRoutes[XiongEtAl]["t3"],
-					res: shiBurnsResults{
-						DirectInterferenceCount:   2,
-						IndirectInterferenceCount: 0,
-						Latency:                   219,
-					},
-				},
-				"t4": {
-					tfr: tfAndRoutes[XiongEtAl]["t4"],
-					res: shiBurnsResults{
-						DirectInterferenceCount:   2,
-						IndirectInterferenceCount: 1,
-						Latency:                   251,
-					},
-				},
-				"t5": {
-					tfr: tfAndRoutes[XiongEtAl]["t5"],
-					res: shiBurnsResults{
-						DirectInterferenceCount:   1,
-						IndirectInterferenceCount: 2,
-						Latency:                   220,
-					},
-				},
-			},
+			tfsMapID: XiongEtAl,
+			expected: []int{38, 109, 219, 251, 220},
 		},
 	}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+	for tcIndex, tc := range testCases {
+		t.Run(strconv.Itoa(tcIndex), func(t *testing.T) {
+			aTfs, error := basicLatency(context.TODO(), tc.conf, testCasesTrafficFlowAndRoutes(t)[tc.tfsMapID])
+			require.NoError(t, error)
 
-			tfrs := make(map[string]trafficFlowAndRoute, len(testCase.tfs))
-			for tfKey := range testCase.tfs {
-				tfrs[tfKey] = testCase.tfs[tfKey].tfr
-			}
+			aTFs, err := shiBurns(context.TODO(), aTfs)
+			require.NoError(t, err)
 
-			for tfKey := range testCase.tfs {
-				t.Run(tfKey, func(t *testing.T) {
-					got, err := shiBurns(testCase.simConf, tfrs, tfKey)
-
-					require.NoError(t, err)
-					assert.Equal(t, testCase.tfs[tfKey].res.DirectInterferenceCount, got.DirectInterferenceCount)
-					assert.Equal(t, testCase.tfs[tfKey].res.IndirectInterferenceCount, got.IndirectInterferenceCount)
-					assert.Equal(t, testCase.tfs[tfKey].res.Latency, got.Latency)
-				})
+			assert.Len(t, aTFs, len(tc.expected))
+			for i := 0; i < len(aTFs); i++ {
+				assert.Equal(t, tc.expected[i], aTFs[i].ShiAndBurns)
 			}
 		})
 	}
 }
 
 func BenchmarkShiBurns(b *testing.B) {
-	tfAndRoutes := testCasesTrafficFlowAndRoutes(b)
+	type testCase struct {
+		conf     domain.SimConfig
+		tfsMapID string
+	}
 
-	testCases := map[string]struct {
-		simConf domain.SimConfig
-		tfs     map[string]trafficFlowAndRoute
-	}{
-		XiongEtAl: {
-			simConf: domain.SimConfig{
+	testCases := []testCase{
+		{
+			conf: domain.SimConfig{
 				CycleLimit:      2000,
 				MaxPriority:     5,
 				BufferSize:      25,
 				ProcessingDelay: 6,
 			},
-			tfs: tfAndRoutes[XiongEtAl],
+			tfsMapID: XiongEtAl,
 		},
 	}
 
-	for name, testc := range testCases {
-		b.Run(name, func(b *testing.B) {
+	for tcIndex, tc := range testCases {
+		b.Run(strconv.Itoa(tcIndex), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				for tfKey := range testc.tfs {
-					_, err := shiBurns(testc.simConf, testc.tfs, tfKey)
-					assert.NoError(b, err)
-				}
+				aTfs, error := basicLatency(context.TODO(), tc.conf, testCasesTrafficFlowAndRoutes(b)[tc.tfsMapID])
+				require.NoError(b, error)
+
+				_, err := shiBurns(context.TODO(), aTfs)
+				require.NoError(b, err)
 			}
 		})
 	}
 }
 
-func TestFindInterferenceSet(t *testing.T) {
+func TestNewFindInterferenceSets(t *testing.T) {
 	t.Parallel()
 
-	tfAndRoutes := testCasesTrafficFlowAndRoutes(t)
+	type testCase struct {
+		tfs             []analysisTF
+		expectedDIntSet []map[string]int
+		expectedIIntSet []map[string]int
+	}
 
-	testCases := map[string]map[string]struct {
-		tfr         trafficFlowAndRoute
-		directInt   map[string]trafficFlowAndRoute
-		indirectInt map[string]trafficFlowAndRoute
-	}{
-		XiongEtAl: {
-			"t1": {
-				tfr:         tfAndRoutes[XiongEtAl]["t1"],
-				directInt:   map[string]trafficFlowAndRoute{},
-				indirectInt: map[string]trafficFlowAndRoute{},
+	testCases := []testCase{
+		{
+			tfs: []analysisTF{
+				{
+					TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+						TrafficFlowConfig: domain.TrafficFlowConfig{
+							ID:       "tf1",
+							Priority: 1,
+							Route:    "[n0,n1,n2]",
+						},
+					},
+					Route: domain.Route{"n0", "n1", "n2"},
+				},
+				{
+					TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+						TrafficFlowConfig: domain.TrafficFlowConfig{
+							ID:       "tf2",
+							Priority: 2,
+							Route:    "[n1,n2,n3]",
+						},
+					},
+					Route: domain.Route{"n1", "n2", "n3"},
+				},
+				{
+					TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+						TrafficFlowConfig: domain.TrafficFlowConfig{
+							ID:       "tf3",
+							Priority: 3,
+							Route:    "[n2,n3,n4]",
+						},
+					},
+					Route: domain.Route{"n2", "n3", "n4"},
+				},
+				{
+					TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+						TrafficFlowConfig: domain.TrafficFlowConfig{
+							ID:       "tf4",
+							Priority: 4,
+							Route:    "[n3,n4,n5]",
+						},
+					},
+					Route: domain.Route{"n3", "n4", "n5"},
+				},
 			},
-			"t2": {
-				tfr:         tfAndRoutes[XiongEtAl]["t2"],
-				directInt:   map[string]trafficFlowAndRoute{},
-				indirectInt: map[string]trafficFlowAndRoute{},
+			expectedDIntSet: []map[string]int{
+				{},
+				{"tf1": 0},
+				{"tf2": 1},
+				{"tf3": 2},
 			},
-			"t3": {
-				tfr: tfAndRoutes[XiongEtAl]["t3"],
-				directInt: map[string]trafficFlowAndRoute{
-					"t1": tfAndRoutes[XiongEtAl]["t1"],
-					"t2": tfAndRoutes[XiongEtAl]["t2"],
-				},
-				indirectInt: map[string]trafficFlowAndRoute{},
-			},
-			"t4": {
-				tfr: tfAndRoutes[XiongEtAl]["t4"],
-				directInt: map[string]trafficFlowAndRoute{
-					"t2": tfAndRoutes[XiongEtAl]["t2"],
-					"t3": tfAndRoutes[XiongEtAl]["t3"],
-				},
-				indirectInt: map[string]trafficFlowAndRoute{
-					"t1": tfAndRoutes[XiongEtAl]["t1"],
-				},
-			},
-			"t5": {
-				tfr: tfAndRoutes[XiongEtAl]["t5"],
-				directInt: map[string]trafficFlowAndRoute{
-					"t3": tfAndRoutes[XiongEtAl]["t3"],
-				},
-				indirectInt: map[string]trafficFlowAndRoute{
-					"t1": tfAndRoutes[XiongEtAl]["t1"],
-					"t2": tfAndRoutes[XiongEtAl]["t2"],
-				},
+			expectedIIntSet: []map[string]int{
+				{},
+				{},
+				{"tf1": 0},
+				{"tf1": 0, "tf2": 1},
 			},
 		},
 	}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			tfrs := make(map[string]trafficFlowAndRoute, len(testCase))
-			for tfKey := range testCase {
-				tfrs[tfKey] = testCase[tfKey].tfr
-			}
-
-			for tfKey := range testCase {
-				gotDIntSet, gotIIntSet := findInterferenceSets(tfrs, tfKey)
-
-				assert.Equal(t, testCase[tfKey].directInt, gotDIntSet)
-				assert.Equal(t, testCase[tfKey].indirectInt, gotIIntSet)
+	for tcIndex, tc := range testCases {
+		t.Run(strconv.Itoa(tcIndex), func(t *testing.T) {
+			aTFs := findIntereferenceSets(tc.tfs)
+			for i := 0; i < len(tc.tfs); i++ {
+				assert.Equal(t, tc.expectedDIntSet[i], aTFs[i].directIntSet)
+				assert.Equal(t, tc.expectedIIntSet[i], aTFs[i].indirectIntSet)
 			}
 		})
 	}
-}
-
-func TestFilterByPriority(t *testing.T) {
-	t.Parallel()
-
-	var (
-		tf1 = trafficFlowAndRoute{
-			TrafficFlowConfig: domain.TrafficFlowConfig{
-				ID:       "tf1",
-				Priority: 1,
-			},
-			Route: domain.Route{},
-		}
-		tf2 = trafficFlowAndRoute{
-			TrafficFlowConfig: domain.TrafficFlowConfig{
-				ID:       "tf2",
-				Priority: 2,
-			},
-			Route: domain.Route{},
-		}
-		tf3 = trafficFlowAndRoute{
-			TrafficFlowConfig: domain.TrafficFlowConfig{
-				ID:       "tf3",
-				Priority: 3,
-			},
-			Route: domain.Route{},
-		}
-	)
-
-	tfs := map[string]trafficFlowAndRoute{
-		tf1.ID: tf1,
-		tf2.ID: tf2,
-		tf3.ID: tf3,
-	}
-
-	expectedFiltered := map[string]trafficFlowAndRoute{
-		tf1.ID: tf1,
-		tf2.ID: tf2,
-	}
-
-	filtered := filterByPriority(tfs, tf2.Priority)
-
-	assert.Equal(t, expectedFiltered, filtered)
 }
 
 func TestIntersectingRoutes(t *testing.T) {

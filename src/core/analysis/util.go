@@ -5,34 +5,60 @@ import (
 	"main/src/topology"
 )
 
-type trafficFlowAndRoute struct {
-	domain.TrafficFlowConfig
+type analysisTF struct {
+	domain.TrafficFlowAnalysisSet
 	domain.Route
+	directIntSet   map[string]int
+	indirectIntSet map[string]int
 }
 
-func constructTrafficFlowAndRoutes(top *topology.Topology, trafficFlows map[string]domain.TrafficFlowConfig) (map[string]trafficFlowAndRoute, error) {
-	tfrs := make(map[string]trafficFlowAndRoute, len(trafficFlows))
+func constructAnalysisTfs(top *topology.Topology, trafficFlows []domain.TrafficFlowConfig) ([]analysisTF, error) {
+	analysisTFs := make([]analysisTF, len(trafficFlows))
 
 	var err error
-	for key := range trafficFlows {
-		if tfrs[key], err = newTrafficFlowAndRoute(top, trafficFlows[key]); err != nil {
+	for i := 0; i < len(trafficFlows); i++ {
+		if analysisTFs[i], err = newAnalysisTF(top, trafficFlows[i]); err != nil {
 			return nil, err
 		}
 	}
 
-	return tfrs, nil
+	return analysisTFs, nil
 }
 
-func newTrafficFlowAndRoute(top *topology.Topology, trafficFlow domain.TrafficFlowConfig) (trafficFlowAndRoute, error) {
+func newAnalysisTF(top *topology.Topology, trafficFlow domain.TrafficFlowConfig) (analysisTF, error) {
 	strRoute, err := trafficFlow.RouteArray()
 	if err != nil {
-		return trafficFlowAndRoute{}, err
+		return analysisTF{}, err
 	}
 
 	route, err := top.Route(strRoute)
 	if err != nil {
-		return trafficFlowAndRoute{}, err
+		return analysisTF{}, err
 	}
 
-	return trafficFlowAndRoute{trafficFlow, route}, nil
+	return analysisTF{
+		TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+			TrafficFlowConfig:         trafficFlow,
+			Basic:                     -1,
+			ShiAndBurns:               -1,
+			DirectInterferenceCount:   -1,
+			IndirectInterferenceCount: -1,
+		},
+		Route: route,
+	}, nil
+}
+
+func sortTfsByPriority(trafficFlows []domain.TrafficFlowConfig) []domain.TrafficFlowConfig {
+	tfs := make([]domain.TrafficFlowConfig, len(trafficFlows))
+	copy(tfs, trafficFlows)
+
+	for i := 0; i < len(tfs); i++ {
+		for j := 0; j < len(tfs)-i-1; j++ {
+			if tfs[j].Priority > tfs[j+1].Priority {
+				tfs[j], tfs[j+1] = tfs[j+1], tfs[j]
+			}
+		}
+	}
+
+	return tfs
 }

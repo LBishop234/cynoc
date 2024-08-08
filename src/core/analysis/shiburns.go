@@ -1,105 +1,83 @@
 package analysis
 
 import (
+	"context"
 	"math"
 
 	"main/src/domain"
 )
 
-type shiBurnsResults struct {
-	Latency                   int
-	DirectInterferenceCount   int
-	IndirectInterferenceCount int
-}
+// Assumes analysisTFs are sorted by priority & Basic latency has been calculated.
+func shiBurns(ctx context.Context, analysisTFs []analysisTF) ([]analysisTF, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		analysisTFs = findIntereferenceSets(analysisTFs)
 
-func shiBurns(conf domain.SimConfig, tfrs map[string]trafficFlowAndRoute, tfKey string) (shiBurnsResults, error) {
-	dIntSet, iIntSet := findInterferenceSets(tfrs, tfKey)
+		for i := 0; i < len(analysisTFs); i++ {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				current := analysisTFs[i].Basic
+				prev := 0
 
-	prev := basicLatency(conf, tfrs[tfKey])
-	for {
-		interference := 0
-		for dIntKey := range dIntSet {
-			ji, err := interferenceJitter(conf, tfrs, dIntKey)
-			if err != nil {
-				return shiBurnsResults{}, err
-			}
+				for current != prev && current < analysisTFs[i].Deadline {
+					prev = current
 
-			a := int(math.Ceil(float64(prev+tfrs[dIntKey].Jitter+ji) / float64(tfrs[dIntKey].Period)))
-			b := basicLatency(conf, tfrs[dIntKey])
-			interference += a * b
-		}
+					interference := 0
+					for _, dIntIndex := range analysisTFs[i].directIntSet {
+						JIi := analysisTFs[dIntIndex].ShiAndBurns - analysisTFs[dIntIndex].Basic
 
-		current := interference + basicLatency(conf, tfrs[tfKey])
+						x := int(math.Ceil((float64(prev + analysisTFs[dIntIndex].Jitter + JIi)) / float64(analysisTFs[dIntIndex].Period)))
+						interference += x * analysisTFs[dIntIndex].Basic
+					}
 
-		if current > tfrs[tfKey].Deadline || current == prev {
-			return shiBurnsResults{
-					Latency:                   current,
-					DirectInterferenceCount:   len(dIntSet),
-					IndirectInterferenceCount: len(iIntSet),
-				},
-				nil
-		}
+					current = interference + analysisTFs[i].Basic
+				}
 
-		prev = current
-	}
-}
-
-func filterByPriority(trafficFlows map[string]trafficFlowAndRoute, priority int) map[string]trafficFlowAndRoute {
-	filteredTFs := make(map[string]trafficFlowAndRoute)
-	for key := range trafficFlows {
-		if trafficFlows[key].Priority <= priority {
-			filteredTFs[key] = trafficFlows[key]
-		}
-	}
-
-	return filteredTFs
-}
-
-func findInterferenceSets(tfrs map[string]trafficFlowAndRoute, tfKey string) (directIntMap, indirectIntSet map[string]trafficFlowAndRoute) {
-	tfrs = filterByPriority(tfrs, tfrs[tfKey].Priority)
-
-	directIntMap = findDirectInterferenceSet(tfrs, tfKey)
-
-	possibleIIntSet := make([]string, 0, len(tfrs))
-	for dIntKey := range directIntMap {
-		if dIntKey != tfKey {
-			keySet := findDirectInterferenceSet(tfrs, dIntKey)
-			for subKey := range keySet {
-				possibleIIntSet = append(possibleIIntSet, subKey)
-			}
-		}
-	}
-
-	indirectIntSet = make(map[string]trafficFlowAndRoute)
-	for i := 0; i < len(possibleIIntSet); i++ {
-		key := possibleIIntSet[i]
-
-		flag := false
-		for dIntKey := range directIntMap {
-			if key == dIntKey {
-				flag = true
+				analysisTFs[i].ShiAndBurns = current
 			}
 		}
 
-		if !flag {
-			indirectIntSet[key] = tfrs[key]
-		}
+		return analysisTFs, nil
 	}
-
-	return directIntMap, indirectIntSet
 }
 
-func findDirectInterferenceSet(tfrs map[string]trafficFlowAndRoute, tfKey string) map[string]trafficFlowAndRoute {
-	tfrs = filterByPriority(tfrs, tfrs[tfKey].Priority)
-
-	dIntSet := make(map[string]trafficFlowAndRoute)
-	for key := range tfrs {
-		if key != tfKey && intersectingRoutes(tfrs[key].Route, tfrs[tfKey].Route) {
-			dIntSet[key] = tfrs[key]
+// Assumes that the analysisTFs are sorted by priority.
+func findIntereferenceSets(analysisTFs []analysisTF) []analysisTF {
+	for i := 0; i < len(analysisTFs); i++ {
+		analysisTFs[i].directIntSet = make(map[string]int)
+		for j := i - 1; j >= 0; j-- {
+			if intersectingRoutes(analysisTFs[i].Route, analysisTFs[j].Route) {
+				analysisTFs[i].directIntSet[analysisTFs[j].ID] = j
+			}
 		}
+		analysisTFs[i].DirectInterferenceCount = len(analysisTFs[i].directIntSet)
 	}
 
-	return dIntSet
+	for i := 0; i < len(analysisTFs); i++ {
+		optionsMap := make(map[string]int)
+		for _, dIndex := range analysisTFs[i].directIntSet {
+			for iKey, iIndex := range analysisTFs[dIndex].directIntSet {
+				optionsMap[iKey] = iIndex
+			}
+			for iKey, iIndex := range analysisTFs[dIndex].indirectIntSet {
+				optionsMap[iKey] = iIndex
+			}
+		}
+
+		analysisTFs[i].indirectIntSet = make(map[string]int)
+		for oKey, oIndex := range optionsMap {
+			if _, exists := analysisTFs[i].directIntSet[oKey]; !exists {
+				analysisTFs[i].indirectIntSet[oKey] = oIndex
+			}
+		}
+		analysisTFs[i].IndirectInterferenceCount = len(analysisTFs[i].indirectIntSet)
+	}
+
+	return analysisTFs
 }
 
 func intersectingRoutes(rA, rB domain.Route) bool {
@@ -124,13 +102,4 @@ func intersectingRoutes(rA, rB domain.Route) bool {
 	}
 
 	return false
-}
-
-func interferenceJitter(conf domain.SimConfig, tfrs map[string]trafficFlowAndRoute, tfKey string) (int, error) {
-	r, err := shiBurns(conf, tfrs, tfKey)
-	if err != nil {
-		return 0, err
-	}
-
-	return r.Latency - basicLatency(conf, tfrs[tfKey]), nil
 }

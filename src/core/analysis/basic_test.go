@@ -104,10 +104,10 @@ func TestBasicLatency(t *testing.T) {
 
 			top := tc.top(t)
 
-			tfr, err := newTrafficFlowAndRoute(top, tc.tf)
+			tfr, err := newAnalysisTF(top, tc.tf)
 			require.NoError(t, err)
 
-			lat := basicLatency(tc.conf, tfr)
+			lat := calcBasicLatency(tc.conf, tfr)
 
 			assert.Equal(t, tc.expected, lat)
 		})
