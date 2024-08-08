@@ -1,10 +1,9 @@
-package basic
+package analysis
 
 import (
 	"strconv"
 	"testing"
 
-	"main/src/core/analysis/util"
 	"main/src/domain"
 	"main/src/topology"
 
@@ -105,10 +104,10 @@ func TestBasicLatency(t *testing.T) {
 
 			top := tc.top(t)
 
-			tfr, err := util.NewTrafficFlowAndRoute(top, tc.tf)
+			tfr, err := newTrafficFlowAndRoute(top, tc.tf)
 			require.NoError(t, err)
 
-			lat := BasicLatency(tc.conf, tfr)
+			lat := basicLatency(tc.conf, tfr)
 
 			assert.Equal(t, tc.expected, lat)
 		})

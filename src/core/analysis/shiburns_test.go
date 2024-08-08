@@ -1,9 +1,8 @@
-package shiburns
+package analysis
 
 import (
 	"testing"
 
-	"main/src/core/analysis/util"
 	"main/src/domain"
 	"main/src/topology"
 
@@ -13,10 +12,10 @@ import (
 
 const XiongEtAl = "XiongEtAlNoC"
 
-func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]util.TrafficFlowAndRoute {
+func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string]map[string]trafficFlowAndRoute {
 	fourByFourTop := topology.FourByFourMesh(tb)
 
-	tfAndRoutes := map[string]map[string]util.TrafficFlowAndRoute{
+	tfAndRoutes := map[string]map[string]trafficFlowAndRoute{
 		XiongEtAl: {
 			"t1": {
 				TrafficFlowConfig: domain.TrafficFlowConfig{
@@ -112,8 +111,8 @@ func TestShiBurns(t *testing.T) {
 	tfAndRoutes := testCasesTrafficFlowAndRoutes(t)
 
 	type tfStruct struct {
-		tfr util.TrafficFlowAndRoute
-		res ShiBurnsResults
+		tfr trafficFlowAndRoute
+		res shiBurnsResults
 	}
 
 	testCases := map[string]struct {
@@ -130,7 +129,7 @@ func TestShiBurns(t *testing.T) {
 			tfs: map[string]tfStruct{
 				"t1": {
 					tfr: tfAndRoutes[XiongEtAl]["t1"],
-					res: ShiBurnsResults{
+					res: shiBurnsResults{
 						DirectInterferenceCount:   0,
 						IndirectInterferenceCount: 0,
 						Latency:                   38,
@@ -138,7 +137,7 @@ func TestShiBurns(t *testing.T) {
 				},
 				"t2": {
 					tfr: tfAndRoutes[XiongEtAl]["t2"],
-					res: ShiBurnsResults{
+					res: shiBurnsResults{
 						DirectInterferenceCount:   0,
 						IndirectInterferenceCount: 0,
 						Latency:                   109,
@@ -146,7 +145,7 @@ func TestShiBurns(t *testing.T) {
 				},
 				"t3": {
 					tfr: tfAndRoutes[XiongEtAl]["t3"],
-					res: ShiBurnsResults{
+					res: shiBurnsResults{
 						DirectInterferenceCount:   2,
 						IndirectInterferenceCount: 0,
 						Latency:                   219,
@@ -154,7 +153,7 @@ func TestShiBurns(t *testing.T) {
 				},
 				"t4": {
 					tfr: tfAndRoutes[XiongEtAl]["t4"],
-					res: ShiBurnsResults{
+					res: shiBurnsResults{
 						DirectInterferenceCount:   2,
 						IndirectInterferenceCount: 1,
 						Latency:                   251,
@@ -162,7 +161,7 @@ func TestShiBurns(t *testing.T) {
 				},
 				"t5": {
 					tfr: tfAndRoutes[XiongEtAl]["t5"],
-					res: ShiBurnsResults{
+					res: shiBurnsResults{
 						DirectInterferenceCount:   1,
 						IndirectInterferenceCount: 2,
 						Latency:                   220,
@@ -176,14 +175,14 @@ func TestShiBurns(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			tfrs := make(map[string]util.TrafficFlowAndRoute, len(testCase.tfs))
+			tfrs := make(map[string]trafficFlowAndRoute, len(testCase.tfs))
 			for tfKey := range testCase.tfs {
 				tfrs[tfKey] = testCase.tfs[tfKey].tfr
 			}
 
 			for tfKey := range testCase.tfs {
 				t.Run(tfKey, func(t *testing.T) {
-					got, err := ShiBurns(testCase.simConf, tfrs, tfKey)
+					got, err := shiBurns(testCase.simConf, tfrs, tfKey)
 
 					require.NoError(t, err)
 					assert.Equal(t, testCase.tfs[tfKey].res.DirectInterferenceCount, got.DirectInterferenceCount)
@@ -200,7 +199,7 @@ func BenchmarkShiBurns(b *testing.B) {
 
 	testCases := map[string]struct {
 		simConf domain.SimConfig
-		tfs     map[string]util.TrafficFlowAndRoute
+		tfs     map[string]trafficFlowAndRoute
 	}{
 		XiongEtAl: {
 			simConf: domain.SimConfig{
@@ -217,7 +216,7 @@ func BenchmarkShiBurns(b *testing.B) {
 		b.Run(name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				for tfKey := range testc.tfs {
-					_, err := ShiBurns(testc.simConf, testc.tfs, tfKey)
+					_, err := shiBurns(testc.simConf, testc.tfs, tfKey)
 					assert.NoError(b, err)
 				}
 			}
@@ -231,45 +230,45 @@ func TestFindInterferenceSet(t *testing.T) {
 	tfAndRoutes := testCasesTrafficFlowAndRoutes(t)
 
 	testCases := map[string]map[string]struct {
-		tfr         util.TrafficFlowAndRoute
-		directInt   map[string]util.TrafficFlowAndRoute
-		indirectInt map[string]util.TrafficFlowAndRoute
+		tfr         trafficFlowAndRoute
+		directInt   map[string]trafficFlowAndRoute
+		indirectInt map[string]trafficFlowAndRoute
 	}{
 		XiongEtAl: {
 			"t1": {
 				tfr:         tfAndRoutes[XiongEtAl]["t1"],
-				directInt:   map[string]util.TrafficFlowAndRoute{},
-				indirectInt: map[string]util.TrafficFlowAndRoute{},
+				directInt:   map[string]trafficFlowAndRoute{},
+				indirectInt: map[string]trafficFlowAndRoute{},
 			},
 			"t2": {
 				tfr:         tfAndRoutes[XiongEtAl]["t2"],
-				directInt:   map[string]util.TrafficFlowAndRoute{},
-				indirectInt: map[string]util.TrafficFlowAndRoute{},
+				directInt:   map[string]trafficFlowAndRoute{},
+				indirectInt: map[string]trafficFlowAndRoute{},
 			},
 			"t3": {
 				tfr: tfAndRoutes[XiongEtAl]["t3"],
-				directInt: map[string]util.TrafficFlowAndRoute{
+				directInt: map[string]trafficFlowAndRoute{
 					"t1": tfAndRoutes[XiongEtAl]["t1"],
 					"t2": tfAndRoutes[XiongEtAl]["t2"],
 				},
-				indirectInt: map[string]util.TrafficFlowAndRoute{},
+				indirectInt: map[string]trafficFlowAndRoute{},
 			},
 			"t4": {
 				tfr: tfAndRoutes[XiongEtAl]["t4"],
-				directInt: map[string]util.TrafficFlowAndRoute{
+				directInt: map[string]trafficFlowAndRoute{
 					"t2": tfAndRoutes[XiongEtAl]["t2"],
 					"t3": tfAndRoutes[XiongEtAl]["t3"],
 				},
-				indirectInt: map[string]util.TrafficFlowAndRoute{
+				indirectInt: map[string]trafficFlowAndRoute{
 					"t1": tfAndRoutes[XiongEtAl]["t1"],
 				},
 			},
 			"t5": {
 				tfr: tfAndRoutes[XiongEtAl]["t5"],
-				directInt: map[string]util.TrafficFlowAndRoute{
+				directInt: map[string]trafficFlowAndRoute{
 					"t3": tfAndRoutes[XiongEtAl]["t3"],
 				},
-				indirectInt: map[string]util.TrafficFlowAndRoute{
+				indirectInt: map[string]trafficFlowAndRoute{
 					"t1": tfAndRoutes[XiongEtAl]["t1"],
 					"t2": tfAndRoutes[XiongEtAl]["t2"],
 				},
@@ -281,7 +280,7 @@ func TestFindInterferenceSet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			tfrs := make(map[string]util.TrafficFlowAndRoute, len(testCase))
+			tfrs := make(map[string]trafficFlowAndRoute, len(testCase))
 			for tfKey := range testCase {
 				tfrs[tfKey] = testCase[tfKey].tfr
 			}
@@ -300,21 +299,21 @@ func TestFilterByPriority(t *testing.T) {
 	t.Parallel()
 
 	var (
-		tf1 = util.TrafficFlowAndRoute{
+		tf1 = trafficFlowAndRoute{
 			TrafficFlowConfig: domain.TrafficFlowConfig{
 				ID:       "tf1",
 				Priority: 1,
 			},
 			Route: domain.Route{},
 		}
-		tf2 = util.TrafficFlowAndRoute{
+		tf2 = trafficFlowAndRoute{
 			TrafficFlowConfig: domain.TrafficFlowConfig{
 				ID:       "tf2",
 				Priority: 2,
 			},
 			Route: domain.Route{},
 		}
-		tf3 = util.TrafficFlowAndRoute{
+		tf3 = trafficFlowAndRoute{
 			TrafficFlowConfig: domain.TrafficFlowConfig{
 				ID:       "tf3",
 				Priority: 3,
@@ -323,13 +322,13 @@ func TestFilterByPriority(t *testing.T) {
 		}
 	)
 
-	tfs := map[string]util.TrafficFlowAndRoute{
+	tfs := map[string]trafficFlowAndRoute{
 		tf1.ID: tf1,
 		tf2.ID: tf2,
 		tf3.ID: tf3,
 	}
 
-	expectedFiltered := map[string]util.TrafficFlowAndRoute{
+	expectedFiltered := map[string]trafficFlowAndRoute{
 		tf1.ID: tf1,
 		tf2.ID: tf2,
 	}

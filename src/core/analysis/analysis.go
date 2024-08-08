@@ -3,9 +3,6 @@ package analysis
 import (
 	"context"
 
-	"main/src/core/analysis/basic"
-	"main/src/core/analysis/shiburns"
-	"main/src/core/analysis/util"
 	"main/src/domain"
 	"main/src/topology"
 )
@@ -20,7 +17,7 @@ func Analysis(ctx context.Context, conf domain.SimConfig, top *topology.Topology
 			trafficFlowMap[trafficFlows[i].ID] = trafficFlows[i]
 		}
 
-		tfrs, err := util.ConstructTrafficFlowAndRoutes(top, trafficFlowMap)
+		tfrs, err := constructTrafficFlowAndRoutes(top, trafficFlowMap)
 		if err != nil {
 			return nil, err
 		}
@@ -42,15 +39,15 @@ func Analysis(ctx context.Context, conf domain.SimConfig, top *topology.Topology
 	}
 }
 
-func analyseTrafficFlow(conf domain.SimConfig, tfrs map[string]util.TrafficFlowAndRoute, key string) (domain.TrafficFlowAnalysisSet, error) {
-	shiAndBurns, err := shiburns.ShiBurns(conf, tfrs, key)
+func analyseTrafficFlow(conf domain.SimConfig, tfrs map[string]trafficFlowAndRoute, key string) (domain.TrafficFlowAnalysisSet, error) {
+	shiAndBurns, err := shiBurns(conf, tfrs, key)
 	if err != nil {
 		return domain.TrafficFlowAnalysisSet{}, err
 	}
 
 	return domain.TrafficFlowAnalysisSet{
 		TrafficFlowConfig:         tfrs[key].TrafficFlowConfig,
-		Basic:                     basic.BasicLatency(conf, tfrs[key]),
+		Basic:                     basicLatency(conf, tfrs[key]),
 		ShiAndBurns:               shiAndBurns.Latency,
 		DirectInterferenceCount:   shiAndBurns.DirectInterferenceCount,
 		IndirectInterferenceCount: shiAndBurns.IndirectInterferenceCount,

@@ -1,4 +1,4 @@
-package util
+package analysis
 
 import (
 	"testing"
@@ -30,7 +30,7 @@ func TestNewTrafficFlowAndRoute(t *testing.T) {
 		top.Nodes()["n5"].NodeID(),
 	}
 
-	tfr, err := NewTrafficFlowAndRoute(top, tf1)
+	tfr, err := newTrafficFlowAndRoute(top, tf1)
 	require.NoError(t, err)
 
 	assert.Equal(t, tf1, tfr.TrafficFlowConfig)

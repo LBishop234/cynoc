@@ -1,40 +1,38 @@
-package shiburns
+package analysis
 
 import (
 	"math"
 
-	"main/src/core/analysis/basic"
-	"main/src/core/analysis/util"
 	"main/src/domain"
 )
 
-type ShiBurnsResults struct {
+type shiBurnsResults struct {
 	Latency                   int
 	DirectInterferenceCount   int
 	IndirectInterferenceCount int
 }
 
-func ShiBurns(conf domain.SimConfig, tfrs map[string]util.TrafficFlowAndRoute, tfKey string) (ShiBurnsResults, error) {
+func shiBurns(conf domain.SimConfig, tfrs map[string]trafficFlowAndRoute, tfKey string) (shiBurnsResults, error) {
 	dIntSet, iIntSet := findInterferenceSets(tfrs, tfKey)
 
-	prev := basic.BasicLatency(conf, tfrs[tfKey])
+	prev := basicLatency(conf, tfrs[tfKey])
 	for {
 		interference := 0
 		for dIntKey := range dIntSet {
 			ji, err := interferenceJitter(conf, tfrs, dIntKey)
 			if err != nil {
-				return ShiBurnsResults{}, err
+				return shiBurnsResults{}, err
 			}
 
 			a := int(math.Ceil(float64(prev+tfrs[dIntKey].Jitter+ji) / float64(tfrs[dIntKey].Period)))
-			b := basic.BasicLatency(conf, tfrs[dIntKey])
+			b := basicLatency(conf, tfrs[dIntKey])
 			interference += a * b
 		}
 
-		current := interference + basic.BasicLatency(conf, tfrs[tfKey])
+		current := interference + basicLatency(conf, tfrs[tfKey])
 
 		if current > tfrs[tfKey].Deadline || current == prev {
-			return ShiBurnsResults{
+			return shiBurnsResults{
 					Latency:                   current,
 					DirectInterferenceCount:   len(dIntSet),
 					IndirectInterferenceCount: len(iIntSet),
@@ -46,8 +44,8 @@ func ShiBurns(conf domain.SimConfig, tfrs map[string]util.TrafficFlowAndRoute, t
 	}
 }
 
-func filterByPriority(trafficFlows map[string]util.TrafficFlowAndRoute, priority int) map[string]util.TrafficFlowAndRoute {
-	filteredTFs := make(map[string]util.TrafficFlowAndRoute)
+func filterByPriority(trafficFlows map[string]trafficFlowAndRoute, priority int) map[string]trafficFlowAndRoute {
+	filteredTFs := make(map[string]trafficFlowAndRoute)
 	for key := range trafficFlows {
 		if trafficFlows[key].Priority <= priority {
 			filteredTFs[key] = trafficFlows[key]
@@ -57,7 +55,7 @@ func filterByPriority(trafficFlows map[string]util.TrafficFlowAndRoute, priority
 	return filteredTFs
 }
 
-func findInterferenceSets(tfrs map[string]util.TrafficFlowAndRoute, tfKey string) (directIntMap, indirectIntSet map[string]util.TrafficFlowAndRoute) {
+func findInterferenceSets(tfrs map[string]trafficFlowAndRoute, tfKey string) (directIntMap, indirectIntSet map[string]trafficFlowAndRoute) {
 	tfrs = filterByPriority(tfrs, tfrs[tfKey].Priority)
 
 	directIntMap = findDirectInterferenceSet(tfrs, tfKey)
@@ -72,7 +70,7 @@ func findInterferenceSets(tfrs map[string]util.TrafficFlowAndRoute, tfKey string
 		}
 	}
 
-	indirectIntSet = make(map[string]util.TrafficFlowAndRoute)
+	indirectIntSet = make(map[string]trafficFlowAndRoute)
 	for i := 0; i < len(possibleIIntSet); i++ {
 		key := possibleIIntSet[i]
 
@@ -91,10 +89,10 @@ func findInterferenceSets(tfrs map[string]util.TrafficFlowAndRoute, tfKey string
 	return directIntMap, indirectIntSet
 }
 
-func findDirectInterferenceSet(tfrs map[string]util.TrafficFlowAndRoute, tfKey string) map[string]util.TrafficFlowAndRoute {
+func findDirectInterferenceSet(tfrs map[string]trafficFlowAndRoute, tfKey string) map[string]trafficFlowAndRoute {
 	tfrs = filterByPriority(tfrs, tfrs[tfKey].Priority)
 
-	dIntSet := make(map[string]util.TrafficFlowAndRoute)
+	dIntSet := make(map[string]trafficFlowAndRoute)
 	for key := range tfrs {
 		if key != tfKey && intersectingRoutes(tfrs[key].Route, tfrs[tfKey].Route) {
 			dIntSet[key] = tfrs[key]
@@ -128,11 +126,11 @@ func intersectingRoutes(rA, rB domain.Route) bool {
 	return false
 }
 
-func interferenceJitter(conf domain.SimConfig, tfrs map[string]util.TrafficFlowAndRoute, tfKey string) (int, error) {
-	r, err := ShiBurns(conf, tfrs, tfKey)
+func interferenceJitter(conf domain.SimConfig, tfrs map[string]trafficFlowAndRoute, tfKey string) (int, error) {
+	r, err := shiBurns(conf, tfrs, tfKey)
 	if err != nil {
 		return 0, err
 	}
 
-	return r.Latency - basic.BasicLatency(conf, tfrs[tfKey]), nil
+	return r.Latency - basicLatency(conf, tfrs[tfKey]), nil
 }
