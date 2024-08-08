@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"context"
+
 	"main/src/domain"
 )
 

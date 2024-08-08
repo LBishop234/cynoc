@@ -75,7 +75,6 @@ func TestSortTfsByPriority(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-
 			expectedTFs := make([]domain.TrafficFlowConfig, len(tc.tfs))
 			for i, idx := range tc.expectedIndex {
 				expectedTFs[i] = tc.tfs[idx]

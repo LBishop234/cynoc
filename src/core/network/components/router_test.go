@@ -165,7 +165,7 @@ func TestNewRouter(t *testing.T) {
 func TestRouterNodeID(t *testing.T) {
 	t.Parallel()
 
-	var nodeID = "n"
+	nodeID := "n"
 
 	router, err := newRouter(
 		RouterConfig{

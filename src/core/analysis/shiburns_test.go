@@ -2,10 +2,11 @@ package analysis
 
 import (
 	"context"
-	"main/src/domain"
-	"main/src/topology"
 	"strconv"
 	"testing"
+
+	"main/src/domain"
+	"main/src/topology"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -140,8 +141,8 @@ func TestNewShiBurns(t *testing.T) {
 
 	for tcIndex, tc := range testCases {
 		t.Run(strconv.Itoa(tcIndex), func(t *testing.T) {
-			aTfs, error := basicLatency(context.TODO(), tc.conf, testCasesTrafficFlowAndRoutes(t)[tc.tfsMapID])
-			require.NoError(t, error)
+			aTfs, err := basicLatency(context.TODO(), tc.conf, testCasesTrafficFlowAndRoutes(t)[tc.tfsMapID])
+			require.NoError(t, err)
 
 			aTFs, err := shiBurns(context.TODO(), aTfs)
 			require.NoError(t, err)
@@ -175,10 +176,10 @@ func BenchmarkShiBurns(b *testing.B) {
 	for tcIndex, tc := range testCases {
 		b.Run(strconv.Itoa(tcIndex), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				aTfs, error := basicLatency(context.TODO(), tc.conf, testCasesTrafficFlowAndRoutes(b)[tc.tfsMapID])
-				require.NoError(b, error)
+				aTfs, err := basicLatency(context.TODO(), tc.conf, testCasesTrafficFlowAndRoutes(b)[tc.tfsMapID])
+				require.NoError(b, err)
 
-				_, err := shiBurns(context.TODO(), aTfs)
+				_, err = shiBurns(context.TODO(), aTfs)
 				require.NoError(b, err)
 			}
 		})
