@@ -12,13 +12,74 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const XiongEtAl = "XiongEtAlNoC"
+const (
+	DeadlineEqJrPlusCiEdgeCase = "Xiong_et_al_2017_5_line_deadline_equals_jitter_plus_ci_edge_case_stops_shi_burns_calculation_prematurely"
+	XiongEtAl20164x4           = "Xiong_et_al_2016_4x4"
+)
 
 func testCasesTrafficFlowAndRoutes(tb testing.TB) map[string][]analysisTF {
+	fiveNodeLine := topology.FiveNodeLine(tb)
 	fourByFourTop := topology.FourByFourMesh(tb)
 
 	tfAndRoutes := map[string][]analysisTF{
-		XiongEtAl: {
+		DeadlineEqJrPlusCiEdgeCase: {
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t1",
+						Priority:   1,
+						Period:     93,
+						Deadline:   93,
+						Jitter:     0,
+						PacketSize: 11,
+						Route:      "[n3,n4]",
+					},
+				},
+				Route: domain.Route{
+					fiveNodeLine.Nodes()["n3"].NodeID(),
+					fiveNodeLine.Nodes()["n4"].NodeID(),
+				},
+			},
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t2",
+						Priority:   2,
+						Period:     65,
+						Deadline:   65,
+						Jitter:     0,
+						PacketSize: 61,
+						Route:      "[n1,n2,n3,n4]",
+					},
+				},
+				Route: domain.Route{
+					fiveNodeLine.Nodes()["n1"].NodeID(),
+					fiveNodeLine.Nodes()["n2"].NodeID(),
+					fiveNodeLine.Nodes()["n3"].NodeID(),
+					fiveNodeLine.Nodes()["n4"].NodeID(),
+				},
+			},
+			{
+				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
+					TrafficFlowConfig: domain.TrafficFlowConfig{
+						ID:         "t3",
+						Priority:   3,
+						Period:     63,
+						Deadline:   63,
+						Jitter:     0,
+						PacketSize: 59,
+						Route:      "[n0,n1,n2,n3,]",
+					},
+				},
+				Route: domain.Route{
+					fiveNodeLine.Nodes()["n0"].NodeID(),
+					fiveNodeLine.Nodes()["n1"].NodeID(),
+					fiveNodeLine.Nodes()["n2"].NodeID(),
+					fiveNodeLine.Nodes()["n3"].NodeID(),
+				},
+			},
+		},
+		XiongEtAl20164x4: {
 			{
 				TrafficFlowAnalysisSet: domain.TrafficFlowAnalysisSet{
 					TrafficFlowConfig: domain.TrafficFlowConfig{
@@ -134,8 +195,18 @@ func TestNewShiBurns(t *testing.T) {
 				BufferSize:      25,
 				ProcessingDelay: 6,
 			},
-			tfsMapID: XiongEtAl,
+			tfsMapID: XiongEtAl20164x4,
 			expected: []int{38, 109, 219, 251, 220},
+		},
+		{
+			conf: domain.SimConfig{
+				CycleLimit:      10000,
+				MaxPriority:     3,
+				BufferSize:      24,
+				ProcessingDelay: 1,
+			},
+			tfsMapID: DeadlineEqJrPlusCiEdgeCase,
+			expected: []int{13, 78, 193},
 		},
 	}
 
@@ -169,7 +240,7 @@ func BenchmarkShiBurns(b *testing.B) {
 				BufferSize:      25,
 				ProcessingDelay: 6,
 			},
-			tfsMapID: XiongEtAl,
+			tfsMapID: XiongEtAl20164x4,
 		},
 	}
 

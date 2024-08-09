@@ -23,7 +23,7 @@ func shiBurns(ctx context.Context, analysisTFs []analysisTF) ([]analysisTF, erro
 				current := analysisTFs[i].Basic
 				prev := 0
 
-				for current != prev && current < analysisTFs[i].Deadline {
+				for current != prev && current <= analysisTFs[i].Deadline {
 					prev = current
 
 					interference := 0
