@@ -61,7 +61,7 @@ var templateTestCases = map[string]templateTestCase{
 	"3hLineOnePkt": {
 		templateRun:  true,
 		cycles:       1000,
-		topologyFunc: topology.ThreeHorozontalLine,
+		topologyFunc: topology.ThreeNodeLine,
 		networkConf:  OnePriorityConfig,
 		traffic: []domain.TrafficFlowConfig{
 			{
@@ -78,7 +78,7 @@ var templateTestCases = map[string]templateTestCase{
 	"3hLineTwoPkts": {
 		templateRun:  true,
 		cycles:       1000,
-		topologyFunc: topology.ThreeHorozontalLine,
+		topologyFunc: topology.ThreeNodeLine,
 		networkConf:  TwoPriorityConfig,
 		traffic: []domain.TrafficFlowConfig{
 			{

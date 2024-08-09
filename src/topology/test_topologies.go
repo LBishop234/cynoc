@@ -16,7 +16,7 @@ type edgeSpec struct {
 	dst string
 }
 
-func ThreeHorozontalLine(t testing.TB) *Topology {
+func ThreeNodeLine(t testing.TB) *Topology {
 	nodeSpecs := []nodeSpec{
 		{"n0", 0, 0},
 		{"n1", 1, 0},
@@ -29,6 +29,25 @@ func ThreeHorozontalLine(t testing.TB) *Topology {
 	}
 
 	return constructTopology(nodeSpecs, edgeSpecs)
+}
+
+func FiveNodeLine(t testing.TB) *Topology {
+	nodeSpec := []nodeSpec{
+		{"n0", 0, 0},
+		{"n1", 1, 0},
+		{"n2", 2, 0},
+		{"n3", 3, 0},
+		{"n4", 4, 0},
+	}
+
+	edgeSpec := []edgeSpec{
+		{"e0", "n0", "n1"},
+		{"e1", "n1", "n2"},
+		{"e2", "n2", "n3"},
+		{"e3", "n3", "n4"},
+	}
+
+	return constructTopology(nodeSpec, edgeSpec)
 }
 
 func ThreeByThreeMesh(t testing.TB) *Topology {
