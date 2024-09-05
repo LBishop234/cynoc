@@ -1,11 +1,11 @@
-# CYNoC - Cycle Accurate NoC Simulation
+# CyNoC - Cycle Accurate NoC Simulation
 
-A transmission level, cycle accurate, Network-on-Chip (NoC) simulator implementing *Inq-n* [[2]](#2) routers using wormhole switching [[4]](#4), virtual channels [[3]](#3) & priority pre-emptive arbitration [[5]](#5).
-In addition to simulating packet transmission and network latency, CyNoC also implements Shi & Burns' Worst Case Network Latency analysis [[1]](#1).
+A transmission level, cycle accurate, Network-on-Chip (NoC) simulator for NoCs implementing wormhole switching [[4]](#4), priority pre-emptive arbitration [[5]](#5), virtual channels [[3]](#3) & *Inq-n* [[2]](#2) routers.
+In addition to simulating packet transmission and network latency, CyNoC also implements Shi & Burns' analysis model [[1]](#1).
 
 ## Configuration
 
-CyNoC is invoked via the terminal and requires three configuration files. Examples can be found in the `taskfile.yaml` and the `examples` directory.
+CyNoC is invoked via the terminal and requires three configuration files to run. Examples can be found in `taskfile.yaml` and the `examples` directory.
 
 E.g.: `./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -log`
 
@@ -20,16 +20,18 @@ E.g.: `./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml 
 | `-max_priority VAL` | `-mp VAL` | Override the maximum traffic flow priority value specified in the configuration file |
 | `-buffer_size VAL` | `-bs VAL` | Override the buffer size specified in the configuration file |
 | `-processing_delay VAL` | `-pd VAL` | Override the header flit processing delay specified in the configuration file |
-| `-analysis` | `-a` | Enables calculation of maximum basic network latency and Shi & Burns worst case network latency [[1]](#1) analyses for the configured simulation case |
-| `-no-console-output` | `-nco` | Disables terminal results output, does not affect logging messages |
-| `-results-csv FILE` | `-csv FILE` | Specifies the *csv* filepath where full results will be stored |
+| `-analysis` | `-a` | Enables calculation Shi & Burns analysis model [[1]](#1) |
+| `-no-console-output` | `-nco` | Disables results output to the terminal, does not affect logging messages |
+| `-results-csv FILE` | `-csv FILE` | Specifies the *csv* filepath where simulator results will be written to |
 | `-log` | | Enables $\geq$ LOG level messages |
 | `-debug` | | Enables $\geq$ DEBUG level messages |
 | `-trace` | | Enables $\geq$ TRACE level messages |
 
 ### Simulation Configuration File
 
-Simulation & hardware characteristics are configured in a *yaml* file, e.g. `config.yaml`:
+Simulation & hardware characteristics are configured in a *yaml* file.
+
+E.g. `config.yaml`:
 ``` yaml
 # Number of network cycles simulated
 cycle_limit: 16000
@@ -37,16 +39,14 @@ cycle_limit: 16000
 max_priority: 4
 # Total size of a buffer in flits (divided by max_priority to calculate virtual channel size)
 buffer_size: 16
-# Header flit processing delay experienced at each router, in cycles.
+# Header flit processing delay experienced at each router, in network cycles.
 processing_delay: 1
 ```
 
 ### Topology Configuration File
 
-Network topology is configured in a *GraphML* file, 
-Each node must specify `(x,y)` position attributes.
-Every edge definition will create a full duplex connection between specified nodes,
-i.e. only `n1 - n2` needs be defined as opposed to `n1 -> n2` & `n2 -> n1`.
+Network topology is configured by a [*GraphML*](http://graphml.graphdrawing.org/) file, 
+Every edge definition will create a full duplex connection between specified nodes, i.e. only `n1 - n2` needs be defined as opposed to `n1 -> n2` & `n2 -> n1`.
 
 E.g. `topology.xml`:
 ``` xml
@@ -66,7 +66,9 @@ E.g. `topology.xml`:
 
 ### Traffic Flow Configuration File
 
-Traffic flows are configured in a *.csv* file, e.g. `traffic.csv`:
+Traffic flows are configured in a *.csv* file.
+
+E.g. `traffic.csv`:
 ``` csv
 id,priority,period,deadline,jitter,packet_size,route
 t1,1,50,100,0,4,"[n1,n2,n2]"
@@ -75,12 +77,12 @@ t3,2,50,100,0,4,"[n2,n2]"
 ```
 - `id`: the traffic flow's unique id.
 - `priority`: the traffic flow's unique priority level in the range [1, max_priority], inherited by all created packets.
-- `period`: the regular interval, in cycles, at which point the traffic flow creates a new packet.
+- `period`: the regular interval, in network cycles, defining when the traffic flow creates a new packet.
 - `deadline`: the maximum tolerated latency for packets created by the traffic flow, i.e. packets must arrive at their destination router within $x$ cycles of creation.
     - Requires $deadline \leq period + jitter$ [[2]](#2).
 - `jitter`: the maximum jitter the traffic flow's packets may experience, i.e. how long, in cycles, after creation may a packet be released to the network for transmission.
     - E.g. for a traffic flow with period $p$ and jitter $j$, a packet created on cycle $np$ will be released $x$ cycles after the packet's creation where $np \leq x < np+j$.
-- `packet_size`: the packet's size as the number of flits it produces (including header and tail flits).
+- `packet_size`: the packet's size defining the number of flits it produces (including header and tail flits).
 - `route`: the fixed route the traffic flow's packets traverse across the network.
 
 ## Results
@@ -101,9 +103,9 @@ t3,2,50,100,0,4,"[n2,n2]"
 - `min`: minimum simulated packet latency, from creation to arrival at destination.
 - `mean`: mean simulated packet latency, from creation to arrival at destination.
 - `max`: maximum simulated packet latency, from creation to arrival at destination.
-- `D_i`: the traffic flow's deadline.
+- `D_i`: the traffic flow's packet deadline.
 - `J^R_i + C_i` *(requires analysis)*: the traffic flow's release jitter added to maximum basic network latency, giving the maximum packet latency without interference.
-- `J^R_i + R_i` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the worst case packet latency according to Shi & Burns.
+- `J^R_i + R_i` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the traffic flow's latency upper bound according to Shi & Burns.
 
 ### CSV File Output
 
@@ -117,19 +119,19 @@ t5,0,0,5334,0,25,25.00,25,25,true,1,27,27,false
 ```
 
 - `TF_ID`: the traffic flow's unique id.
-- `Direct_Interference_Count`: the number of traffic flows which impose direct interference on the traffic flow, as defined by Shi & Burns [[1]](#1).
-- `Indirect_Interference_Count`: the number of traffic flows which impose indirect interference on the traffic flow, as defined by Shi & Burns [[1]](#1).
+- `Direct_Interference_Count`: the number of traffic flows which impose direct interference [[1]](#1) on this traffic flow.
+- `Indirect_Interference_Count`: the number of traffic flows which impose indirect interference [[1]](#1) on this traffic flow.
 - `Num_Packets`: the number of packets created by the traffic flow.
 - `Num_Packets_Exceeded_Deadline`: the number of packets which exceeded their deadline.
 - `Min_Latency`: minimum simulated packet latency, from creation to arrival at destination.
 - `Mean_Latency`: mean simulated packet latency, from creation to arrival at destination.
 - `Max_Latency`: maximum simulated packet latency, from creation to arrival at destination.
-- `Deadline`: the traffic flow's deadline.
+- `Deadline`: the traffic flow's packet deadline.
 - `Schedulable`: the traffic flow's schedulability according to simulation results.
 - `Jitter`: the traffic flow's release jitter.
 - `Jitter_Plus_Basic` *(requires analysis)*: the traffic flow's release jitter added to maximum basic network latency, giving the maximum packet latency without interference.
-- `Jitter_Plus_Shi_Burns` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the worst case packet latency according to Shi & Burns.
-- `Shi_Burns_Schedulable` *(requires analysis)*: the traffic flow's schedulability according to Shi and Burns worst case network latency analysis [[1]](#1).
+- `Jitter_Plus_Shi_Burns` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the traffic flow's latency upper bound according to Shi & Burns.
+- `Shi_Burns_Schedulable` *(requires analysis)*: the traffic flow's schedulability according to Shi and Burns [[1]](#1).
 
 ## References
 - <a id='1'>[1]</a>
