@@ -133,6 +133,39 @@ t5,0,0,5334,0,25,25.00,25,25,true,1,27,27,false
 - `Jitter_Plus_Shi_Burns` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the traffic flow's latency upper bound according to Shi & Burns.
 - `Shi_Burns_Schedulable` *(requires analysis)*: the traffic flow's schedulability according to Shi and Burns [[1]](#1).
 
+# Important Notes
+
+## Notes
+
+Please be aware Shi & Burns analysis model is not correct and has been shown to produce optimistic latency upper bounds under specific routing combinations [[6]](#6).
+More recent paper have provided fixes for this flaw and should be used as an alternative [[7]](#7).
+
+## Usage & Acknowledgements
+
+**TODO**
+
+This project is available for use under the **INSERT** license.
+
+We do however request that any academic publications which utilize this simulator cite the repository in their paper.
+
+E.g. for BibLaTeX citations:
+```bibtex
+@online{CyNoC,
+  author = {Leo Bishop},
+  title = {The CyNoC Simulator},
+  year = 2024,
+  url = {https://github.com/LBishop234/cynoc},
+  urldate = {2024-13-09}
+}
+```
+
+## Contributions
+
+This project is maintained in my spare time for my research on NoCs.
+As such any contributions are very welcome though please be aware I will respond as best my schedule allows.
+
+Contributions implementing more recent NoC analysis models would be particularly welcome.
+
 ## References
 - <a id='1'>[1]</a>
 Shi, Z. and Burns, A., 2008, April. Real-time communication analysis for on-chip networks with wormhole switching. In *Second ACM/IEEE International Symposium on Networks-on-Chip (nocs 2008)* (pp. 161-170). IEEE.
@@ -144,3 +177,7 @@ Dally, W.J., 1992. Virtual-channel flow control. *IEEE Transactions on Parallel 
 Ni, L.M. and McKinley, P.K., 1993. A survey of wormhole routing techniques in direct networks. Computer, 26(1), pp.62-76.
 - <a id='5'>[5]</a>
 Song, H., Kwon, B. and Yoon, H., 1999. Throttle and preempt: a flow control policy for real-time traffic in wormhole networks. *Journal of systems architecture*, 45(8), pp.633-649.
+- <a id='6'>[6]</a>
+Xiong, H., Lu, Z., Wu, F., Xie, C., 2016. Real-time analysis for wormhole NoC: revisited and revised. *Proceeding of the 26th edition on Great Lakes Symposium on VLSI*.
+- <a id='7'>[7]</a>
+Indrusiak, L. S., Nikolic, B., Burns, A., 2016. Analysis of buffering effects on hard real-time priority-preemptive wormhole networks, *arXiv:1606.02942*.
