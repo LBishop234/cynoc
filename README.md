@@ -1,11 +1,25 @@
-# CYNoC - Cycle Accurate NoC Simulation
+# CyNoC - Cycle Accurate NoC Simulation
 
-A transmission level, cycle accurate, Network-on-Chip (NoC) simulator implementing *Inq-n* [[2]](#2) routers using wormhole switching [[4]](#4), virtual channels [[3]](#3) & priority pre-emptive arbitration [[5]](#5).
-In addition to simulating packet transmission and network latency, CyNoC also implements Shi & Burns' Worst Case Network Latency analysis [[1]](#1).
+A transmission level, cycle accurate, Network-on-Chip (NoC) simulator for NoCs implementing wormhole switching [[4]](#4), priority pre-emptive arbitration [[5]](#5), virtual channels [[3]](#3) & *Inq-n* [[2]](#2) routers.
+In addition to simulating packet transmission and network latency, CyNoC also implements Shi & Burns' analysis model [[1]](#1).
+
+## Requirements
+
+The simulator executable has no required dependencies, various OS and architecture specific versions can be found in the GitHub releases.
+
+If you are working with the repository the following tooling is required/suggested:
+- [Golang](https://go.dev/): the sole language the simulator is written in.
+- [`golangci-lint`](https://golangci-lint.run/): a Go linting utility provides a suite of formatters, linters and other associated code quality tooling.
+The specific configuration in use is defined in `golangci.yml`.
+- [Task](https://taskfile.dev/): a modern runner & build tool, required to run commands in `taskfile.yaml`.
+
+**Note**: the `taskfile.yaml` commands are macOS specific, please check all commands against your OS before executing them.
 
 ## Configuration
 
-CyNoC is invoked via the terminal and requires three configuration files. Examples can be found in the `taskfile.yaml` and the `examples` directory.
+CyNoC is a CLI and therefore invoked via the terminal.
+CyNoC requires three configuration files to configure a simulation run.
+Example terminal invocation can be found in `taskfile.yaml` and example configuration files in the `examples` directory.
 
 E.g.: `./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -log`
 
@@ -20,16 +34,18 @@ E.g.: `./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml 
 | `-max_priority VAL` | `-mp VAL` | Override the maximum traffic flow priority value specified in the configuration file |
 | `-buffer_size VAL` | `-bs VAL` | Override the buffer size specified in the configuration file |
 | `-processing_delay VAL` | `-pd VAL` | Override the header flit processing delay specified in the configuration file |
-| `-analysis` | `-a` | Enables calculation of maximum basic network latency and Shi & Burns worst case network latency [[1]](#1) analyses for the configured simulation case |
-| `-no-console-output` | `-nco` | Disables terminal results output, does not affect logging messages |
-| `-results-csv FILE` | `-csv FILE` | Specifies the *csv* filepath where full results will be stored |
+| `-analysis` | `-a` | Enables calculation Shi & Burns analysis model [[1]](#1) |
+| `-no-console-output` | `-nco` | Disables results output to the terminal, does not affect logging messages |
+| `-results-csv FILE` | `-csv FILE` | Specifies the *csv* filepath where simulator results will be written to |
 | `-log` | | Enables $\geq$ LOG level messages |
 | `-debug` | | Enables $\geq$ DEBUG level messages |
 | `-trace` | | Enables $\geq$ TRACE level messages |
 
 ### Simulation Configuration File
 
-Simulation & hardware characteristics are configured in a *yaml* file, e.g. `config.yaml`:
+Simulation & hardware characteristics are configured using a *yaml* file.
+
+E.g. `config.yaml`:
 ``` yaml
 # Number of network cycles simulated
 cycle_limit: 16000
@@ -37,16 +53,15 @@ cycle_limit: 16000
 max_priority: 4
 # Total size of a buffer in flits (divided by max_priority to calculate virtual channel size)
 buffer_size: 16
-# Header flit processing delay experienced at each router, in cycles.
+# Header flit processing delay experienced at each router, in network cycles.
 processing_delay: 1
 ```
 
 ### Topology Configuration File
 
-Network topology is configured in a *GraphML* file, 
-Each node must specify `(x,y)` position attributes.
-Every edge definition will create a full duplex connection between specified nodes,
-i.e. only `n1 - n2` needs be defined as opposed to `n1 -> n2` & `n2 -> n1`.
+Network topology is defined using [*GraphML*](http://graphml.graphdrawing.org/). 
+
+*Note*: Edge definitions are undirected meaning an edge definition will create a full duplex connection between specified nodes, i.e. only `n1 - n2` needs be defined as opposed to `n1 -> n2` & `n2 -> n1`.
 
 E.g. `topology.xml`:
 ``` xml
@@ -66,7 +81,9 @@ E.g. `topology.xml`:
 
 ### Traffic Flow Configuration File
 
-Traffic flows are configured in a *.csv* file, e.g. `traffic.csv`:
+Traffic flows are configured in a *.csv* file.
+
+E.g. `traffic.csv`:
 ``` csv
 id,priority,period,deadline,jitter,packet_size,route
 t1,1,50,100,0,4,"[n1,n2,n2]"
@@ -75,12 +92,12 @@ t3,2,50,100,0,4,"[n2,n2]"
 ```
 - `id`: the traffic flow's unique id.
 - `priority`: the traffic flow's unique priority level in the range [1, max_priority], inherited by all created packets.
-- `period`: the regular interval, in cycles, at which point the traffic flow creates a new packet.
+- `period`: the regular interval, in network cycles, defining when the traffic flow creates a new packet.
 - `deadline`: the maximum tolerated latency for packets created by the traffic flow, i.e. packets must arrive at their destination router within $x$ cycles of creation.
     - Requires $deadline \leq period + jitter$ [[2]](#2).
 - `jitter`: the maximum jitter the traffic flow's packets may experience, i.e. how long, in cycles, after creation may a packet be released to the network for transmission.
     - E.g. for a traffic flow with period $p$ and jitter $j$, a packet created on cycle $np$ will be released $x$ cycles after the packet's creation where $np \leq x < np+j$.
-- `packet_size`: the packet's size as the number of flits it produces (including header and tail flits).
+- `packet_size`: the packet's size defining the number of flits it produces (including header and tail flits).
 - `route`: the fixed route the traffic flow's packets traverse across the network.
 
 ## Results
@@ -101,9 +118,9 @@ t3,2,50,100,0,4,"[n2,n2]"
 - `min`: minimum simulated packet latency, from creation to arrival at destination.
 - `mean`: mean simulated packet latency, from creation to arrival at destination.
 - `max`: maximum simulated packet latency, from creation to arrival at destination.
-- `D_i`: the traffic flow's deadline.
+- `D_i`: the traffic flow's packet deadline.
 - `J^R_i + C_i` *(requires analysis)*: the traffic flow's release jitter added to maximum basic network latency, giving the maximum packet latency without interference.
-- `J^R_i + R_i` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the worst case packet latency according to Shi & Burns.
+- `J^R_i + R_i` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the traffic flow's latency upper bound according to Shi & Burns.
 
 ### CSV File Output
 
@@ -117,19 +134,54 @@ t5,0,0,5334,0,25,25.00,25,25,true,1,27,27,false
 ```
 
 - `TF_ID`: the traffic flow's unique id.
-- `Direct_Interference_Count`: the number of traffic flows which impose direct interference on the traffic flow, as defined by Shi & Burns [[1]](#1).
-- `Indirect_Interference_Count`: the number of traffic flows which impose indirect interference on the traffic flow, as defined by Shi & Burns [[1]](#1).
+- `Direct_Interference_Count`: the number of traffic flows which impose direct interference [[1]](#1) on this traffic flow.
+- `Indirect_Interference_Count`: the number of traffic flows which impose indirect interference [[1]](#1) on this traffic flow.
 - `Num_Packets`: the number of packets created by the traffic flow.
 - `Num_Packets_Exceeded_Deadline`: the number of packets which exceeded their deadline.
 - `Min_Latency`: minimum simulated packet latency, from creation to arrival at destination.
 - `Mean_Latency`: mean simulated packet latency, from creation to arrival at destination.
 - `Max_Latency`: maximum simulated packet latency, from creation to arrival at destination.
-- `Deadline`: the traffic flow's deadline.
+- `Deadline`: the traffic flow's packet deadline.
 - `Schedulable`: the traffic flow's schedulability according to simulation results.
 - `Jitter`: the traffic flow's release jitter.
 - `Jitter_Plus_Basic` *(requires analysis)*: the traffic flow's release jitter added to maximum basic network latency, giving the maximum packet latency without interference.
-- `Jitter_Plus_Shi_Burns` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the worst case packet latency according to Shi & Burns.
-- `Shi_Burns_Schedulable` *(requires analysis)*: the traffic flow's schedulability according to Shi and Burns worst case network latency analysis [[1]](#1).
+- `Jitter_Plus_Shi_Burns` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the traffic flow's latency upper bound according to Shi & Burns.
+- `Shi_Burns_Schedulable` *(requires analysis)*: the traffic flow's schedulability according to Shi and Burns [[1]](#1).
+
+## Notes on NoC Analysis
+
+Please be aware Shi & Burns analysis model is not correct and has been shown to produce optimistic latency upper bounds under specific routing combinations [[6]](#6).
+More recent paper have provided fixes for this flaw and should be used as an alternative [[7]](#7).
+I have not yet implemented state-of-the-art analysis as my research that spawned this simulator did not require one.
+I do plan to implement a more modern analysis model when I get the time but if you require one in the meantime do not hesitate to submit a PR.
+
+## Usage & Acknowledgements
+
+**TODO**
+
+This project is available for use under the Apache 2.0 license.
+
+We do also request that any academic publications which utilize this simulator cite the repository in their paper.
+
+E.g. for BibLaTeX citations:
+```bibtex
+@online{CyNoC,
+  author = {Leo Bishop},
+  title = {The CyNoC Simulator},
+  year = 2024,
+  url = {https://github.com/LBishop234/cynoc},
+  urldate = {2024-13-09}
+}
+```
+
+## Contributions
+
+This project is maintained in my spare time for my research on NoCs.
+As such any contributions are very welcome though please be aware I will respond as best my schedule allows.
+
+Please run `golangci-lint` on your committed code before submitting a PR, code not adhering to these standards will not be accepted.
+
+Contributions implementing more recent NoC analysis models would be particularly welcome.
 
 ## References
 - <a id='1'>[1]</a>
@@ -142,3 +194,7 @@ Dally, W.J., 1992. Virtual-channel flow control. *IEEE Transactions on Parallel 
 Ni, L.M. and McKinley, P.K., 1993. A survey of wormhole routing techniques in direct networks. Computer, 26(1), pp.62-76.
 - <a id='5'>[5]</a>
 Song, H., Kwon, B. and Yoon, H., 1999. Throttle and preempt: a flow control policy for real-time traffic in wormhole networks. *Journal of systems architecture*, 45(8), pp.633-649.
+- <a id='6'>[6]</a>
+Xiong, H., Lu, Z., Wu, F., Xie, C., 2016. Real-time analysis for wormhole NoC: revisited and revised. *Proceeding of the 26th edition on Great Lakes Symposium on VLSI*.
+- <a id='7'>[7]</a>
+Nikolic, B., Tobuschat, S., Indrusiak, L. S., Ernst, R. and Burns A., 2019. Real-time analysis of priority-preemptive NoCs with arbitrary buffer sizes and router delays, Real-Time Systems, vol. 55:63-105.
