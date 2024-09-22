@@ -3,9 +3,23 @@
 A transmission level, cycle accurate, Network-on-Chip (NoC) simulator for NoCs implementing wormhole switching [[4]](#4), priority pre-emptive arbitration [[5]](#5), virtual channels [[3]](#3) & *Inq-n* [[2]](#2) routers.
 In addition to simulating packet transmission and network latency, CyNoC also implements Shi & Burns' analysis model [[1]](#1).
 
+## Requirements
+
+The simulator executable has no required dependencies, various OS and architecture specific versions can be found in the GitHub releases.
+
+If you are working with the repository the following tooling is required/suggested:
+- [Golang](https://go.dev/): the sole language the simulator is written in.
+- [`golangci-lint`](https://golangci-lint.run/): a Go linting utility provides a suite of formatters, linters and other associated code quality tooling.
+The specific configuration in use is defined in `golangci.yml`.
+- [Task](https://taskfile.dev/): a modern runner & build tool, required to run commands in `taskfile.yaml`.
+
+**Note**: the `taskfile.yaml` commands are macOS specific, please check all commands against your OS before executing them.
+
 ## Configuration
 
-CyNoC is invoked via the terminal and requires three configuration files to run. Examples can be found in `taskfile.yaml` and the `examples` directory.
+CyNoC is a CLI and therefore invoked via the terminal.
+CyNoC requires three configuration files to configure a simulation run.
+Example terminal invocation can be found in `taskfile.yaml` and example configuration files in the `examples` directory.
 
 E.g.: `./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml -tr example/basic/traffic.csv -a -log`
 
@@ -29,7 +43,7 @@ E.g.: `./simulator -c example/basic/config.yaml -t example/basic/3-3-square.xml 
 
 ### Simulation Configuration File
 
-Simulation & hardware characteristics are configured in a *yaml* file.
+Simulation & hardware characteristics are configured using a *yaml* file.
 
 E.g. `config.yaml`:
 ``` yaml
@@ -45,8 +59,9 @@ processing_delay: 1
 
 ### Topology Configuration File
 
-Network topology is configured by a [*GraphML*](http://graphml.graphdrawing.org/) file, 
-Every edge definition will create a full duplex connection between specified nodes, i.e. only `n1 - n2` needs be defined as opposed to `n1 -> n2` & `n2 -> n1`.
+Network topology is defined using [*GraphML*](http://graphml.graphdrawing.org/). 
+
+*Note*: Edge definitions are undirected meaning an edge definition will create a full duplex connection between specified nodes, i.e. only `n1 - n2` needs be defined as opposed to `n1 -> n2` & `n2 -> n1`.
 
 E.g. `topology.xml`:
 ``` xml
@@ -133,20 +148,20 @@ t5,0,0,5334,0,25,25.00,25,25,true,1,27,27,false
 - `Jitter_Plus_Shi_Burns` *(requires analysis)*: the traffic flow's release jitter added to Shi & Burns worst case network latency [[1]](#1), giving the traffic flow's latency upper bound according to Shi & Burns.
 - `Shi_Burns_Schedulable` *(requires analysis)*: the traffic flow's schedulability according to Shi and Burns [[1]](#1).
 
-# Important Notes
-
-## Notes
+## Notes on NoC Analysis
 
 Please be aware Shi & Burns analysis model is not correct and has been shown to produce optimistic latency upper bounds under specific routing combinations [[6]](#6).
 More recent paper have provided fixes for this flaw and should be used as an alternative [[7]](#7).
+I have not yet implemented state-of-the-art analysis as my research that spawned this simulator did not require one.
+I do plan to implement a more modern analysis model when I get the time but if you require one in the meantime do not hesitate to submit a PR.
 
 ## Usage & Acknowledgements
 
 **TODO**
 
-This project is available for use under the **INSERT** license.
+This project is available for use under the Apache 2.0 license.
 
-We do however request that any academic publications which utilize this simulator cite the repository in their paper.
+We do also request that any academic publications which utilize this simulator cite the repository in their paper.
 
 E.g. for BibLaTeX citations:
 ```bibtex
@@ -164,6 +179,8 @@ E.g. for BibLaTeX citations:
 This project is maintained in my spare time for my research on NoCs.
 As such any contributions are very welcome though please be aware I will respond as best my schedule allows.
 
+Please run `golangci-lint` on your committed code before submitting a PR, code not adhering to these standards will not be accepted.
+
 Contributions implementing more recent NoC analysis models would be particularly welcome.
 
 ## References
@@ -180,4 +197,4 @@ Song, H., Kwon, B. and Yoon, H., 1999. Throttle and preempt: a flow control poli
 - <a id='6'>[6]</a>
 Xiong, H., Lu, Z., Wu, F., Xie, C., 2016. Real-time analysis for wormhole NoC: revisited and revised. *Proceeding of the 26th edition on Great Lakes Symposium on VLSI*.
 - <a id='7'>[7]</a>
-Indrusiak, L. S., Nikolic, B., Burns, A., 2016. Analysis of buffering effects on hard real-time priority-preemptive wormhole networks, *arXiv:1606.02942*.
+Nikolic, B., Tobuschat, S., Indrusiak, L. S., Ernst, R. and Burns A., 2019. Real-time analysis of priority-preemptive NoCs with arbitrary buffer sizes and router delays, Real-Time Systems, vol. 55:63-105.
